@@ -170,24 +170,25 @@ export default function QuizPage() {
 
       if (selectedCategory) {
         // 카테고리별 데이터 로드 — 선택한 학당의 문제만 출제
+        // INITIAL_QUIZ_DATA는 category 필드가 없으므로 literacy 태그를 명시적으로 추가
         const CATEGORY_BASE: Record<QuizCategory, QuizQuestion[]> = {
-          literacy:  INITIAL_QUIZ_DATA,
+          literacy:  INITIAL_QUIZ_DATA.map(q => ({ ...q, category: 'literacy' as const })),
           proverbs:  PROVERBS_QUESTIONS,
           idioms:    IDIOMS_QUESTIONS,
           history:   HISTORY_QUESTIONS,
           etiquette: ETIQUETTE_QUESTIONS,
         };
 
-        // 내장 문제 + AI 뱅크 합산 (선택 카테고리만)
+        // AI 뱅크 로드 (선택 카테고리 전용 스토리지)
         const aiBank = await getOrBuildCategoryBank(selectedCategory);
         const aiExtra = getCategoryAIQuestions(selectedCategory);
 
-        // 선택한 카테고리 문제만 — category 필드가 없는 구형 문제는 제외
+        // 엄격한 카테고리 일치 필터 — category가 없거나 다른 문제는 절대 포함 안 함
         const basePool = CATEGORY_BASE[selectedCategory].filter(
-          q => !q.category || q.category === selectedCategory
+          q => q.category === selectedCategory
         );
         const aiPool = [...aiBank, ...aiExtra].filter(
-          q => !q.category || q.category === selectedCategory
+          q => q.category === selectedCategory
         );
 
         questions = [...basePool, ...aiPool]
@@ -230,9 +231,9 @@ export default function QuizPage() {
     const w1 = Math.max(0, 1 - w0 - w2);
     const weights: [number, number, number] = [w0, w1, w2];
 
-    // ── 카테고리 필터 (이중 보호) ─────────────────────────
+    // ── 카테고리 필터 (엄격 — category 필드가 정확히 일치하는 문제만) ──
     const categoryFiltered = selectedCategory
-      ? allQuestions.filter(q => !q.category || q.category === selectedCategory)
+      ? allQuestions.filter(q => q.category === selectedCategory)
       : allQuestions;
 
     // ── 문제 다양성: 안 본 문제 우선 ──────────────────────

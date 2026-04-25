@@ -363,7 +363,12 @@ const CATEGORY_BANK_META_KEY = (cat: QuizCategory) => `ai_bank_meta_${cat}`;
 function loadCategoryBank(category: QuizCategory): QuizQuestion[] {
   try {
     const raw = localStorage.getItem(CATEGORY_BANK_KEY(category));
-    return raw ? (JSON.parse(raw) as QuizQuestion[]) : [];
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as QuizQuestion[];
+    // 저장된 데이터에 category가 없거나 다른 경우 강제 태깅 (오염 데이터 방지)
+    return parsed
+      .filter(q => !q.category || q.category === category)
+      .map(q => ({ ...q, category }));
   } catch { return []; }
 }
 
