@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { getLevelByXP } from '../data/levels';
 import type { QuizCategory, CategoryStats } from '../types/hakdang';
-import { HAKDANGS, DEFAULT_CATEGORY_STATS } from '../types/hakdang';
+import { HAKDANGS } from '../types/hakdang';
 
 // ─── 유틸 ─────────────────────────────────────────────────────
 function getAccuracyRate(stat: { played: number; correct: number }): number {
@@ -165,12 +165,7 @@ function HakdangCard({
 export default function HakdangHubPage() {
   const navigate = useNavigate();
 
-  // categoryStats가 store에 추가되면 실제 데이터 사용
-  // 현재는 store에 없으므로 DEFAULT_CATEGORY_STATS를 fallback으로 사용
-  const { player } = useGameStore();
-  // TODO: store에 categoryStats 추가 후 아래 줄로 교체
-  // const { player, categoryStats } = useGameStore();
-  const categoryStats: CategoryStats = DEFAULT_CATEGORY_STATS;
+  const { player, categoryStats } = useGameStore();
 
   const currentLevel = getLevelByXP(player.xp);
   const leastPlayed = useMemo(() => getLeastPlayed(categoryStats), [categoryStats]);
