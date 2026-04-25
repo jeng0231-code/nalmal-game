@@ -99,7 +99,7 @@ export default function QuizPage() {
     recordMinigamePlayed, recordStageCleared, resetSession, spendCoins,
     unlockedAchievements, wrongAnswers, addWrongAnswer, removeWrongAnswer,
     seenQuestionIds, markQuestionsSeen,
-    cycleCount, incrementCycle, addXP, categoryStats, updateCategoryStats,
+    cycleCount, incrementCycle, addXP, updateCategoryStats,
   } = useGameStore();
 
   const [searchParams] = useSearchParams();
@@ -169,7 +169,7 @@ export default function QuizPage() {
       let questions: QuizQuestion[];
 
       if (selectedCategory) {
-        // 카테고리별 데이터 로드 (60% 선택 카테고리 + 40% 부족 카테고리)
+        // 카테고리별 데이터 로드 — 선택한 학당의 문제만 출제
         const CATEGORY_BASE: Record<QuizCategory, QuizQuestion[]> = {
           literacy:  INITIAL_QUIZ_DATA,
           proverbs:  PROVERBS_QUESTIONS,
@@ -178,32 +178,20 @@ export default function QuizPage() {
           etiquette: ETIQUETTE_QUESTIONS,
         };
 
-        // AI 뱅크 병렬 로드
+        // 내장 문제 + AI 뱅크 합산 (선택 카테고리만)
         const aiBank = await getOrBuildCategoryBank(selectedCategory);
         const aiExtra = getCategoryAIQuestions(selectedCategory);
-        const primaryPool = [
-          ...CATEGORY_BASE[selectedCategory],
-          ...aiBank,
-          ...aiExtra,
-        ].filter((q, i, arr) => arr.findIndex(x => x.id === q.id) === i);
 
-        // 가장 덜 플레이한 카테고리 찾기 (밸런스 40%)
-        const leastPlayed = Object.entries(categoryStats)
-          .filter(([cat]) => cat !== selectedCategory)
-          .sort(([, a], [, b]) => a.played - b.played)
-          .slice(0, 2)
-          .map(([cat]) => cat as QuizCategory);
+        // 선택한 카테고리 문제만 — category 필드가 없는 구형 문제는 제외
+        const basePool = CATEGORY_BASE[selectedCategory].filter(
+          q => !q.category || q.category === selectedCategory
+        );
+        const aiPool = [...aiBank, ...aiExtra].filter(
+          q => !q.category || q.category === selectedCategory
+        );
 
-        const supplementPool: QuizQuestion[] = [];
-        for (const cat of leastPlayed) {
-          supplementPool.push(...CATEGORY_BASE[cat], ...getCategoryAIQuestions(cat));
-        }
-
-        // 60% primary + 40% supplement 합산
-        questions = [
-          ...primaryPool,
-          ...supplementPool.filter((q, i, arr) => arr.findIndex(x => x.id === q.id) === i),
-        ].filter((q, i, arr) => arr.findIndex(x => x.id === q.id) === i);
+        questions = [...basePool, ...aiPool]
+          .filter((q, i, arr) => arr.findIndex(x => x.id === q.id) === i); // 중복 제거
       } else {
         // 전체 카테고리 모드 (기존 동작)
         const aiBank = await getOrBuildAIBank();
@@ -242,10 +230,15 @@ export default function QuizPage() {
     const w1 = Math.max(0, 1 - w0 - w2);
     const weights: [number, number, number] = [w0, w1, w2];
 
+    // ── 카테고리 필터 (이중 보호) ─────────────────────────
+    const categoryFiltered = selectedCategory
+      ? allQuestions.filter(q => !q.category || q.category === selectedCategory)
+      : allQuestions;
+
     // ── 문제 다양성: 안 본 문제 우선 ──────────────────────
     const seenSet = new Set(seenQuestionIds);
-    const unseen = allQuestions.filter(q => !seenSet.has(q.id));
-    const seen   = allQuestions.filter(q => seenSet.has(q.id));
+    const unseen = categoryFiltered.filter(q => !seenSet.has(q.id));
+    const seen   = categoryFiltered.filter(q => seenSet.has(q.id));
 
     function pickByWeight(pool: typeof allQuestions, count: number) {
       if (pool.length === 0 || count <= 0) return [];
@@ -277,10 +270,10 @@ export default function QuizPage() {
       const extra = pickByWeight(seen.filter(q => !pickedIds.has(q.id)), QUESTIONS_PER_STAGE - selected.length);
       selected = [...selected, ...extra];
     }
-    // 최종 보충
+    // 최종 보충 (카테고리 필터 적용된 풀에서만)
     if (selected.length < QUESTIONS_PER_STAGE) {
       const pickedIds = new Set(selected.map(q => q.id));
-      const rest = allQuestions.filter(q => !pickedIds.has(q.id)).sort(() => Math.random() - 0.5);
+      const rest = categoryFiltered.filter(q => !pickedIds.has(q.id)).sort(() => Math.random() - 0.5);
       selected = [...selected, ...rest].slice(0, QUESTIONS_PER_STAGE);
     }
 
@@ -291,7 +284,7 @@ export default function QuizPage() {
     setStageIndex(0);
     setStageClearCorrect(0);
     setPhase('quiz');
-  }, [allQuestions, setQuestions, player.level, seenQuestionIds, markQuestionsSeen, cycleCount]);
+  }, [allQuestions, setQuestions, player.level, seenQuestionIds, markQuestionsSeen, cycleCount, selectedCategory]);
 
   // ─── 문제 진행 공통 함수 ────────────────────────────────
   const advanceQuestion = useCallback(() => {
