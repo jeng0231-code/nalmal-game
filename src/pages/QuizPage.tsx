@@ -3,7 +3,14 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { ACHIEVEMENTS } from '../data/achievements';
 import { INITIAL_QUIZ_DATA } from '../data/quizData';
-import { getOrBuildAIBank } from '../services/claudeApi';
+import { PROVERBS_QUESTIONS } from '../data/proverbsData';
+import { IDIOMS_QUESTIONS } from '../data/idiomsData';
+import { HISTORY_QUESTIONS } from '../data/historyData';
+import { ETIQUETTE_QUESTIONS } from '../data/etiquetteData';
+import { getOrBuildAIBank, getOrBuildCategoryBank, getCategoryAIQuestions } from '../services/claudeApi';
+import GateQuizPage from './GateQuizPage';
+import type { QuizCategory } from '../types/hakdang';
+import { HAKDANGS } from '../types/hakdang';
 import OXQuiz from '../components/quiz/OXQuiz';
 import MultipleChoiceQuiz from '../components/quiz/MultipleChoiceQuiz';
 import RewardModal from '../components/ui/RewardModal';
@@ -92,11 +99,13 @@ export default function QuizPage() {
     recordMinigamePlayed, recordStageCleared, resetSession, spendCoins,
     unlockedAchievements, wrongAnswers, addWrongAnswer, removeWrongAnswer,
     seenQuestionIds, markQuestionsSeen,
-    cycleCount, incrementCycle, addXP,
+    cycleCount, incrementCycle, addXP, categoryStats, updateCategoryStats,
   } = useGameStore();
 
   const [searchParams] = useSearchParams();
   const isReviewMode = searchParams.get('mode') === 'review';
+  const categoryParam = searchParams.get('category');
+  const selectedCategory = (categoryParam && categoryParam !== 'random') ? categoryParam as QuizCategory : null;
 
   const [phase, setPhase] = useState<Phase>('loading');
   const [allQuestions, setAllQuestions] = useState<QuizQuestion[]>([]);
@@ -109,7 +118,7 @@ export default function QuizPage() {
   const [loadError, setLoadError] = useState(false);            // 로딩 에러 상태
 
   // 타이머
-  const TIMER_DURATION = 15;
+  const TIMER_DURATION = 30;
   const [timeLeft, setTimeLeft] = useState(TIMER_DURATION);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -117,9 +126,13 @@ export default function QuizPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const confettiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // 🚪 관문 시험
+  const [showGateQuiz, setShowGateQuiz] = useState(false);
+  const [pendingNextStage, setPendingNextStage] = useState(false);
+
   // ⚡ 스피드 라운드 (매 5번째 문제)
   const isSpeedRound = phase === 'quiz' && stageIndex % 5 === 4;
-  const speedRoundDuration = 5;
+  const speedRoundDuration = 10;
   const effectiveTimerDuration = isSpeedRound ? speedRoundDuration : TIMER_DURATION;
 
   // wrongAnswers ref (loadQuestions가 wrongAnswers 변경 시 재실행되지 않도록)
@@ -153,9 +166,50 @@ export default function QuizPage() {
 
     setLoading(true);
     try {
-      // 내장 110문제 + AI 누적 뱅크 합산
-      const aiBank = await getOrBuildAIBank();
-      const questions = [...INITIAL_QUIZ_DATA, ...aiBank];
+      let questions: QuizQuestion[];
+
+      if (selectedCategory) {
+        // 카테고리별 데이터 로드 (60% 선택 카테고리 + 40% 부족 카테고리)
+        const CATEGORY_BASE: Record<QuizCategory, QuizQuestion[]> = {
+          literacy:  INITIAL_QUIZ_DATA,
+          proverbs:  PROVERBS_QUESTIONS,
+          idioms:    IDIOMS_QUESTIONS,
+          history:   HISTORY_QUESTIONS,
+          etiquette: ETIQUETTE_QUESTIONS,
+        };
+
+        // AI 뱅크 병렬 로드
+        const aiBank = await getOrBuildCategoryBank(selectedCategory);
+        const aiExtra = getCategoryAIQuestions(selectedCategory);
+        const primaryPool = [
+          ...CATEGORY_BASE[selectedCategory],
+          ...aiBank,
+          ...aiExtra,
+        ].filter((q, i, arr) => arr.findIndex(x => x.id === q.id) === i);
+
+        // 가장 덜 플레이한 카테고리 찾기 (밸런스 40%)
+        const leastPlayed = Object.entries(categoryStats)
+          .filter(([cat]) => cat !== selectedCategory)
+          .sort(([, a], [, b]) => a.played - b.played)
+          .slice(0, 2)
+          .map(([cat]) => cat as QuizCategory);
+
+        const supplementPool: QuizQuestion[] = [];
+        for (const cat of leastPlayed) {
+          supplementPool.push(...CATEGORY_BASE[cat], ...getCategoryAIQuestions(cat));
+        }
+
+        // 60% primary + 40% supplement 합산
+        questions = [
+          ...primaryPool,
+          ...supplementPool.filter((q, i, arr) => arr.findIndex(x => x.id === q.id) === i),
+        ].filter((q, i, arr) => arr.findIndex(x => x.id === q.id) === i);
+      } else {
+        // 전체 카테고리 모드 (기존 동작)
+        const aiBank = await getOrBuildAIBank();
+        questions = [...INITIAL_QUIZ_DATA, ...aiBank];
+      }
+
       if (questions.length === 0) throw new Error('문제 없음');
       setAllQuestions(questions);
       setPhase('stage-intro');
@@ -164,7 +218,7 @@ export default function QuizPage() {
     } finally {
       setLoading(false);
     }
-  }, [setLoading, resetSession, isReviewMode, setQuestions]); // wrongAnswers는 ref로 접근 → deps 제외
+  }, [setLoading, resetSession, isReviewMode, setQuestions, selectedCategory]); // wrongAnswers는 ref로 접근 → deps 제외
 
   useEffect(() => { loadQuestions(); }, [loadQuestions]);
 
@@ -266,6 +320,9 @@ export default function QuizPage() {
       setLastExplanation(q.explanation);   // RewardModal에 해설 전달
       answerCorrect(q.xpReward, q.coinReward);
       setStageClearCorrect(p => p + 1);
+      // 카테고리 통계 업데이트
+      const qCat = (q.category as QuizCategory) || selectedCategory || 'literacy';
+      updateCategoryStats(qCat, true);
       // ⚡ 스피드 라운드 보너스 (2배 코인)
       if (isSpeedRound) addCoins(q.coinReward * 2);
       // ⏱ 빠른 정답 보너스 코인
@@ -282,6 +339,9 @@ export default function QuizPage() {
       }
     } else {
       answerWrong();
+      // 카테고리 통계 업데이트
+      const qCat = (q.category as QuizCategory) || selectedCategory || 'literacy';
+      updateCategoryStats(qCat, false);
       // 일반 모드: 틀린 문제 저장
       if (!isReviewMode) addWrongAnswer(q);
       // 하트 감소 흔들림 애니메이션
@@ -365,15 +425,47 @@ export default function QuizPage() {
       confettiTimerRef.current = setTimeout(() => setShowConfetti(false), 2500);
       setPhase('cycle-clear');
     } else {
-      setCurrentStage(nextStage);
-      setPhase('stage-intro');
+      // 관문 시험 표시 (스테이지 1→2, 2→3, 3→4 전환 시)
+      setPendingNextStage(true);
+      setShowGateQuiz(true);
     }
   }, [currentStage, recordStageCleared, incrementCycle]);
+
+  const handleGatePass = useCallback(() => {
+    setShowGateQuiz(false);
+    setPendingNextStage(false);
+    setCurrentStage(prev => prev + 1);
+    setPhase('stage-intro');
+  }, []);
+
+  const handleGateFail = useCallback(() => {
+    setShowGateQuiz(false);
+    setPendingNextStage(false);
+    // 실패해도 다음 스테이지로 진행 (처벌은 없음, 단지 보너스 XP 못 받음)
+    setCurrentStage(prev => prev + 1);
+    setPhase('stage-intro');
+  }, []);
 
   const stageConfig = STAGE_CONFIG[Math.min(currentStage - 1, STAGE_CONFIG.length - 1)];
   const accuracy = stageClearCorrect > 0
     ? Math.round(stageClearCorrect / QUESTIONS_PER_STAGE * 100) : 0;
   const stageStars = accuracy === 100 ? 3 : accuracy >= 80 ? 2 : accuracy >= 50 ? 1 : 0;
+
+  // ─── 관문 시험 오버레이 ──────────────────────────────────
+  if (showGateQuiz && pendingNextStage) {
+    const fromCfg = STAGE_CONFIG[Math.min(currentStage - 1, STAGE_CONFIG.length - 1)];
+    const toCfg = STAGE_CONFIG[Math.min(currentStage, STAGE_CONFIG.length - 1)];
+    return (
+      <div className="joseon-bg min-h-screen">
+        <GateQuizPage
+          fromLevel={`${fromCfg.label} (Stage ${currentStage})`}
+          toLevel={`${toCfg.label} (Stage ${currentStage + 1})`}
+          onPass={handleGatePass}
+          onFail={handleGateFail}
+        />
+      </div>
+    );
+  }
 
   // ─── 로딩 ────────────────────────────────────────────────
   if (phase === 'loading') {
@@ -426,6 +518,15 @@ export default function QuizPage() {
     return (
       <div className="joseon-bg min-h-screen flex flex-col items-center justify-center p-6">
         <div className="card-joseon p-8 max-w-sm w-full text-center">
+          {selectedCategory && (() => {
+            const h = HAKDANGS.find(hd => hd.id === selectedCategory);
+            return h ? (
+              <div className={`inline-flex items-center gap-2 bg-gradient-to-r ${h.color} rounded-full px-4 py-1.5 mb-3`}>
+                <span>{h.emoji}</span>
+                <span className={`font-bold text-sm ${h.accentColor}`}>{h.name} · {h.koreanName}</span>
+              </div>
+            ) : null;
+          })()}
           <div className={`text-6xl mb-3 animate-float`}>{stageConfig.emoji}</div>
           {cycleCount > 0 && (
             <div className="bg-purple-100 border border-purple-300 rounded-full px-3 py-1 text-xs font-bold text-purple-700 mb-2 inline-block">

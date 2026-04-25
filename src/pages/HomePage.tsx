@@ -273,6 +273,18 @@ export default function HomePage() {
           </button>
 
           <button
+            onClick={() => navigate('/hakdang')}
+            className="py-5 rounded-lg font-bold border-2 flex items-center justify-center gap-4 transition-all hover:opacity-90 active:scale-95"
+            style={{ background: 'linear-gradient(135deg, #E8F5E9, #C8E6C9)', borderColor: '#4CAF50' }}
+          >
+            <span className="text-4xl">🏛️</span>
+            <div className="text-left">
+              <div className="text-xl font-black text-green-800">학당 허브</div>
+              <div className="text-xs font-normal text-green-700 mt-0.5">속담 · 사자성어 · 역사 · 예절 · 문해력</div>
+            </div>
+          </button>
+
+          <button
             onClick={() => navigate('/profile')}
             className="py-5 rounded-lg font-bold text-joseon-dark border-2 border-joseon-brown flex items-center justify-center gap-4 transition-all hover:bg-joseon-cream"
             style={{ background: 'linear-gradient(135deg, #FFF8DC, #FFE4B5)' }}

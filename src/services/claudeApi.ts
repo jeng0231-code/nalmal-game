@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { QuizQuestion } from '../types';
+import type { QuizCategory } from '../types/hakdang';
 
 const RAW_KEY = import.meta.env.VITE_CLAUDE_API_KEY ?? '';
 
@@ -259,4 +260,164 @@ export function cacheAIQuestions(questions: QuizQuestion[]): void {
   const existing = loadBank();
   const unique = deduplicateByWord(existing, questions);
   saveBank([...existing, ...unique]);
+}
+
+// ─── 카테고리별 AI 문제 생성 ────────────────────────────────
+const CATEGORY_PROMPTS: Record<QuizCategory, { system: string; userTemplate: (diff: string, xp: number, coin: number) => string }> = {
+  literacy: {
+    system: `당신은 초등학생을 위한 한국어 문해력 퀴즈 전문가입니다. 일상생활이나 학교에서 자주 쓰이지만 초등학생이 뜻을 모르는 한자어·사자성어를 골라 퀴즈로 만드세요. 반드시 아래 JSON 배열 형식만 출력하세요 (설명 텍스트, 마크다운 없이 순수 JSON만):`,
+    userTemplate: (diff, xp, coin) => `한국어 문해력 퀴즈 10개를 만들어 주세요.
+난이도: ${diff}
+OX 문제와 4지선다를 5:5 비율로 섞어서 만드세요.
+JSON 배열만 출력:
+[{"id":"ai_001","type":"OX","question":"문제","context":"예문","word":"핵심단어","answer":true,"explanation":"해설","difficulty":2,"xpReward":${xp},"coinReward":${coin},"category":"literacy"},
+{"id":"ai_002","type":"MULTIPLE","question":"문제","context":"예문","word":"핵심단어","answer":0,"choices":["정답","오답1","오답2","오답3"],"explanation":"해설","difficulty":2,"xpReward":${xp},"coinReward":${coin},"category":"literacy"}]`,
+  },
+  proverbs: {
+    system: `당신은 초등학생을 위한 한국 속담 퀴즈 전문가입니다. 실생활에서 쓰이는 속담의 뜻과 쓰임을 묻는 퀴즈를 만드세요. 반드시 JSON 배열 형식만 출력하세요.`,
+    userTemplate: (diff, xp, coin) => `한국 속담 퀴즈 10개를 만들어 주세요.
+난이도: ${diff}
+OX 문제와 4지선다를 5:5 비율로 섞어서 만드세요.
+속담 예시: 가는 말이 고와야 오는 말이 곱다, 세 살 버릇 여든까지 간다, 빈 수레가 요란하다, 원숭이도 나무에서 떨어진다, 소 잃고 외양간 고친다
+JSON 배열만 출력:
+[{"id":"ai_p001","type":"OX","question":"속담 문제","context":"상황 예문","word":"속담","answer":true,"explanation":"속담 해설","difficulty":2,"xpReward":${xp},"coinReward":${coin},"category":"proverbs"},
+{"id":"ai_p002","type":"MULTIPLE","question":"속담 문제","context":"상황 예문","word":"속담","answer":0,"choices":["정답","오답1","오답2","오답3"],"explanation":"속담 해설","difficulty":2,"xpReward":${xp},"coinReward":${coin},"category":"proverbs"}]`,
+  },
+  idioms: {
+    system: `당신은 초등학생을 위한 사자성어 퀴즈 전문가입니다. 사자성어의 뜻, 유래, 쓰임을 묻는 퀴즈를 만드세요. 반드시 JSON 배열 형식만 출력하세요.`,
+    userTemplate: (diff, xp, coin) => `사자성어 퀴즈 10개를 만들어 주세요.
+난이도: ${diff}
+OX 문제와 4지선다를 5:5 비율로 섞어서 만드세요.
+사자성어 예시: 일석이조, 대기만성, 사면초가, 오리무중, 이구동성, 청출어람, 우공이산, 형설지공, 주경야독, 낭중지추
+JSON 배열만 출력:
+[{"id":"ai_i001","type":"OX","question":"사자성어 문제","context":"상황 예문","word":"사자성어","answer":true,"explanation":"사자성어 해설(한자 뜻 포함)","difficulty":2,"xpReward":${xp},"coinReward":${coin},"category":"idioms"},
+{"id":"ai_i002","type":"MULTIPLE","question":"사자성어 문제","context":"상황 예문","word":"사자성어","answer":0,"choices":["정답","오답1","오답2","오답3"],"explanation":"사자성어 해설","difficulty":2,"xpReward":${xp},"coinReward":${coin},"category":"idioms"}]`,
+  },
+  history: {
+    system: `당신은 초등학생을 위한 한국 역사 퀴즈 전문가입니다. 한국의 역사적 사건, 인물, 문화를 묻는 퀴즈를 만드세요. 반드시 JSON 배열 형식만 출력하세요.`,
+    userTemplate: (diff, xp, coin) => `한국 역사 퀴즈 10개를 만들어 주세요.
+난이도: ${diff}
+OX 문제와 4지선다를 5:5 비율로 섞어서 만드세요.
+범위: 단군조선~현대사, 위인(세종대왕, 이순신, 유관순 등), 문화유산(한글, 거북선, 훈민정음 등)
+JSON 배열만 출력:
+[{"id":"ai_h001","type":"OX","question":"역사 문제","context":"역사적 맥락","word":"핵심 단어/인물","answer":true,"explanation":"역사 해설","difficulty":2,"xpReward":${xp},"coinReward":${coin},"category":"history"},
+{"id":"ai_h002","type":"MULTIPLE","question":"역사 문제","context":"역사적 맥락","word":"핵심 단어/인물","answer":0,"choices":["정답","오답1","오답2","오답3"],"explanation":"역사 해설","difficulty":2,"xpReward":${xp},"coinReward":${coin},"category":"history"}]`,
+  },
+  etiquette: {
+    system: `당신은 초등학생을 위한 한국 생활예절 퀴즈 전문가입니다. 가정, 학교, 공공장소에서의 바른 예절을 묻는 퀴즈를 만드세요. 반드시 JSON 배열 형식만 출력하세요.`,
+    userTemplate: (diff, xp, coin) => `한국 생활예절 퀴즈 10개를 만들어 주세요.
+난이도: ${diff}
+OX 문제와 4지선다를 5:5 비율로 섞어서 만드세요.
+범위: 인사 예절, 식사 예절, 어른에 대한 예절, 공공장소 예절, 전통 예절(절하기, 세배 등)
+JSON 배열만 출력:
+[{"id":"ai_e001","type":"OX","question":"예절 문제","context":"상황 묘사","word":"핵심 예절","answer":true,"explanation":"예절 해설","difficulty":2,"xpReward":${xp},"coinReward":${coin},"category":"etiquette"},
+{"id":"ai_e002","type":"MULTIPLE","question":"예절 문제","context":"상황 묘사","word":"핵심 예절","answer":0,"choices":["정답","오답1","오답2","오답3"],"explanation":"예절 해설","difficulty":2,"xpReward":${xp},"coinReward":${coin},"category":"etiquette"}]`,
+  },
+};
+
+/**
+ * 특정 카테고리 AI 문제 생성
+ */
+export async function generateCategoryQuestions(
+  category: QuizCategory,
+  difficulty: 1 | 2 | 3 = 2,
+  count: number = 10
+): Promise<QuizQuestion[]> {
+  if (!client) return [];
+
+  const diffLabel = difficulty === 1 ? '쉬운(초등 저학년)' : difficulty === 2 ? '보통(초등 중학년)' : '어려운(초등 고학년)';
+  const xp   = difficulty === 1 ? 30 : difficulty === 2 ? 50 : 80;
+  const coin = difficulty === 1 ? 5  : difficulty === 2 ? 8  : 12;
+
+  const prompts = CATEGORY_PROMPTS[category];
+
+  try {
+    const message = await client.messages.create({
+      model: 'claude-opus-4-5',
+      max_tokens: 3000,
+      system: prompts.system,
+      messages: [{ role: 'user', content: prompts.userTemplate(diffLabel, xp, coin) }],
+    });
+
+    const text = (message.content[0] as { type: string; text: string }).text?.trim() ?? '';
+    const match = text.match(/\[[\s\S]*\]/);
+    if (!match) return [];
+
+    const parsed = JSON.parse(match[0]) as QuizQuestion[];
+    const ts = Date.now();
+    return parsed.map((q, i) => ({
+      ...q,
+      id: `ai_${category}_${ts}_${i}`,
+      category,
+    })).slice(0, count);
+  } catch (e) {
+    console.error(`Claude API 오류 (${category}):`, e);
+    return [];
+  }
+}
+
+// ─── 카테고리별 AI 뱅크 ────────────────────────────────────
+const CATEGORY_BANK_KEY = (cat: QuizCategory) => `ai_bank_${cat}`;
+const CATEGORY_BANK_META_KEY = (cat: QuizCategory) => `ai_bank_meta_${cat}`;
+
+function loadCategoryBank(category: QuizCategory): QuizQuestion[] {
+  try {
+    const raw = localStorage.getItem(CATEGORY_BANK_KEY(category));
+    return raw ? (JSON.parse(raw) as QuizQuestion[]) : [];
+  } catch { return []; }
+}
+
+function saveCategoryBank(category: QuizCategory, questions: QuizQuestion[]): void {
+  const trimmed = questions.slice(-200);
+  localStorage.setItem(CATEGORY_BANK_KEY(category), JSON.stringify(trimmed));
+}
+
+function loadCategoryMeta(category: QuizCategory): { lastGenDate: string } {
+  try {
+    const raw = localStorage.getItem(CATEGORY_BANK_META_KEY(category));
+    return raw ? JSON.parse(raw) : { lastGenDate: '' };
+  } catch { return { lastGenDate: '' }; }
+}
+
+function saveCategoryMeta(category: QuizCategory, meta: { lastGenDate: string }): void {
+  localStorage.setItem(CATEGORY_BANK_META_KEY(category), JSON.stringify(meta));
+}
+
+/**
+ * 카테고리별 AI 뱅크 가져오기 (없거나 오래되면 새로 생성)
+ */
+export async function getOrBuildCategoryBank(category: QuizCategory): Promise<QuizQuestion[]> {
+  const bank = loadCategoryBank(category);
+  const meta = loadCategoryMeta(category);
+  const today = new Date().toISOString().split('T')[0];
+
+  if (meta.lastGenDate === today && bank.length >= 20) {
+    return bank;
+  }
+
+  if (!client) return bank;
+
+  try {
+    const [easy, mid, hard] = await Promise.all([
+      generateCategoryQuestions(category, 1, 10),
+      generateCategoryQuestions(category, 2, 10),
+      generateCategoryQuestions(category, 3, 10),
+    ]);
+    const newQ = [...easy, ...mid, ...hard];
+    const existingWords = new Set(bank.map(q => q.word?.toLowerCase()));
+    const unique = newQ.filter(q => !existingWords.has(q.word?.toLowerCase()));
+    const updated = [...bank, ...unique];
+    saveCategoryBank(category, updated);
+    saveCategoryMeta(category, { lastGenDate: today });
+    console.info(`${category} AI 뱅크: +${unique.length}개 추가 (총 ${updated.length}개)`);
+    return updated;
+  } catch (e) {
+    console.error(`${category} AI 뱅크 생성 실패:`, e);
+    return bank;
+  }
+}
+
+/** 카테고리별 AI 뱅크에서 문제 가져오기 */
+export function getCategoryAIQuestions(category: QuizCategory): QuizQuestion[] {
+  return loadCategoryBank(category);
 }

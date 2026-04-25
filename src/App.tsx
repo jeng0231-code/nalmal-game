@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import QuizPage from './pages/QuizPage';
+import HakdangHubPage from './pages/HakdangHubPage';
 import MiniGamePage from './pages/MiniGamePage';
 import ProfilePage from './pages/ProfilePage';
 import CharacterCreatorPage from './pages/CharacterCreatorPage';
@@ -10,6 +11,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/hakdang" element={<HakdangHubPage />} />
         <Route path="/quiz" element={<QuizPage />} />
         <Route path="/minigame" element={<MiniGamePage />} />
         <Route path="/profile" element={<ProfilePage />} />

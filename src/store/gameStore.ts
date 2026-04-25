@@ -5,6 +5,8 @@ import { getLevelByXP, JOSEON_LEVELS } from '../data/levels';
 import { ACHIEVEMENTS } from '../data/achievements';
 import type { CharacterConfig } from '../types/character';
 import { DEFAULT_CHARACTER } from '../types/character';
+import type { QuizCategory, CategoryStats } from '../types/hakdang';
+import { DEFAULT_CATEGORY_STATS } from '../types/hakdang';
 
 // ─── 출석 보상 (7일 사이클) ────────────────────────────────
 const ATTENDANCE_REWARDS = [
@@ -132,6 +134,10 @@ interface GameStore {
   // ── 캐릭터 커스터마이제이션 ──
   characterConfig: CharacterConfig;
   setCharacterConfig: (config: CharacterConfig) => void;
+
+  // ── 카테고리 통계 ──
+  categoryStats: CategoryStats;
+  updateCategoryStats: (category: QuizCategory, wasCorrect: boolean) => void;
 }
 
 const DEFAULT_PLAYER: PlayerState = {
@@ -181,6 +187,7 @@ export const useGameStore = create<GameStore>()(
       seenQuestionIds: [],
       cycleCount: 0,
       characterConfig: DEFAULT_CHARACTER,
+      categoryStats: DEFAULT_CATEGORY_STATS,
 
       // ─────────────────────────────────────────────────────
       // 기본 액션
@@ -573,6 +580,23 @@ export const useGameStore = create<GameStore>()(
       setCharacterConfig: (config) => {
         set({ characterConfig: config });
       },
+
+      /** 카테고리별 통계 업데이트 */
+      updateCategoryStats: (category, wasCorrect) => {
+        const { categoryStats } = get();
+        const stat = categoryStats[category];
+        const today = todayStr();
+        set({
+          categoryStats: {
+            ...categoryStats,
+            [category]: {
+              played: stat.played + 1,
+              correct: wasCorrect ? stat.correct + 1 : stat.correct,
+              lastPlayed: today,
+            },
+          },
+        });
+      },
     }),
     {
       name: 'joseon-literacy-game',
@@ -592,6 +616,7 @@ export const useGameStore = create<GameStore>()(
         seenQuestionIds: state.seenQuestionIds,
         cycleCount: state.cycleCount,
         characterConfig: state.characterConfig,
+        categoryStats: state.categoryStats,
       }),
     }
   )

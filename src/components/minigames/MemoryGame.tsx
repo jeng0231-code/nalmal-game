@@ -1,146 +1,185 @@
-import { useState, useRef, useCallback } from 'react';
+import type { FC } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface MemoryGameProps {
   onComplete: (score: number) => void;
   level?: number;
 }
 
-const CARDS = [
-  { id: 0, emoji: '📜', label: '서당' },
-  { id: 1, emoji: '🎓', label: '선비' },
-  { id: 2, emoji: '👑', label: '임금' },
-  { id: 3, emoji: '⚔️', label: '무관' },
-  { id: 4, emoji: '🏯', label: '궁궐' },
-  { id: 5, emoji: '🎯', label: '과거' },
-  { id: 6, emoji: '🪶', label: '붓글씨' },
-  { id: 7, emoji: '🥁', label: '북소리' },
+const ANIMAL_EMOJIS = [
+  '🐶', '🐱', '🐭', '🐹', '🐰', '🦊',
+  '🐻', '🐼', '🐨', '🐯', '🦁', '🐮',
+  '🐷', '🐸', '🐙', '🦋', '🐝', '🦄',
+  '🐲', '🦀',
 ];
 
-export default function MemoryGame({ onComplete, level = 1 }: MemoryGameProps) {
-  const cardCount = Math.min(4 + Math.floor((level - 1) / 2), 8);
-  const startLen  = Math.min(2 + Math.floor((level - 1) / 3), 5);
-  const TOTAL_ROUNDS = 3;
-  const SHOW_DELAY = Math.max(400, 700 - level * 30);
+interface CardState {
+  id: number;       // unique instance id (0..totalCards-1)
+  pairId: number;   // which pair this card belongs to
+  emoji: string;
+  flipped: boolean;
+  matched: boolean;
+}
 
-  const activeCards = CARDS.slice(0, cardCount);
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
-  type Phase = 'ready' | 'showing' | 'input' | 'success' | 'fail' | 'done';
-  const [phase, setPhase]         = useState<Phase>('ready');
-  const [round, setRound]         = useState(1);
-  const [score, setScore]         = useState(0);
-  const [sequence, setSequence]   = useState<number[]>([]);
-  const [userSeq, setUserSeq]     = useState<number[]>([]);
-  const [highlighted, setHighlighted] = useState<number | null>(null);
-  const [wrongCard, setWrongCard] = useState<number | null>(null);
-  const [successCard, setSuccessCard] = useState<number | null>(null);
+const MemoryGame: FC<MemoryGameProps> = ({ onComplete, level = 1 }) => {
+  const pairCount = level <= 3 ? 6 : level <= 6 ? 8 : 10;
+  const TOTAL_TIME = 60 + level * 5;
 
-  const seqRef   = useRef<number[]>([]);
-  const roundRef = useRef(1);
+  type Phase = 'ready' | 'playing' | 'done';
+  const [phase, setPhase] = useState<Phase>('ready');
+  const [cards, setCards] = useState<CardState[]>([]);
+  const [_flippedIds, setFlippedIds] = useState<number[]>([]);
+  const [matchedPairs, setMatchedPairs] = useState(0);
+  const [moves, setMoves] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
+  const [score, setScore] = useState(0);
+  const [locked, setLocked] = useState(false);
 
-  const genSequence = useCallback((len: number) => {
-    return Array.from({ length: len }, () => Math.floor(Math.random() * cardCount));
-  }, [cardCount]);
+  const buildCards = useCallback((): CardState[] => {
+    const emojis = ANIMAL_EMOJIS.slice(0, pairCount);
+    const pairs: Omit<CardState, 'id'>[] = emojis.flatMap((emoji, pairId) => [
+      { pairId, emoji, flipped: false, matched: false },
+      { pairId, emoji, flipped: false, matched: false },
+    ]);
+    return shuffle(pairs).map((c, idx) => ({ ...c, id: idx }));
+  }, [pairCount]);
 
-  const showSequenceAsync = useCallback(async (seq: number[]) => {
-    setPhase('showing');
-    setUserSeq([]);
-    seqRef.current = seq;
-    await new Promise(r => setTimeout(r, 600));
-    for (let i = 0; i < seq.length; i++) {
-      setHighlighted(seq[i]);
-      await new Promise(r => setTimeout(r, SHOW_DELAY));
-      setHighlighted(null);
-      await new Promise(r => setTimeout(r, 200));
+  const startGame = useCallback(() => {
+    setCards(buildCards());
+    setFlippedIds([]);
+    setMatchedPairs(0);
+    setMoves(0);
+    setTimeLeft(TOTAL_TIME);
+    setScore(0);
+    setLocked(false);
+    setPhase('playing');
+  }, [buildCards, TOTAL_TIME]);
+
+  // Timer
+  useEffect(() => {
+    if (phase !== 'playing') return;
+    if (timeLeft <= 0) {
+      setPhase('done');
+      return;
     }
-    setPhase('input');
-  }, [SHOW_DELAY]);
+    const id = setTimeout(() => setTimeLeft(t => t - 1), 1000);
+    return () => clearTimeout(id);
+  }, [phase, timeLeft]);
 
-  const startRound = useCallback((r: number) => {
-    roundRef.current = r;
-    setRound(r);
-    const len = startLen + (r - 1);
-    const seq = genSequence(len);
-    setSequence(seq);
-    showSequenceAsync(seq);
-  }, [startLen, genSequence, showSequenceAsync]);
+  // Check win
+  useEffect(() => {
+    if (phase === 'playing' && matchedPairs === pairCount) {
+      const timeBonus = timeLeft * 3;
+      const moveBonus = Math.max(0, (pairCount * 4 - moves) * 5);
+      setScore(pairCount * 50 + timeBonus + moveBonus);
+      setPhase('done');
+    }
+  }, [matchedPairs, pairCount, phase, timeLeft, moves]);
 
   const handleCardClick = useCallback((cardId: number) => {
-    if (phase !== 'input') return;
-    setUserSeq(prev => {
-      const next = [...prev, cardId];
-      const pos = next.length - 1;
+    if (locked || phase !== 'playing') return;
 
-      if (next[pos] !== seqRef.current[pos]) {
-        setWrongCard(cardId);
-        setPhase('fail');
-        setTimeout(() => {
-          setWrongCard(null);
-          const nextRound = roundRef.current + 1;
-          if (nextRound > TOTAL_ROUNDS) {
-            setPhase('done');
-          } else {
-            startRound(nextRound);
-          }
-        }, 1000);
+    setCards(prev => {
+      const card = prev.find(c => c.id === cardId);
+      if (!card || card.flipped || card.matched) return prev;
+      return prev.map(c => c.id === cardId ? { ...c, flipped: true } : c);
+    });
+
+    setFlippedIds(prev => {
+      const card = cards.find(c => c.id === cardId);
+      if (!card || card.flipped || card.matched) return prev;
+
+      const next = [...prev, cardId];
+
+      if (next.length === 2) {
+        setMoves(m => m + 1);
+        setLocked(true);
+
+        const [firstId, secondId] = next;
+        const first = cards.find(c => c.id === firstId)!;
+        const second = cards.find(c => c.id === secondId)!;
+
+        if (first.pairId === second.pairId) {
+          // Match
+          setTimeout(() => {
+            setCards(cs => cs.map(c =>
+              c.id === firstId || c.id === secondId ? { ...c, matched: true } : c
+            ));
+            setMatchedPairs(p => p + 1);
+            setFlippedIds([]);
+            setLocked(false);
+          }, 400);
+        } else {
+          // No match
+          setTimeout(() => {
+            setCards(cs => cs.map(c =>
+              c.id === firstId || c.id === secondId ? { ...c, flipped: false } : c
+            ));
+            setFlippedIds([]);
+            setLocked(false);
+          }, 900);
+        }
         return next;
       }
 
-      setSuccessCard(cardId);
-      setTimeout(() => setSuccessCard(null), 300);
-
-      if (next.length === seqRef.current.length) {
-        const roundScore = seqRef.current.length * 10;
-        setScore(s => s + roundScore);
-        setPhase('success');
-        setTimeout(() => {
-          const nextRound = roundRef.current + 1;
-          if (nextRound > TOTAL_ROUNDS) {
-            setPhase('done');
-          } else {
-            startRound(nextRound);
-          }
-        }, 800);
-      }
       return next;
     });
-  }, [phase, startRound]);
+  }, [locked, phase, cards]);
+
+  const cols = pairCount <= 6 ? 4 : pairCount <= 8 ? 4 : 5;
+  const emojiSize = pairCount <= 6 ? 'text-4xl' : pairCount <= 8 ? 'text-3xl' : 'text-2xl';
 
   if (phase === 'ready') {
     return (
       <div className="flex flex-col items-center gap-5 p-4">
-        <div className="text-6xl animate-bounce">🧠</div>
-        <h2 className="text-2xl font-black text-joseon-dark">기억력 게임</h2>
+        <div className="text-6xl animate-bounce">🐾</div>
+        <h2 className="text-2xl font-black text-joseon-dark">동물 카드 짝 맞추기</h2>
         <div className="bg-joseon-gold/10 border border-joseon-gold/30 rounded-xl p-4 text-sm text-joseon-brown text-center max-w-xs">
-          <p className="font-bold mb-2">📖 게임 방법</p>
-          <p>카드가 순서대로 빛납니다.<br/>같은 순서로 클릭하세요!</p>
-          <div className="mt-2 flex justify-center gap-3 text-xs opacity-70">
-            <span>🃏 카드 {cardCount}개</span>
-            <span>🔢 시작길이 {startLen}</span>
-            <span>🏅 {TOTAL_ROUNDS}라운드</span>
+          <p className="font-bold mb-2">게임 방법</p>
+          <p>카드를 뒤집어 같은 동물끼리<br/>짝을 맞추세요!</p>
+          <div className="mt-3 flex justify-center gap-3 text-xs opacity-70">
+            <span>🃏 {pairCount}쌍</span>
+            <span>⏱ {TOTAL_TIME}초</span>
           </div>
         </div>
-        <button onClick={() => startRound(1)} className="btn-joseon px-10 py-4 text-lg">
-          시작! 🧠
+        <button onClick={startGame} className="btn-joseon px-10 py-4 text-lg">
+          시작!
         </button>
       </div>
     );
   }
 
   if (phase === 'done') {
-    const totalScore = Math.round(score * (1 + level * 0.1));
-    const coins = Math.max(5, Math.round(totalScore / 4));
+    const finalScore = matchedPairs === pairCount ? score : matchedPairs * 50;
+    const coins = Math.max(5, Math.round(finalScore / 10));
+    const perfect = matchedPairs === pairCount;
     return (
       <div className="flex flex-col items-center gap-4 p-4 text-center">
-        <div className="text-6xl animate-bounce">{score >= 60 ? '🏆' : score >= 30 ? '🎉' : '😅'}</div>
-        <h2 className="text-2xl font-black text-joseon-dark">기억력 게임 완료!</h2>
-        <div className="grid grid-cols-2 gap-3 w-full max-w-xs">
+        <div className="text-6xl animate-bounce">{perfect ? '🏆' : matchedPairs >= pairCount / 2 ? '🎉' : '😅'}</div>
+        <h2 className="text-2xl font-black text-joseon-dark">
+          {perfect ? '완벽 클리어!' : '시간 종료!'}
+        </h2>
+        <div className="grid grid-cols-3 gap-2 w-full max-w-sm">
           <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-center">
-            <div className="text-2xl font-black text-green-600">{score}</div>
-            <div className="text-xs text-green-700">기본 점수</div>
+            <div className="text-xl font-black text-green-600">{matchedPairs}/{pairCount}</div>
+            <div className="text-xs text-green-700">짝 맞춤</div>
+          </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center">
+            <div className="text-xl font-black text-blue-600">{moves}</div>
+            <div className="text-xs text-blue-700">시도 횟수</div>
           </div>
           <div className="bg-joseon-gold/10 border border-joseon-gold/30 rounded-xl p-3 text-center">
-            <div className="text-2xl font-black text-joseon-red">{totalScore}</div>
-            <div className="text-xs text-joseon-brown">레벨보너스 포함</div>
+            <div className="text-xl font-black text-joseon-red">{finalScore}</div>
+            <div className="text-xs text-joseon-brown">점수</div>
           </div>
         </div>
         <p className="text-joseon-brown text-sm font-bold">🪙 엽전 {coins}개 획득!</p>
@@ -153,71 +192,62 @@ export default function MemoryGame({ onComplete, level = 1 }: MemoryGameProps) {
 
   return (
     <div className="flex flex-col items-center gap-3 p-3">
-      <div className="flex justify-between w-full max-w-sm">
+      {/* 상단 정보 */}
+      <div className="flex justify-between items-center w-full max-w-sm">
         <span className="bg-joseon-gold/20 px-3 py-1 rounded-full text-xs font-bold text-joseon-dark">
-          라운드 {round}/{TOTAL_ROUNDS}
+          짝 {matchedPairs}/{pairCount}
+        </span>
+        <span className="bg-blue-100 px-3 py-1 rounded-full text-xs font-bold text-blue-700">
+          시도 {moves}회
         </span>
         <span className={`px-3 py-1 rounded-full text-xs font-black ${
-          phase === 'showing' ? 'bg-blue-100 text-blue-700 animate-pulse' :
-          phase === 'input'   ? 'bg-green-100 text-green-700' :
-          phase === 'success' ? 'bg-joseon-gold/30 text-joseon-dark' :
-          'bg-red-100 text-red-700'
+          timeLeft <= 10 ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-gray-100 text-gray-600'
         }`}>
-          {phase === 'showing' ? '👀 기억하세요!' :
-           phase === 'input'   ? `✏️ ${userSeq.length}/${sequence.length}` :
-           phase === 'success' ? '✅ 정답!' : '❌ 틀렸어요!'}
-        </span>
-        <span className="bg-purple-100 px-3 py-1 rounded-full text-xs font-bold text-purple-700">
-          🏆 {score}점
+          ⏱ {timeLeft}s
         </span>
       </div>
 
-      {/* 진행 도트 */}
-      <div className="flex gap-1.5">
-        {sequence.map((_, i) => (
-          <div key={i} className={`w-3 h-3 rounded-full transition-all ${
-            i < userSeq.length ? 'bg-joseon-gold' :
-            i === userSeq.length && phase === 'input' ? 'bg-white border-2 border-joseon-brown animate-pulse' :
-            'bg-gray-200'
-          }`} />
-        ))}
+      {/* 타이머 바 */}
+      <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden max-w-sm">
+        <div
+          className={`h-full transition-all duration-1000 rounded-full ${
+            timeLeft <= 10 ? 'bg-red-500' : timeLeft <= 20 ? 'bg-yellow-400' : 'bg-green-500'
+          }`}
+          style={{ width: `${(timeLeft / TOTAL_TIME) * 100}%` }}
+        />
       </div>
 
       {/* 카드 그리드 */}
-      <div className={`grid gap-2.5 w-full max-w-sm ${
-        cardCount <= 4 ? 'grid-cols-2' : cardCount <= 6 ? 'grid-cols-3' : 'grid-cols-4'
-      }`}>
-        {activeCards.map(card => {
-          const isHL  = highlighted === card.id;
-          const isWrong = wrongCard === card.id;
-          const isOk  = successCard === card.id;
+      <div
+        className="grid gap-2 w-full max-w-sm"
+        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+      >
+        {cards.map(card => {
+          const isVisible = card.flipped || card.matched;
           return (
             <button
               key={card.id}
               onClick={() => handleCardClick(card.id)}
-              disabled={phase !== 'input'}
-              className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 transition-all duration-200 select-none border-2 ${
-                isHL    ? 'bg-joseon-gold scale-110 border-joseon-gold shadow-lg shadow-joseon-gold/50' :
-                isWrong ? 'bg-red-400 scale-95 border-red-600' :
-                isOk    ? 'bg-green-400 scale-110 border-green-500' :
-                phase === 'input' ? 'bg-white border-joseon-brown/30 hover:bg-joseon-gold/10 active:scale-95 cursor-pointer' :
-                'bg-gray-100 border-gray-200 cursor-default'
+              disabled={isVisible || locked || phase !== 'playing'}
+              className={`aspect-square rounded-xl flex items-center justify-center transition-all duration-200 select-none border-2 ${
+                card.matched
+                  ? 'bg-green-100 border-green-400 cursor-default'
+                  : card.flipped
+                  ? 'bg-joseon-gold/20 border-joseon-gold scale-105 shadow-md'
+                  : 'bg-joseon-dark border-joseon-brown/60 hover:bg-joseon-brown/80 active:scale-95 cursor-pointer'
               }`}
             >
-              <span className={cardCount <= 4 ? 'text-4xl' : cardCount <= 6 ? 'text-3xl' : 'text-2xl'}>
-                {card.emoji}
-              </span>
-              <span className={`font-bold ${cardCount <= 4 ? 'text-sm' : 'text-xs'} text-joseon-dark`}>
-                {card.label}
-              </span>
+              {isVisible ? (
+                <span className={emojiSize}>{card.emoji}</span>
+              ) : (
+                <span className={`${emojiSize} opacity-30`}>?</span>
+              )}
             </button>
           );
         })}
       </div>
-
-      {phase === 'input' && (
-        <p className="text-xs text-joseon-brown/60">빛났던 순서대로 클릭하세요!</p>
-      )}
     </div>
   );
-}
+};
+
+export default MemoryGame;

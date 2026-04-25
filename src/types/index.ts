@@ -13,6 +13,7 @@ export interface QuizQuestion {
   difficulty: 1 | 2 | 3;
   xpReward: number;
   coinReward: number;
+  category?: string;
 }
 
 // 미니게임 타입
