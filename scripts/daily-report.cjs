@@ -113,6 +113,34 @@ function getStats() {
   }
 }
 
+/** AI 테스트 결과 읽기 */
+function getTestResults() {
+  const resultsFile = path.join(__dirname, 'test-results.json');
+  if (!fs.existsSync(resultsFile)) {
+    return '⏳ AI 테스트 결과 없음 (오전 10시 테스트 미실행)';
+  }
+  try {
+    const r = JSON.parse(fs.readFileSync(resultsFile, 'utf8'));
+    const runAt = new Date(r.runAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+    const lines = [`🕐 실행: ${runAt}`, `📊 ${r.summary}`];
+
+    if (r.failed.length > 0) {
+      lines.push('\n🔴 실패 항목:');
+      r.failed.slice(0, 5).forEach(f => lines.push(`  • ❌ ${f.name}${f.error ? ' — ' + f.error.slice(0, 80) : ''}`));
+    }
+    if (r.warnings.length > 0) {
+      lines.push('\n🟡 경고 항목:');
+      r.warnings.slice(0, 3).forEach(w => lines.push(`  • ⚠️ ${w.name}${w.detail ? ' — ' + w.detail.slice(0, 60) : ''}`));
+    }
+    if (r.failed.length === 0) {
+      lines.push('✅ 모든 테스트 통과!');
+    }
+    return lines.join('\n');
+  } catch {
+    return '⚠️ 테스트 결과 파일 읽기 오류';
+  }
+}
+
 /** 개선 권장사항 (정적 분석 기반) */
 function getRecommendations() {
   const items = [];
@@ -172,10 +200,15 @@ function buildReport() {
   const stats        = esc(getStats());
   const recs         = esc(getRecommendations());
   const roadmap      = esc(getRoadmap());
+  const testResults  = esc(getTestResults());
   const dateStr      = today();
 
   return `🏫 <b>K-Hakdang 일일 개발 보고서</b>
-📅 ${dateStr} · 오후 11:00 자동 발송
+📅 ${dateStr} · 오전 11:00 자동 발송
+
+━━━━━━━━━━━━━━━━━
+🤖 <b>AI 자동 테스트 결과</b>
+${testResults}
 
 ━━━━━━━━━━━━━━━━━
 📦 <b>최근 변경사항</b>
@@ -202,7 +235,7 @@ ${roadmap}
 K-Hakdang은 5개 학당(문해력·속담·사자성어·역사·생활예절) 플랫폼으로 확장 완료. 딸의 현장 테스트로 UX 이슈를 빠르게 식별·수정 중. 관문 시험·카테고리 밸런스 시스템이 편향 학습을 방지하는 핵심 기능으로 자리잡고 있음. AI 무한 문제 생성으로 반복 플레이 내구성 확보. 다음 단계는 데이터 시각화와 PWA 완성도 강화.
 
 ━━━━━━━━━━━━━━━━━
-🤖 K-Hakdang Dev Bot · 매일 밤 11시 자동 발송`;
+🤖 K-Hakdang Dev Bot · 매일 오전 11시 자동 발송`;
 }
 
 // ─── 텔레그램 전송 ──────────────────────────────────────────
