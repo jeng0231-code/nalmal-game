@@ -5,63 +5,92 @@ interface JegiGameProps {
 }
 
 const GAME_TIME = 15;
-const GRAVITY = 0.25;       // 중력 가속도 (낮을수록 천천히 떨어짐)
-const KICK_POWER = -7;      // 차올리는 힘
-const GROUND_Y = 75;        // 바닥 위치 (%)
-const CEILING_Y = 5;        // 천장 위치 (%)
+const GRAVITY = 0.22;
+const KICK_POWER = -8;
+const GROUND_Y = 72;
+const CEILING_Y = 8;
+
+// 차기 판정 구간
+const PERFECT_Y = GROUND_Y - 7;  // 바닥 직전 = 퍼펙트
+const GOOD_Y    = GROUND_Y - 22; // 바닥 근처  = 굿
+
+type Grade = 'perfect' | 'good' | 'miss' | null;
 
 export default function JegiGame({ onComplete }: JegiGameProps) {
   const [phase, setPhase] = useState<'ready' | 'playing' | 'result'>('ready');
   const [jegiY, setJegiY] = useState(GROUND_Y);
+  const [jegiX, setJegiX] = useState(50); // 좌우 표류 (%)
   const [count, setCount] = useState(0);
+  const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(GAME_TIME);
-  const [kickFlash, setKickFlash] = useState(false);
-  const [missFlash, setMissFlash] = useState(false);
+  const [combo, setCombo] = useState(0);
+  const [grade, setGrade] = useState<Grade>(null);
+  const [gradeKey, setGradeKey] = useState(0);
+  const [bgFlash, setBgFlash] = useState<'perfect' | 'good' | 'miss' | null>(null);
 
-  // 물리 상태를 ref로 관리 (re-render와 분리)
   const yRef = useRef(GROUND_Y);
-  const velRef = useRef(0);
+  const xRef = useRef(50);
+  const velYRef = useRef(0);
+  const velXRef = useRef(0);
   const rafRef = useRef<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const activeRef = useRef(false);
   const countRef = useRef(0);
+  const scoreRef = useRef(0);
+  const comboRef = useRef(0);
+  const gradeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const stopAll = useCallback(() => {
     activeRef.current = false;
     cancelAnimationFrame(rafRef.current);
     if (timerRef.current) clearInterval(timerRef.current);
+    if (gradeTimerRef.current) clearTimeout(gradeTimerRef.current);
   }, []);
 
   const physicsLoop = useCallback(() => {
     if (!activeRef.current) return;
 
-    velRef.current += GRAVITY;
-    yRef.current = Math.min(GROUND_Y, Math.max(CEILING_Y, yRef.current + velRef.current));
+    // 중력
+    velYRef.current += GRAVITY;
+    yRef.current = Math.min(GROUND_Y, Math.max(CEILING_Y, yRef.current + velYRef.current));
 
-    // 바닥 충돌 → 멈춤 (제기가 바닥에 닿은 상태)
+    // 좌우 표류 (위로 올라갈수록 흔들림 추가)
+    velXRef.current += (Math.random() - 0.5) * 0.3;
+    velXRef.current *= 0.97; // 감쇠
+    xRef.current = Math.min(80, Math.max(20, xRef.current + velXRef.current));
+
     if (yRef.current >= GROUND_Y) {
       yRef.current = GROUND_Y;
-      velRef.current = 0;
+      velYRef.current = 0;
+      velXRef.current = 0;
     }
 
     setJegiY(yRef.current);
+    setJegiX(xRef.current);
     rafRef.current = requestAnimationFrame(physicsLoop);
   }, []);
 
   const startGame = useCallback(() => {
     yRef.current = GROUND_Y;
-    velRef.current = 0;
+    velYRef.current = 0;
+    xRef.current = 50;
+    velXRef.current = 0;
     countRef.current = 0;
+    scoreRef.current = 0;
+    comboRef.current = 0;
     activeRef.current = true;
+
     setJegiY(GROUND_Y);
+    setJegiX(50);
     setCount(0);
+    setScore(0);
+    setCombo(0);
     setTimeLeft(GAME_TIME);
+    setGrade(null);
     setPhase('playing');
 
-    // 물리 루프 시작
     rafRef.current = requestAnimationFrame(physicsLoop);
 
-    // 타이머
     timerRef.current = setInterval(() => {
       setTimeLeft(t => {
         if (t <= 1) {
@@ -76,35 +105,88 @@ export default function JegiGame({ onComplete }: JegiGameProps) {
 
   useEffect(() => () => stopAll(), [stopAll]);
 
+  const showGrade = useCallback((g: Grade) => {
+    setGrade(g);
+    setGradeKey(k => k + 1);
+    setBgFlash(g);
+    if (gradeTimerRef.current) clearTimeout(gradeTimerRef.current);
+    gradeTimerRef.current = setTimeout(() => {
+      setGrade(null);
+      setBgFlash(null);
+    }, 500);
+  }, []);
+
   const kick = useCallback(() => {
     if (!activeRef.current) return;
 
-    // 제기가 바닥 근처(하단 25%) 있을 때만 차기 가능
-    if (yRef.current >= GROUND_Y - 20) {
-      velRef.current = KICK_POWER;
-      countRef.current += 1;
-      setCount(countRef.current);
-      setKickFlash(true);
-      setTimeout(() => setKickFlash(false), 150);
-    } else {
-      // 너무 높이 있을 때 탭 → miss 표시
-      setMissFlash(true);
-      setTimeout(() => setMissFlash(false), 300);
-    }
-  }, []);
+    const y = yRef.current;
 
-  const score = Math.min(100, count * 7);
+    if (y >= PERFECT_Y) {
+      // 퍼펙트 차기
+      velYRef.current = KICK_POWER * 1.15;
+      velXRef.current = (Math.random() - 0.5) * 1.5;
+      countRef.current += 1;
+      const newCombo = comboRef.current + 1;
+      comboRef.current = newCombo;
+      const multiplier = newCombo >= 6 ? 3 : newCombo >= 3 ? 2 : 1;
+      const earned = 15 * multiplier;
+      scoreRef.current = Math.min(100, scoreRef.current + earned);
+      setCount(countRef.current);
+      setScore(scoreRef.current);
+      setCombo(newCombo);
+      showGrade('perfect');
+
+    } else if (y >= GOOD_Y) {
+      // 굿 차기
+      velYRef.current = KICK_POWER;
+      velXRef.current = (Math.random() - 0.5) * 1.2;
+      countRef.current += 1;
+      const newCombo = comboRef.current + 1;
+      comboRef.current = newCombo;
+      const multiplier = newCombo >= 6 ? 3 : newCombo >= 3 ? 2 : 1;
+      const earned = 8 * multiplier;
+      scoreRef.current = Math.min(100, scoreRef.current + earned);
+      setCount(countRef.current);
+      setScore(scoreRef.current);
+      setCombo(newCombo);
+      showGrade('good');
+
+    } else {
+      // 미스 (너무 높음)
+      comboRef.current = 0;
+      setCombo(0);
+      showGrade('miss');
+    }
+  }, [showGrade]);
+
+  const finalScore = Math.min(100, scoreRef.current);
+  const isKickable = jegiY >= GOOD_Y;
+  const isPerfect = jegiY >= PERFECT_Y;
+
+  const multiplier = combo >= 6 ? 3 : combo >= 3 ? 2 : 1;
 
   /* ── 준비 ── */
   if (phase === 'ready') {
     return (
       <div className="flex flex-col items-center gap-5 p-4 text-center">
-        <div className="text-6xl animate-float">🪶</div>
+        <div className="text-6xl">🪶</div>
         <h2 className="text-2xl font-black text-joseon-dark">제기차기</h2>
-        <div className="card-joseon p-4 text-sm text-joseon-brown max-w-xs">
-          제기가 <span className="text-joseon-red font-bold">바닥 근처</span>로 내려올 때<br />
-          화면 아무 곳이나 눌러서 차올리세요!<br />
-          <span className="text-blue-600 font-bold">15초</span> 동안 최대한 많이 차기!
+        <div className="card-joseon p-4 text-sm text-joseon-brown max-w-xs space-y-2">
+          <div className="flex items-center gap-2 justify-center">
+            <span className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold">PERFECT</span>
+            <span>바닥 직전 = 15점</span>
+          </div>
+          <div className="flex items-center gap-2 justify-center">
+            <span className="bg-yellow-400 text-white px-2 py-0.5 rounded-full text-xs font-bold">GOOD</span>
+            <span>바닥 근처 = 8점</span>
+          </div>
+          <div className="flex items-center gap-2 justify-center">
+            <span className="bg-gray-400 text-white px-2 py-0.5 rounded-full text-xs font-bold">MISS</span>
+            <span>너무 높음 = 콤보 초기화</span>
+          </div>
+          <p className="text-joseon-red font-bold pt-1">
+            연속으로 잘 차면 2~3배 점수!
+          </p>
         </div>
         <button onClick={startGame} className="btn-joseon px-10 py-4 text-lg">
           시작! 🦵
@@ -118,19 +200,19 @@ export default function JegiGame({ onComplete }: JegiGameProps) {
     return (
       <div className="flex flex-col items-center gap-4 p-4 text-center">
         <div className="text-6xl">
-          {count >= 20 ? '🏆' : count >= 10 ? '🥈' : count >= 5 ? '🥉' : '😅'}
+          {finalScore >= 80 ? '🏆' : finalScore >= 50 ? '🥈' : finalScore >= 25 ? '🥉' : '😅'}
         </div>
         <h3 className="text-2xl font-black text-joseon-dark">{count}번 찼어요!</h3>
         <p className="text-joseon-brown text-sm">
-          {count >= 20 ? '놀라워요! 조선 최고의 제기 선수!' :
-           count >= 10 ? '잘했어요! 꽤 실력이 있는데요?' :
-           count >= 5  ? '좋아요! 연습하면 더 잘할 수 있어요!' :
-                         '아직 연습이 필요해요. 다시 도전!'}
+          {finalScore >= 80 ? '완벽해요! 조선 제기차기 챔피언!' :
+           finalScore >= 50 ? '훌륭해요! 연속 콤보가 대단해요!' :
+           finalScore >= 25 ? '좋아요! 타이밍을 더 연습해봐요!' :
+           '바닥 직전에 차야 PERFECT에요!'}
         </p>
         <div className="card-joseon p-3 font-bold text-joseon-dark">
-          획득 엽전: 🪙 {score}개
+          획득 엽전: 🪙 {finalScore}개
         </div>
-        <button onClick={() => onComplete(score)} className="btn-joseon px-10 py-4">
+        <button onClick={() => onComplete(finalScore)} className="btn-joseon px-10 py-4">
           계속하기 →
         </button>
       </div>
@@ -138,76 +220,115 @@ export default function JegiGame({ onComplete }: JegiGameProps) {
   }
 
   /* ── 게임 ── */
-  const canKick = jegiY >= GROUND_Y - 20;
-
   return (
     <div
-      className={`flex flex-col select-none rounded-2xl overflow-hidden border-2 border-joseon-brown
-        ${kickFlash ? 'bg-green-100' : missFlash ? 'bg-red-100' : 'bg-gradient-to-b from-sky-200 to-green-200'}`}
-      style={{ height: 380 }}
+      className={`flex flex-col select-none rounded-2xl overflow-hidden border-2 border-joseon-brown transition-colors duration-100 ${
+        bgFlash === 'perfect' ? 'bg-red-100' :
+        bgFlash === 'good'    ? 'bg-yellow-50' :
+        bgFlash === 'miss'    ? 'bg-gray-100' :
+        'bg-gradient-to-b from-sky-200 to-green-200'
+      }`}
+      style={{ height: 400 }}
       onClick={kick}
     >
       {/* 상단 HUD */}
-      <div className="flex justify-between items-center px-4 py-2 bg-black/20">
-        <div className="bg-white/80 rounded-lg px-3 py-1 font-bold text-joseon-dark text-sm">
+      <div className="flex justify-between items-center px-3 py-2 bg-black/20 gap-2">
+        <div className="bg-white/80 rounded-lg px-2 py-1 font-bold text-joseon-dark text-sm">
           ⏱️ {timeLeft}초
         </div>
-        <div className="bg-joseon-gold/90 rounded-lg px-3 py-1 font-bold text-white text-sm">
+        <div className="bg-white/80 rounded-lg px-2 py-1 font-bold text-joseon-dark text-sm">
           🦵 {count}번
+        </div>
+        {multiplier > 1 && (
+          <div className={`rounded-lg px-2 py-1 font-black text-white text-sm ${
+            multiplier >= 3 ? 'bg-red-500' : 'bg-orange-400'
+          }`}>
+            🔥 {multiplier}x 콤보!
+          </div>
+        )}
+        <div className="bg-joseon-gold/90 rounded-lg px-2 py-1 font-bold text-white text-sm">
+          🪙 {score}
         </div>
       </div>
 
       {/* 게임 영역 */}
       <div className="flex-1 relative">
-        {/* 구름 배경 */}
-        <div className="absolute top-2 left-4 text-2xl opacity-40">☁️</div>
-        <div className="absolute top-4 right-6 text-xl opacity-30">☁️</div>
+        {/* 구름 */}
+        <div className="absolute top-2 left-6 text-2xl opacity-30">☁️</div>
+        <div className="absolute top-4 right-8 text-xl opacity-25">☁️</div>
+
+        {/* 콤보 표시 */}
+        {combo >= 3 && (
+          <div className="absolute top-2 right-2 text-center">
+            <div className={`font-black text-2xl leading-tight ${
+              combo >= 6 ? 'text-red-600' : 'text-orange-500'
+            }`}>
+              🔥{combo}
+            </div>
+            <div className="text-xs text-orange-600 font-bold">콤보!</div>
+          </div>
+        )}
 
         {/* 제기 */}
         <div
-          className="absolute text-4xl transition-none select-none"
+          className="absolute text-4xl select-none transition-none"
           style={{
             top: `${jegiY}%`,
-            left: '50%',
-            transform: `translateX(-50%) rotate(${velRef.current * 15}deg)`,
+            left: `${jegiX}%`,
+            transform: `translateX(-50%) rotate(${velYRef.current * -12}deg)`,
           }}
         >
           🪶
         </div>
 
-        {/* 발 차기 가능 표시 */}
-        {canKick && (
+        {/* 판정 등급 표시 */}
+        {grade && (
           <div
+            key={gradeKey}
             className="absolute left-0 right-0 flex items-center justify-center pointer-events-none"
-            style={{ top: `${GROUND_Y - 18}%` }}
+            style={{ top: `${Math.max(10, jegiY - 20)}%` }}
           >
-            <span className="text-xs text-green-700 font-bold bg-green-200/80 rounded-full px-2 py-0.5 animate-bounce">
-              👇 지금 차!
+            <span className={`text-xl font-black px-3 py-1 rounded-full animate-bounce ${
+              grade === 'perfect' ? 'bg-red-500 text-white' :
+              grade === 'good'    ? 'bg-yellow-400 text-white' :
+              'bg-gray-400 text-white'
+            }`}>
+              {grade === 'perfect' ? '✨ PERFECT!' :
+               grade === 'good'    ? '👍 GOOD!' :
+               '😅 MISS'}
             </span>
           </div>
         )}
 
-        {/* 킥 효과 */}
-        {kickFlash && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <span className="text-3xl font-black text-green-600 animate-bounce-in">💥 {count}</span>
-          </div>
-        )}
-
-        {/* 실패 효과 */}
-        {missFlash && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <span className="text-xl text-red-500 font-bold">너무 높아요!</span>
-          </div>
-        )}
+        {/* 차기 구간 표시기 */}
+        <div
+          className="absolute left-0 right-0 pointer-events-none"
+          style={{ top: `${GOOD_Y}%` }}
+        >
+          <div className={`mx-4 h-px ${isPerfect ? 'bg-red-400' : isKickable ? 'bg-yellow-400' : 'bg-gray-300'} opacity-60`} />
+        </div>
+        <div
+          className="absolute left-0 right-0 pointer-events-none"
+          style={{ top: `${PERFECT_Y}%` }}
+        >
+          <div className={`mx-4 h-px ${isPerfect ? 'bg-red-600' : 'bg-gray-200'} opacity-60`} />
+        </div>
       </div>
 
-      {/* 바닥 */}
-      <div className="h-14 bg-green-400 flex items-center justify-center gap-2 border-t-4 border-green-600">
-        <span className="text-2xl">👟</span>
-        <span className="text-green-800 text-sm font-bold">
-          {canKick ? '화면을 눌러 차올리세요!' : '제기가 내려오길 기다려요...'}
-        </span>
+      {/* 바닥 + 발 */}
+      <div className={`h-16 flex items-center justify-center gap-3 border-t-4 transition-colors ${
+        isPerfect ? 'bg-red-400 border-red-600' :
+        isKickable ? 'bg-yellow-400 border-yellow-600' :
+        'bg-green-400 border-green-600'
+      }`}>
+        <span className="text-3xl">{isPerfect ? '🦶' : '👟'}</span>
+        <div className="text-sm font-bold text-white drop-shadow">
+          {isPerfect
+            ? '지금 차세요! PERFECT!'
+            : isKickable
+            ? '차도 돼요! (GOOD)'
+            : '제기가 내려오길 기다려요...'}
+        </div>
       </div>
     </div>
   );

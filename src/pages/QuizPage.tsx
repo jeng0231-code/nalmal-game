@@ -307,8 +307,14 @@ export default function QuizPage() {
   }, [stageIndex, nextQuestion, isReviewMode, allQuestions.length]);
 
   // ─── 정답/오답 처리 ─────────────────────────────────────
+  // 같은 문제를 중복 처리하지 않도록 (타이머 만료 + 이미 선택한 답 이중처리 방지)
+  const answeredRef = useRef(false);
+  useEffect(() => { answeredRef.current = false; }, [currentIndex]);
+
   const handleAnswer = useCallback((correct: boolean) => {
     if (!currentQuestions[currentIndex]) return;
+    if (answeredRef.current) return;   // 이미 처리된 문제는 무시
+    answeredRef.current = true;
     // 타이머 정지
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
     const q = currentQuestions[currentIndex];
@@ -1064,8 +1070,8 @@ export default function QuizPage() {
             </div>
 
             {currentQuestion.type === 'OX'
-              ? <OXQuiz question={currentQuestion} onAnswer={handleAnswer} onSpendCoins={spendCoins} coins={player.coins} />
-              : <MultipleChoiceQuiz question={currentQuestion} onAnswer={handleAnswer} onSpendCoins={spendCoins} coins={player.coins} />
+              ? <OXQuiz key={currentQuestion.id} question={currentQuestion} onAnswer={handleAnswer} onSpendCoins={spendCoins} coins={player.coins} />
+              : <MultipleChoiceQuiz key={currentQuestion.id} question={currentQuestion} onAnswer={handleAnswer} onSpendCoins={spendCoins} coins={player.coins} />
             }
           </div>
         )}
