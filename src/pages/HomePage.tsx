@@ -286,7 +286,7 @@ export default function HomePage() {
 
           {/* 미니게임 버튼 */}
           <button
-            onClick={() => navigate('/minigames')}
+            onClick={() => navigate('/minigame')}
             className="py-5 rounded-lg font-bold border-2 flex items-center justify-center gap-4 transition-all hover:opacity-90 active:scale-95"
             style={{ background: 'linear-gradient(135deg, #EDE7F6, #D1C4E9)', borderColor: '#7E57C2' }}
           >

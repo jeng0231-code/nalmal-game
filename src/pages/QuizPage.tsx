@@ -171,48 +171,35 @@ export default function QuizPage() {
     try {
       let questions: QuizQuestion[];
 
-      // INITIAL_QUIZ_DATA는 category 필드가 없으므로 literacy 태그를 명시적으로 추가
-      const CATEGORY_BASE: Record<QuizCategory, QuizQuestion[]> = {
-        literacy:  INITIAL_QUIZ_DATA.map(q => ({ ...q, category: 'literacy' as const })),
-        proverbs:  PROVERBS_QUESTIONS,
-        idioms:    IDIOMS_QUESTIONS,
-        history:   HISTORY_QUESTIONS,
-        etiquette: ETIQUETTE_QUESTIONS,
-      };
+      // 전체 카테고리 기본 데이터 항상 로드
+      // (관문에서 어떤 카테고리를 선택해도 문제가 준비되어야 하므로)
+      // INITIAL_QUIZ_DATA는 category 필드가 없으므로 literacy 태그 명시적 추가
+      const allBase: QuizQuestion[] = [
+        ...INITIAL_QUIZ_DATA.map(q => ({ ...q, category: 'literacy' as const })),
+        ...PROVERBS_QUESTIONS,
+        ...IDIOMS_QUESTIONS,
+        ...HISTORY_QUESTIONS,
+        ...ETIQUETTE_QUESTIONS,
+      ];
 
+      // AI 뱅크: 시작 카테고리가 있으면 해당 카테고리만, 없으면 일반 뱅크
+      let aiQuestions: QuizQuestion[] = [];
       if (selectedCategory) {
-        // 카테고리별 데이터 로드 — 선택한 학당의 문제만 출제
         const aiBank = await getOrBuildCategoryBank(selectedCategory);
         const aiExtra = getCategoryAIQuestions(selectedCategory);
-
-        // 엄격한 카테고리 일치 필터
-        const basePool = CATEGORY_BASE[selectedCategory].filter(
+        aiQuestions = [...aiBank, ...aiExtra].filter(
           q => q.category === selectedCategory
         );
-        const aiPool = [...aiBank, ...aiExtra].filter(
-          q => q.category === selectedCategory
-        );
-
-        questions = [...basePool, ...aiPool]
-          .filter((q, i, arr) => arr.findIndex(x => x.id === q.id) === i);
       } else {
-        // 전체 카테고리 모드 — 모든 카테고리 데이터 로드
-        // (관문 통과 카테고리로 필터링하기 위해 전체 데이터 필요)
-        const allBase = [
-          ...CATEGORY_BASE.literacy,
-          ...CATEGORY_BASE.proverbs,
-          ...CATEGORY_BASE.idioms,
-          ...CATEGORY_BASE.history,
-          ...CATEGORY_BASE.etiquette,
-        ];
         const aiBank = await getOrBuildAIBank();
-        const aiTagged = aiBank.map(q => ({
+        aiQuestions = aiBank.map(q => ({
           ...q,
           category: (q.category || 'literacy') as QuizCategory,
         }));
-        questions = [...allBase, ...aiTagged]
-          .filter((q, i, arr) => arr.findIndex(x => x.id === q.id) === i);
       }
+
+      questions = [...allBase, ...aiQuestions]
+        .filter((q, i, arr) => arr.findIndex(x => x.id === q.id) === i);
 
       if (questions.length === 0) throw new Error('문제 없음');
       setAllQuestions(questions);
