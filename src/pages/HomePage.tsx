@@ -284,6 +284,25 @@ export default function HomePage() {
             </div>
           </button>
 
+          {/* 미니게임 버튼 */}
+          <button
+            onClick={() => navigate('/minigames')}
+            className="py-5 rounded-lg font-bold border-2 flex items-center justify-center gap-4 transition-all hover:opacity-90 active:scale-95"
+            style={{ background: 'linear-gradient(135deg, #EDE7F6, #D1C4E9)', borderColor: '#7E57C2' }}
+          >
+            <span className="text-4xl">🎮</span>
+            <div className="text-left">
+              <div className="text-xl font-black text-purple-800">미니게임</div>
+              <div className="text-xs font-normal text-purple-600 mt-0.5">
+                투호 · 제기 · 활쏘기 · 퍼즐 등 8종!
+              </div>
+            </div>
+            <div className="ml-auto text-right">
+              <div className="text-purple-700 font-black text-sm">🪙</div>
+              <div className="text-purple-500 text-[10px]">엽전획득</div>
+            </div>
+          </button>
+
           <button
             onClick={() => navigate('/profile')}
             className="py-5 rounded-lg font-bold text-joseon-dark border-2 border-joseon-brown flex items-center justify-center gap-4 transition-all hover:bg-joseon-cream"
