@@ -84,7 +84,7 @@ export default function HomePage() {
       <div className="joseon-bg min-h-screen flex flex-col items-center justify-center p-6">
         <div className="card-joseon p-8 max-w-sm w-full text-center">
           <div className="text-6xl mb-4 animate-float">🏫</div>
-          <h1 className="text-3xl font-black text-joseon-dark mb-2">K-Hakdang</h1>
+          <h1 className="text-3xl font-black text-joseon-dark mb-2">K-학당</h1>
           <p className="text-joseon-brown mb-6 text-sm">
             조선 최고의 선비를 향한 여정을 시작하세요!
           </p>
@@ -143,7 +143,7 @@ export default function HomePage() {
         />
         <div className="relative z-10 flex items-center justify-between max-w-md mx-auto">
           <div className="text-left">
-            <h1 className="text-xl font-black">🏫 K-Hakdang</h1>
+            <h1 className="text-xl font-black">🏫 K-학당</h1>
             <p className="text-joseon-gold text-xs">한국문화를 배우는 조선의 학당</p>
           </div>
           {/* 연속 출석 배지 */}
@@ -379,7 +379,7 @@ export default function HomePage() {
         </div>
 
         {/* 앱 버전 / 하단 여백 */}
-        <div className="text-center text-gray-300 text-[10px] pb-2">K-Hakdang v1.0 · 매일 새로운 문제로 만나요</div>
+        <div className="text-center text-gray-300 text-[10px] pb-2">K-학당 v1.0 · 매일 새로운 문제로 만나요</div>
 
         <div className="h-4" />
       </div>

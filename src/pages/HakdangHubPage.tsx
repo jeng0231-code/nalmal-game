@@ -205,7 +205,7 @@ export default function HakdangHubPage() {
           </svg>
         </button>
         <span className="text-xl">🏫</span>
-        <h1 className="text-lg font-bold tracking-tight flex-1">K-Hakdang</h1>
+        <h1 className="text-lg font-bold tracking-tight flex-1">K-학당</h1>
 
         {/* 플레이어 간단 정보 */}
         <div className="flex items-center gap-2 text-sm">
