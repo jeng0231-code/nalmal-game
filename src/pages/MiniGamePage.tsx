@@ -69,13 +69,13 @@ const GAMES: {
   },
   {
     id: 'WORDPUZZLE',
-    name: '초성 퀴즈',
-    emoji: '🔤',
-    desc: '초성을 보고 단어를 맞혀라!',
-    difficulty: '어휘',
+    name: '숫자 기억 게임',
+    emoji: '🔢',
+    desc: '숫자를 보고 순서대로 기억하라!',
+    difficulty: '집중',
     diffColor: 'text-orange-600',
     maxCoins: 80,
-    tag: '어휘력',
+    tag: '기억력',
     tagColor: 'bg-orange-100 text-orange-700',
   },
   {

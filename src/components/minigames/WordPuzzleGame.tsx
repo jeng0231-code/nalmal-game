@@ -6,13 +6,20 @@ interface WordPuzzleGameProps {
   level?: number;
 }
 
-// ─── 레벨별 난이도 설정 ─────────────────────────────────────────────────────
-function getDifficulty(level: number) {
-  if (level <= 2)  return { digits: 3, showMs: 3000, label: '초급', color: 'text-green-600'  };
-  if (level <= 4)  return { digits: 4, showMs: 2500, label: '중급', color: 'text-blue-600'   };
-  if (level <= 6)  return { digits: 5, showMs: 2000, label: '고급', color: 'text-orange-600' };
-  if (level <= 8)  return { digits: 6, showMs: 1500, label: '상급', color: 'text-red-600'    };
-  return           { digits: 7, showMs: 1200, label: '최상급', color: 'text-purple-600' };
+// ─── 레벨별 표시 시간 (자리수와 무관) ──────────────────────────────────────
+function getShowMs(level: number): number {
+  if (level <= 2) return 3500;
+  if (level <= 4) return 3000;
+  if (level <= 6) return 2500;
+  if (level <= 8) return 2000;
+  return 1500;
+}
+
+// ─── 라운드별 자리수 (항상 3자리부터 시작, 라운드마다 증가) ──────────────
+function getDigitsForRound(round: number): number {
+  if (round <= 1) return 3; // 1~2라운드: 3자리
+  if (round <= 3) return 4; // 3~4라운드: 4자리
+  return 5;                  // 5라운드: 5자리
 }
 
 const TOTAL_ROUNDS = 5; // 항상 5라운드
@@ -24,7 +31,7 @@ function genSequence(length: number): number[] {
 type Phase = 'ready' | 'showing' | 'input' | 'feedback' | 'done';
 
 const WordPuzzleGame: FC<WordPuzzleGameProps> = ({ onComplete, level = 1 }) => {
-  const diff = getDifficulty(level);
+  const showMs = getShowMs(level);
 
   const [phase, setPhase]         = useState<Phase>('ready');
   const [round, setRound]         = useState(0);          // 현재 라운드 (0-indexed → 표시는 +1)
@@ -32,12 +39,14 @@ const WordPuzzleGame: FC<WordPuzzleGameProps> = ({ onComplete, level = 1 }) => {
   const [input, setInput]         = useState<number[]>([]);
   const [results, setResults]     = useState<boolean[]>([]); // 각 라운드 정오답
   const [lastCorrect, setLastCorrect] = useState(false);
-  const [timeLeft, setTimeLeft]   = useState(diff.showMs / 1000);
+  const [timeLeft, setTimeLeft]   = useState(showMs / 1000);
   const [score, setScore]         = useState(0);
+  const [currentDigits, setCurrentDigits] = useState(3);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const seqRef   = useRef<number[]>([]);
   const showStartRef = useRef<number>(0);
+  const digitsRef = useRef<number>(3);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
@@ -46,12 +55,15 @@ const WordPuzzleGame: FC<WordPuzzleGameProps> = ({ onComplete, level = 1 }) => {
   useEffect(() => () => clearTimer(), [clearTimer]);
 
   // ── 라운드 시작 ──────────────────────────────────────────
-  const startRound = useCallback((_roundIdx: number) => {
-    const seq = genSequence(diff.digits);
+  const startRound = useCallback((roundIdx: number) => {
+    const digits = getDigitsForRound(roundIdx);
+    digitsRef.current = digits;
+    setCurrentDigits(digits);
+    const seq = genSequence(digits);
     seqRef.current = seq;
     setSequence(seq);
     setInput([]);
-    setTimeLeft(diff.showMs / 1000);
+    setTimeLeft(showMs / 1000);
     showStartRef.current = Date.now();
     setPhase('showing');
 
@@ -65,7 +77,7 @@ const WordPuzzleGame: FC<WordPuzzleGameProps> = ({ onComplete, level = 1 }) => {
         return t - 1;
       });
     }, 1000);
-  }, [diff.digits, diff.showMs, clearTimer]);
+  }, [showMs, clearTimer]);
 
   // ── 숫자 버튼 누르기 ──────────────────────────────────────
   const handleNumberPress = useCallback((num: number) => {
@@ -73,7 +85,7 @@ const WordPuzzleGame: FC<WordPuzzleGameProps> = ({ onComplete, level = 1 }) => {
 
     setInput(prev => {
       const next = [...prev, num];
-      if (next.length < seqRef.current.length) return next;
+      if (next.length < digitsRef.current) return next;
 
       // 마지막 숫자 입력 → 즉시 판정
       clearTimer();
@@ -83,7 +95,7 @@ const WordPuzzleGame: FC<WordPuzzleGameProps> = ({ onComplete, level = 1 }) => {
       // 점수 계산 — 정답이면 시간 보너스 포함
       if (correct) {
         const elapsed = Date.now() - showStartRef.current;
-        const maxTime = diff.showMs + 10000; // showMs + 입력 최대 10초
+        const maxTime = showMs + 10000; // showMs + 입력 최대 10초
         const timeFactor = Math.max(0, 1 - elapsed / maxTime);
         const gained = Math.round(100 + timeFactor * 100); // 100~200점
         setScore(s => s + gained);
@@ -94,7 +106,7 @@ const WordPuzzleGame: FC<WordPuzzleGameProps> = ({ onComplete, level = 1 }) => {
 
       return next;
     });
-  }, [phase, clearTimer, diff.showMs]);
+  }, [phase, clearTimer, showMs]);
 
   // ── 피드백 후 다음 라운드 or 종료 ────────────────────────
   useEffect(() => {
@@ -123,24 +135,19 @@ const WordPuzzleGame: FC<WordPuzzleGameProps> = ({ onComplete, level = 1 }) => {
         <div className="text-6xl animate-bounce">🔢</div>
         <h2 className="text-2xl font-black text-joseon-dark">숫자 기억 게임</h2>
 
-        {/* 오늘의 난이도 */}
-        <div className={`inline-flex items-center gap-2 bg-white border-2 rounded-full px-4 py-1.5 ${diff.color.replace('text-', 'border-')}`}>
-          <span className="text-lg">⭐</span>
-          <span className={`font-black text-sm ${diff.color}`}>Lv.{level} 난이도: {diff.label}</span>
-        </div>
-
         <div className="bg-joseon-gold/10 border border-joseon-gold/30 rounded-2xl p-4 text-sm text-joseon-brown text-center max-w-xs w-full">
           <p className="font-bold mb-3 text-base text-joseon-dark">게임 방법</p>
           <div className="space-y-1.5 text-left">
-            <p>① 숫자가 <strong>{diff.showMs / 1000}초</strong> 동안 화면에 표시됩니다</p>
+            <p>① 숫자가 <strong>{showMs / 1000}초</strong> 동안 화면에 표시됩니다</p>
             <p>② 사라지면 순서대로 입력하세요</p>
             <p>③ 총 <strong>{TOTAL_ROUNDS}라운드</strong>를 마치면 완료!</p>
           </div>
           <div className="mt-4 flex justify-center gap-4 text-xs font-bold">
-            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg">🔢 {diff.digits}자리</span>
+            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg">🔢 3→4→5자리</span>
             <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-lg">🏁 {TOTAL_ROUNDS}라운드</span>
-            <span className="bg-green-100 text-green-700 px-2 py-1 rounded-lg">⏱ {diff.showMs / 1000}초 표시</span>
+            <span className="bg-green-100 text-green-700 px-2 py-1 rounded-lg">⏱ {showMs / 1000}초 표시</span>
           </div>
+          <p className="mt-3 text-xs text-joseon-brown/60">1~2라운드: 3자리 · 3~4라운드: 4자리 · 5라운드: 5자리</p>
         </div>
 
         <button onClick={() => { setRound(0); startRound(0); }} className="btn-joseon px-10 py-4 text-lg">
@@ -213,8 +220,8 @@ const WordPuzzleGame: FC<WordPuzzleGameProps> = ({ onComplete, level = 1 }) => {
           <span className="text-sm font-bold text-joseon-dark">
             라운드 <span className="text-joseon-red text-base">{round + 1}</span> / {TOTAL_ROUNDS}
           </span>
-          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${diff.color} bg-gray-100`}>
-            {diff.label} · {diff.digits}자리
+          <span className="text-xs font-bold px-2 py-0.5 rounded-full text-orange-600 bg-gray-100">
+            {currentDigits}자리
           </span>
         </div>
         {/* 진행 도트 */}
@@ -241,7 +248,7 @@ const WordPuzzleGame: FC<WordPuzzleGameProps> = ({ onComplete, level = 1 }) => {
         {isFeedback && lastCorrect ? '✅ 정답! 잘 기억했어요!' :
          isFeedback               ? `❌ 오답! 정답: ${seqRef.current.join(' - ')}` :
          isShowing                ? `👀 숫자를 기억하세요! (${timeLeft}초)` :
-         `✏️ 순서대로 입력하세요 (${input.length}/${diff.digits})`}
+         `✏️ 순서대로 입력하세요 (${input.length}/${currentDigits})`}
       </div>
 
       {/* ── 숫자 표시 영역 ── */}
@@ -261,7 +268,7 @@ const WordPuzzleGame: FC<WordPuzzleGameProps> = ({ onComplete, level = 1 }) => {
           </div>
         ) : (
           <div className="flex gap-2 flex-wrap justify-center">
-            {Array.from({ length: diff.digits }).map((_, i) => (
+            {Array.from({ length: currentDigits }).map((_, i) => (
               <div
                 key={i}
                 className={`w-11 h-11 rounded-xl flex items-center justify-center text-2xl font-black border-2 transition-all ${
@@ -289,9 +296,9 @@ const WordPuzzleGame: FC<WordPuzzleGameProps> = ({ onComplete, level = 1 }) => {
           <button
             key={num}
             onClick={() => handleNumberPress(num)}
-            disabled={!isInput || input.length >= diff.digits}
+            disabled={!isInput || input.length >= currentDigits}
             className={`py-4 rounded-xl text-2xl font-black border-2 transition-all select-none ${
-              isInput && input.length < diff.digits
+              isInput && input.length < currentDigits
                 ? 'bg-white border-joseon-brown/40 text-joseon-dark hover:bg-joseon-gold/10 hover:border-joseon-gold active:scale-95 active:bg-joseon-gold/20 cursor-pointer'
                 : 'bg-gray-100 border-gray-200 text-gray-300 cursor-not-allowed'
             }`}
