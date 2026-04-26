@@ -27,7 +27,7 @@ const TIMER_SECONDS = 30;
 export interface GateQuizProps {
   fromLevel: string; // '초급'
   toLevel: string;   // '중급'
-  onPass: () => void;
+  onPass: (category: QuizCategory) => void;  // 통과한 카테고리 전달
   onFail: () => void;
 }
 
@@ -472,8 +472,21 @@ export default function GateQuizPage({ fromLevel, toLevel, onPass, onFail }: Gat
             </div>
           </div>
 
+          {/* 통과한 카테고리 배지 */}
+          {selectedCategory && (() => {
+            const h = HAKDANGS.find(hd => hd.id === selectedCategory);
+            return h ? (
+              <div className={`inline-flex items-center gap-2 bg-gradient-to-r ${h.color} rounded-full px-4 py-1.5 mb-3`}>
+                <span>{h.emoji}</span>
+                <span className={`font-bold text-sm ${h.accentColor}`}>
+                  다음 단계: {h.name} 문제 출제!
+                </span>
+              </div>
+            ) : null;
+          })()}
+
           <button
-            onClick={onPass}
+            onClick={() => onPass(selectedCategory!)}
             className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 active:scale-95 text-white font-bold rounded-2xl py-4 text-base shadow-lg transition-all duration-200"
           >
             {toLevel} 시작하기 🚀

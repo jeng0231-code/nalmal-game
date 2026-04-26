@@ -107,6 +107,9 @@ export default function QuizPage() {
   const categoryParam = searchParams.get('category');
   const selectedCategory = (categoryParam && categoryParam !== 'random') ? categoryParam as QuizCategory : null;
 
+  // 관문 통과로 결정된 현재 스테이지의 카테고리 (처음엔 URL 카테고리와 동일)
+  const [activeCategory, setActiveCategory] = useState<QuizCategory | null>(selectedCategory);
+
   const [phase, setPhase] = useState<Phase>('loading');
   const [allQuestions, setAllQuestions] = useState<QuizQuestion[]>([]);
   const [currentStage, setCurrentStage] = useState(1);
@@ -168,22 +171,21 @@ export default function QuizPage() {
     try {
       let questions: QuizQuestion[];
 
+      // INITIAL_QUIZ_DATA는 category 필드가 없으므로 literacy 태그를 명시적으로 추가
+      const CATEGORY_BASE: Record<QuizCategory, QuizQuestion[]> = {
+        literacy:  INITIAL_QUIZ_DATA.map(q => ({ ...q, category: 'literacy' as const })),
+        proverbs:  PROVERBS_QUESTIONS,
+        idioms:    IDIOMS_QUESTIONS,
+        history:   HISTORY_QUESTIONS,
+        etiquette: ETIQUETTE_QUESTIONS,
+      };
+
       if (selectedCategory) {
         // 카테고리별 데이터 로드 — 선택한 학당의 문제만 출제
-        // INITIAL_QUIZ_DATA는 category 필드가 없으므로 literacy 태그를 명시적으로 추가
-        const CATEGORY_BASE: Record<QuizCategory, QuizQuestion[]> = {
-          literacy:  INITIAL_QUIZ_DATA.map(q => ({ ...q, category: 'literacy' as const })),
-          proverbs:  PROVERBS_QUESTIONS,
-          idioms:    IDIOMS_QUESTIONS,
-          history:   HISTORY_QUESTIONS,
-          etiquette: ETIQUETTE_QUESTIONS,
-        };
-
-        // AI 뱅크 로드 (선택 카테고리 전용 스토리지)
         const aiBank = await getOrBuildCategoryBank(selectedCategory);
         const aiExtra = getCategoryAIQuestions(selectedCategory);
 
-        // 엄격한 카테고리 일치 필터 — category가 없거나 다른 문제는 절대 포함 안 함
+        // 엄격한 카테고리 일치 필터
         const basePool = CATEGORY_BASE[selectedCategory].filter(
           q => q.category === selectedCategory
         );
@@ -192,11 +194,24 @@ export default function QuizPage() {
         );
 
         questions = [...basePool, ...aiPool]
-          .filter((q, i, arr) => arr.findIndex(x => x.id === q.id) === i); // 중복 제거
+          .filter((q, i, arr) => arr.findIndex(x => x.id === q.id) === i);
       } else {
-        // 전체 카테고리 모드 (기존 동작)
+        // 전체 카테고리 모드 — 모든 카테고리 데이터 로드
+        // (관문 통과 카테고리로 필터링하기 위해 전체 데이터 필요)
+        const allBase = [
+          ...CATEGORY_BASE.literacy,
+          ...CATEGORY_BASE.proverbs,
+          ...CATEGORY_BASE.idioms,
+          ...CATEGORY_BASE.history,
+          ...CATEGORY_BASE.etiquette,
+        ];
         const aiBank = await getOrBuildAIBank();
-        questions = [...INITIAL_QUIZ_DATA, ...aiBank];
+        const aiTagged = aiBank.map(q => ({
+          ...q,
+          category: (q.category || 'literacy') as QuizCategory,
+        }));
+        questions = [...allBase, ...aiTagged]
+          .filter((q, i, arr) => arr.findIndex(x => x.id === q.id) === i);
       }
 
       if (questions.length === 0) throw new Error('문제 없음');
@@ -231,9 +246,9 @@ export default function QuizPage() {
     const w1 = Math.max(0, 1 - w0 - w2);
     const weights: [number, number, number] = [w0, w1, w2];
 
-    // ── 카테고리 필터 (엄격 — category 필드가 정확히 일치하는 문제만) ──
-    const categoryFiltered = selectedCategory
-      ? allQuestions.filter(q => q.category === selectedCategory)
+    // ── 카테고리 필터 — 관문 통과 카테고리 or URL 카테고리 기준으로 필터 ──
+    const categoryFiltered = activeCategory
+      ? allQuestions.filter(q => q.category === activeCategory)
       : allQuestions;
 
     // ── 문제 다양성: 안 본 문제 우선 ──────────────────────
@@ -285,7 +300,7 @@ export default function QuizPage() {
     setStageIndex(0);
     setStageClearCorrect(0);
     setPhase('quiz');
-  }, [allQuestions, setQuestions, player.level, seenQuestionIds, markQuestionsSeen, cycleCount, selectedCategory]);
+  }, [allQuestions, setQuestions, player.level, seenQuestionIds, markQuestionsSeen, cycleCount, activeCategory]);
 
   // ─── 문제 진행 공통 함수 ────────────────────────────────
   const advanceQuestion = useCallback(() => {
@@ -315,7 +330,7 @@ export default function QuizPage() {
       answerCorrect(q.xpReward, q.coinReward);
       setStageClearCorrect(p => p + 1);
       // 카테고리 통계 업데이트
-      const qCat = (q.category as QuizCategory) || selectedCategory || 'literacy';
+      const qCat = (q.category as QuizCategory) || activeCategory || 'literacy';
       updateCategoryStats(qCat, true);
       // ⚡ 스피드 라운드 보너스 (2배 코인)
       if (isSpeedRound) addCoins(q.coinReward * 2);
@@ -334,7 +349,7 @@ export default function QuizPage() {
     } else {
       answerWrong();
       // 카테고리 통계 업데이트
-      const qCat = (q.category as QuizCategory) || selectedCategory || 'literacy';
+      const qCat = (q.category as QuizCategory) || activeCategory || 'literacy';
       updateCategoryStats(qCat, false);
       // 일반 모드: 틀린 문제 저장
       if (!isReviewMode) addWrongAnswer(q);
@@ -347,7 +362,7 @@ export default function QuizPage() {
       }
     }
   }, [currentQuestions, currentIndex, answerCorrect, answerWrong, player.hearts, advanceQuestion,
-      timeLeft, addCoins, isReviewMode, removeWrongAnswer, addWrongAnswer]);
+      timeLeft, addCoins, isReviewMode, removeWrongAnswer, addWrongAnswer, activeCategory]);
 
   // PunishmentModal이 닫힌 후 자동으로 다음 문제 진행
   const prevShowPunishment = useRef(false);
@@ -425,9 +440,11 @@ export default function QuizPage() {
     }
   }, [currentStage, recordStageCleared, incrementCycle]);
 
-  const handleGatePass = useCallback(() => {
+  const handleGatePass = useCallback((category: QuizCategory) => {
     setShowGateQuiz(false);
     setPendingNextStage(false);
+    // 관문에서 선택한 카테고리로 다음 스테이지 문제 결정
+    setActiveCategory(category);
     setCurrentStage(prev => prev + 1);
     setPhase('stage-intro');
   }, []);
@@ -512,8 +529,8 @@ export default function QuizPage() {
     return (
       <div className="joseon-bg min-h-screen flex flex-col items-center justify-center p-6">
         <div className="card-joseon p-8 max-w-sm w-full text-center">
-          {selectedCategory && (() => {
-            const h = HAKDANGS.find(hd => hd.id === selectedCategory);
+          {activeCategory && (() => {
+            const h = HAKDANGS.find(hd => hd.id === activeCategory);
             return h ? (
               <div className={`inline-flex items-center gap-2 bg-gradient-to-r ${h.color} rounded-full px-4 py-1.5 mb-3`}>
                 <span>{h.emoji}</span>
