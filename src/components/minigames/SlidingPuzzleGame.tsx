@@ -1,169 +1,443 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useGameStore } from '../../store/gameStore';
 
 interface SlidingPuzzleGameProps {
   onComplete: (score: number) => void;
   level?: number;
 }
 
-// 3×3 타일 레이블 (0 = 빈칸)
-const LABELS_3 = ['', '一', '二', '三', '四', '五', '六', '七', '八'];
-// 3×3 서브텍스트
-const SUBS_3   = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔'];
-
-/** 목표 상태: [1,2,...,n²-1, 0] */
-function solvedState(size: number): number[] {
-  return Array.from({ length: size * size }, (_, i) =>
-    i === size * size - 1 ? 0 : i + 1
-  );
+// ─── 레벨별 난이도 ──────────────────────────────────────────
+function getDifficulty(level: number) {
+  if (level <= 2) return { size: 2, shuffleMoves: 3,  label: '입문', color: 'text-green-600',  bgColor: 'bg-green-50',  borderColor: 'border-green-300',  useEmoji: true  };
+  if (level <= 4) return { size: 3, shuffleMoves: 10, label: '초급', color: 'text-blue-600',   bgColor: 'bg-blue-50',   borderColor: 'border-blue-300',   useEmoji: false };
+  if (level <= 6) return { size: 3, shuffleMoves: 22, label: '중급', color: 'text-orange-600', bgColor: 'bg-orange-50', borderColor: 'border-orange-300', useEmoji: false };
+  if (level <= 8) return { size: 3, shuffleMoves: 38, label: '고급', color: 'text-red-600',    bgColor: 'bg-red-50',    borderColor: 'border-red-300',    useEmoji: false };
+  return            { size: 4, shuffleMoves: 30, label: '최상급', color: 'text-purple-600', bgColor: 'bg-purple-50', borderColor: 'border-purple-300', useEmoji: false };
 }
 
-/** 합법적 이동으로만 섞기 → 항상 풀 수 있음 */
-function shuffleBoard(size: number, moves: number): number[] {
+// 2×2 이모지 타일 (입문 — 어린이 친화적)
+const EMOJI_TILES_2 = ['', '🌸', '🎈', '⭐'];
+// 3×3 한자 타일
+const LABELS_3 = ['', '一', '二', '三', '四', '五', '六', '七', '八'];
+const SUBS_3   = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔'];
+
+function getTileLabel(val: number, size: number): { main: string; sub: string } {
+  if (size === 2) return { main: EMOJI_TILES_2[val] ?? '', sub: '' };
+  if (size === 3) return { main: LABELS_3[val] ?? '', sub: SUBS_3[val] ?? '' };
+  return { main: String(val), sub: '' };
+}
+
+// ─── 퍼즐 유틸 ──────────────────────────────────────────────
+function solvedState(size: number): number[] {
+  return Array.from({ length: size * size }, (_, i) => (i === size * size - 1 ? 0 : i + 1));
+}
+
+/** 합법적 이동으로 섞기 + 역방향 솔루션 경로 반환 */
+function shuffleBoard(size: number, moves: number): { board: number[]; solutionPath: number[] } {
   const board = solvedState(size);
   let blank = board.indexOf(0);
   let prevBlank = -1;
+  const blankHistory: number[] = [];
 
   for (let i = 0; i < moves; i++) {
-    const row = Math.floor(blank / size);
-    const col = blank % size;
-    const neighbors: number[] = [];
-    if (row > 0)          neighbors.push(blank - size);
-    if (row < size - 1)   neighbors.push(blank + size);
-    if (col > 0)          neighbors.push(blank - 1);
-    if (col < size - 1)   neighbors.push(blank + 1);
-
-    // 직전 위치로 되돌아가지 않도록 필터 (무한 왔다갔다 방지)
-    const candidates = neighbors.filter(n => n !== prevBlank);
-    const pick = candidates[Math.floor(Math.random() * candidates.length)];
+    const r = Math.floor(blank / size), c = blank % size;
+    const nb: number[] = [];
+    if (r > 0)        nb.push(blank - size);
+    if (r < size - 1) nb.push(blank + size);
+    if (c > 0)        nb.push(blank - 1);
+    if (c < size - 1) nb.push(blank + 1);
+    const cands = nb.filter(n => n !== prevBlank);
+    const pick  = cands[Math.floor(Math.random() * cands.length)];
+    blankHistory.push(blank);
     prevBlank = blank;
     board[blank] = board[pick];
-    board[pick] = 0;
-    blank = pick;
+    board[pick]  = 0;
+    blank        = pick;
   }
-  return board;
+  return { board, solutionPath: [...blankHistory].reverse() };
 }
 
 function isSolved(board: number[], size: number): boolean {
-  const goal = solvedState(size);
-  return board.every((v, i) => v === goal[i]);
+  return board.every((v, i) => v === solvedState(size)[i]);
 }
 
 function isAdjacent(a: number, b: number, size: number): boolean {
   const ar = Math.floor(a / size), ac = a % size;
   const br = Math.floor(b / size), bc = b % size;
-  return (ar === br && Math.abs(ac - bc) === 1) ||
-         (ac === bc && Math.abs(ar - br) === 1);
+  return (ar === br && Math.abs(ac - bc) === 1) || (ac === bc && Math.abs(ar - br) === 1);
 }
 
-type GamePhase = 'ready' | 'playing' | 'result';
+/** 맨해튼 거리 휴리스틱 — 힌트용 */
+function manhattanDist(board: number[], size: number): number {
+  return board.reduce((sum, v, i) => {
+    if (v === 0) return sum;
+    const t = v - 1;
+    return sum + Math.abs(Math.floor(i / size) - Math.floor(t / size)) + Math.abs(i % size - t % size);
+  }, 0);
+}
+
+/** 현재 상태에서 최선의 다음 이동 타일 인덱스 (맨해튼 기반) */
+function getBestHintTile(board: number[], size: number): number {
+  const blank = board.indexOf(0);
+  const r = Math.floor(blank / size), c = blank % size;
+  const adj: number[] = [];
+  if (r > 0)        adj.push(blank - size);
+  if (r < size - 1) adj.push(blank + size);
+  if (c > 0)        adj.push(blank - 1);
+  if (c < size - 1) adj.push(blank + 1);
+  return adj.reduce((best, tile) => {
+    const nb = [...board]; nb[blank] = nb[tile]; nb[tile] = 0;
+    const bb = [...board]; bb[blank] = bb[best]; bb[best] = 0;
+    return manhattanDist(nb, size) < manhattanDist(bb, size) ? tile : best;
+  }, adj[0]);
+}
+
+// ─── 상수 ────────────────────────────────────────────────────
+const TUTORIAL_KEY           = 'puzzle_tutorial_done';
+const HINT_COST              = 5;
+const GIVEUP_AFTER_SECS      = 30;
+const GIVEUP_AFTER_MOVES     = 20;
+
+type GamePhase = 'ready' | 'tutorial' | 'playing' | 'result' | 'gaveup';
+
+// ─── 튜토리얼 말풍선 메시지 ──────────────────────────────────
+const TUTORIAL_MESSAGES = [
+  '빛나는 타일을 눌러보세요! 👆',
+  '잘했어요! 다시 한번! ✨',
+  '거의 다 왔어요! 💪',
+  '마지막 한 번! 🎉',
+];
 
 export default function SlidingPuzzleGame({ onComplete, level = 1 }: SlidingPuzzleGameProps) {
-  const SIZE          = level >= 6 ? 4 : 3;
-  const SHUFFLE_MOVES = 20 + level * 8;
+  const { player, spendCoins } = useGameStore();
+  const diff = getDifficulty(level);
+  const { size, shuffleMoves } = diff;
 
-  const [gamePhase, setGamePhase] = useState<GamePhase>('ready');
-  const [board,     setBoard]     = useState<number[]>([]);
-  const [moves,     setMoves]     = useState(0);
-  const [elapsed,   setElapsed]   = useState(0);
-  const [solved,    setSolved]    = useState(false);
-  const [lastSlid,  setLastSlid]  = useState<number | null>(null);
+  const isFirstTime  = !localStorage.getItem(TUTORIAL_KEY);
+  const needTutorial = isFirstTime && level <= 2;
 
-  // 타이머
+  // ── 게임 상태 ──────────────────────────────────────────────
+  const [gamePhase,    setGamePhase]    = useState<GamePhase>('ready');
+  const [board,        setBoard]        = useState<number[]>([]);
+  const [moves,        setMoves]        = useState(0);
+  const [elapsed,      setElapsed]      = useState(0);
+  const [solved,       setSolved]       = useState(false);
+  const [lastSlid,     setLastSlid]     = useState<number | null>(null);
+  const [hintTile,     setHintTile]     = useState<number | null>(null);
+  const [hintUsed,     setHintUsed]     = useState(0);
+  const [hintMsg,      setHintMsg]      = useState('');
+  const [showGiveup,   setShowGiveup]   = useState(false);
+  const [confirmGiveup,setConfirmGiveup]= useState(false);
+
+  // ── 튜토리얼 상태 ─────────────────────────────────────────
+  const [tutBoard,     setTutBoard]     = useState<number[]>([]);
+  const [tutPath,      setTutPath]      = useState<number[]>([]);
+  const [tutStep,      setTutStep]      = useState(0);
+  const [tutDone,      setTutDone]      = useState(false);
+
+  // ── 타이머 ────────────────────────────────────────────────
   useEffect(() => {
     if (gamePhase !== 'playing' || solved) return;
     const id = setInterval(() => setElapsed(e => e + 1), 1000);
     return () => clearInterval(id);
   }, [gamePhase, solved]);
 
+  // 포기 버튼 노출 조건
+  useEffect(() => {
+    if (gamePhase !== 'playing' || solved) return;
+    if (elapsed >= GIVEUP_AFTER_SECS || moves >= GIVEUP_AFTER_MOVES) setShowGiveup(true);
+  }, [elapsed, moves, gamePhase, solved]);
+
+  // 힌트 하이라이트 자동 해제
+  useEffect(() => {
+    if (hintTile === null) return;
+    const t = setTimeout(() => setHintTile(null), 2500);
+    return () => clearTimeout(t);
+  }, [hintTile]);
+
+  // ── 일반 게임 시작 ────────────────────────────────────────
   const startGame = useCallback(() => {
-    const b = shuffleBoard(SIZE, SHUFFLE_MOVES);
+    const { board: b } = shuffleBoard(size, shuffleMoves);
     setBoard(b);
     setMoves(0);
     setElapsed(0);
     setSolved(false);
     setLastSlid(null);
+    setHintTile(null);
+    setHintUsed(0);
+    setHintMsg('');
+    setShowGiveup(false);
+    setConfirmGiveup(false);
     setGamePhase('playing');
-  }, [SIZE, SHUFFLE_MOVES]);
+  }, [size, shuffleMoves]);
 
+  // ── 튜토리얼 시작 ────────────────────────────────────────
+  const startTutorial = useCallback(() => {
+    const { board: b, solutionPath: sol } = shuffleBoard(2, 2);
+    setTutBoard(b);
+    setTutPath(sol);
+    setTutStep(0);
+    setTutDone(false);
+    setGamePhase('tutorial');
+  }, []);
+
+  // ── 튜토리얼 타일 클릭 ───────────────────────────────────
+  const handleTutClick = useCallback((idx: number) => {
+    const blankIdx = tutBoard.indexOf(0);
+    if (tutBoard[idx] === 0 || !isAdjacent(idx, blankIdx, 2)) return;
+
+    const next = [...tutBoard];
+    next[blankIdx] = next[idx];
+    next[idx]      = 0;
+    setTutBoard(next);
+    setTutStep(s => s + 1);
+
+    if (isSolved(next, 2)) {
+      setTutDone(true);
+      localStorage.setItem(TUTORIAL_KEY, '1');
+      setTimeout(() => startGame(), 1500);
+    }
+  }, [tutBoard, startGame]);
+
+  // ── 일반 플레이 타일 클릭 ─────────────────────────────────
   const handleTileClick = useCallback((idx: number) => {
     if (gamePhase !== 'playing' || solved) return;
     const blankIdx = board.indexOf(0);
-    if (board[idx] === 0) return;
-    if (!isAdjacent(idx, blankIdx, SIZE)) return;
+    if (board[idx] === 0 || !isAdjacent(idx, blankIdx, size)) return;
 
     const next = [...board];
     next[blankIdx] = next[idx];
-    next[idx] = 0;
+    next[idx]      = 0;
     setBoard(next);
-    setLastSlid(blankIdx); // 방금 타일이 이동해온 위치 강조
+    setLastSlid(blankIdx);
     setMoves(m => m + 1);
+    setHintTile(null);
 
-    if (isSolved(next, SIZE)) {
+    if (isSolved(next, size)) {
       setSolved(true);
-      setTimeout(() => setGamePhase('result'), 600);
+      setTimeout(() => setGamePhase('result'), 700);
     }
-  }, [board, gamePhase, solved, SIZE]);
+  }, [board, gamePhase, solved, size]);
 
-  // ── READY ──────────────────────────────────────────────────
+  // ── 포기 ─────────────────────────────────────────────────
+  const handleGiveUp = useCallback(() => {
+    setGamePhase('gaveup');
+    setConfirmGiveup(false);
+  }, []);
+
+  // ── 힌트 ─────────────────────────────────────────────────
+  const handleHint = useCallback(() => {
+    if (player.coins < HINT_COST) {
+      setHintMsg(`엽전이 부족해요! (${HINT_COST}개 필요)`);
+      setTimeout(() => setHintMsg(''), 2000);
+      return;
+    }
+    const ok = spendCoins(HINT_COST);
+    if (!ok) return;
+    const best = getBestHintTile(board, size);
+    setHintTile(best);
+    setHintUsed(h => h + 1);
+    setHintMsg('');
+  }, [board, size, player.coins, spendCoins]);
+
+  // ════════════════════════════════════════════
+  // READY 화면
+  // ════════════════════════════════════════════
   if (gamePhase === 'ready') {
+    const goalBoard = solvedState(diff.size);
     return (
-      <div className="flex flex-col items-center gap-5 p-4 text-center">
-        <div className="text-6xl animate-float">🧩</div>
+      <div className="flex flex-col items-center gap-4 p-4 text-center">
+        <div className="text-5xl animate-float">🧩</div>
         <h2 className="text-2xl font-black text-joseon-dark">슬라이딩 퍼즐</h2>
-        <div className="bg-joseon-gold/10 border border-joseon-gold/40 rounded-2xl p-4 text-sm text-joseon-brown max-w-xs">
-          <p className="font-bold mb-2">📖 게임 방법</p>
-          <p>빈 칸 옆의 타일을 클릭해서 밀고<br />순서대로 정렬하세요!</p>
-          <div className="mt-3 flex justify-center gap-4 text-xs opacity-70">
-            <span>📐 {SIZE}×{SIZE} 격자</span>
-            <span>🔀 난이도 {level <= 2 ? '쉬움' : level <= 5 ? '보통' : '어려움'}</span>
-          </div>
-          {/* 목표 미리보기 (3×3만) */}
-          {SIZE === 3 && (
-            <div className="mt-3">
-              <p className="text-xs text-joseon-brown/60 mb-1">목표 상태</p>
-              <div className="grid grid-cols-3 gap-0.5 w-20 mx-auto">
-                {LABELS_3.slice(1).map((l, i) => (
-                  <div key={i} className="bg-joseon-gold/30 rounded text-xs font-bold text-joseon-dark aspect-square flex items-center justify-center">
-                    {l}
-                  </div>
-                ))}
-                <div className="bg-gray-200 rounded aspect-square" />
-              </div>
-            </div>
-          )}
+
+        {/* 난이도 배지 */}
+        <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border-2 ${diff.bgColor} ${diff.borderColor}`}>
+          <span className="text-lg">⭐</span>
+          <span className={`font-black text-sm ${diff.color}`}>Lv.{level} — {diff.label}</span>
+          <span className="text-sm text-gray-500">({diff.size}×{diff.size})</span>
         </div>
-        <button onClick={startGame} className="btn-joseon w-full max-w-xs py-4 text-xl">
-          시작! 🧩
+
+        {/* 게임 방법 */}
+        <div className="bg-joseon-gold/10 border border-joseon-gold/40 rounded-2xl p-4 text-sm text-joseon-brown max-w-xs w-full text-left">
+          <p className="font-bold text-center mb-3 text-base text-joseon-dark">📖 게임 방법</p>
+          <div className="space-y-1.5">
+            <p>① 빈 칸 옆의 타일을 눌러서 민다</p>
+            <p>② 숫자/그림 순서대로 맞추면 완성!</p>
+            <p>③ 막히면 <strong>🔍 힌트</strong> 버튼을 눌러봐요</p>
+            {needTutorial && <p className="text-green-700 font-bold">✨ 처음이니까 따라하기 모드로 시작!</p>}
+          </div>
+        </div>
+
+        {/* 목표 상태 미리보기 */}
+        <div className="text-center">
+          <p className="text-xs text-joseon-brown/60 mb-2">🎯 이렇게 완성하면 돼요!</p>
+          <div
+            className="inline-grid gap-1 p-2 bg-white border-2 border-joseon-gold/40 rounded-xl"
+            style={{ gridTemplateColumns: `repeat(${diff.size}, 1fr)` }}
+          >
+            {goalBoard.map((val, i) => {
+              const { main } = getTileLabel(val, diff.size);
+              return val === 0
+                ? <div key={i} className="w-9 h-9 rounded-lg bg-gray-100 border border-dashed border-gray-300" />
+                : (
+                  <div key={i} className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-black border ${diff.bgColor} ${diff.borderColor} ${diff.color}`}>
+                    {main}
+                  </div>
+                );
+            })}
+          </div>
+        </div>
+
+        {/* 시작 버튼 */}
+        {needTutorial ? (
+          <div className="w-full max-w-xs space-y-2">
+            <button onClick={startTutorial} className="btn-joseon w-full py-4 text-lg">
+              따라하기로 배우기! 🌟
+            </button>
+            <button onClick={startGame} className="w-full py-3 rounded-xl border-2 border-gray-300 text-gray-500 text-sm font-bold hover:bg-gray-50 active:scale-95 transition-all">
+              바로 시작하기
+            </button>
+          </div>
+        ) : (
+          <button onClick={startGame} className="btn-joseon w-full max-w-xs py-4 text-xl">
+            시작! 🧩
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════
+  // TUTORIAL 화면
+  // ════════════════════════════════════════════
+  if (gamePhase === 'tutorial') {
+    const tutBlank = tutBoard.indexOf(0);
+    const nextHintPos = tutPath[tutStep]; // 지금 눌러야 할 타일 위치
+
+    return (
+      <div className="flex flex-col items-center gap-4 p-4 text-center">
+        {/* 말풍선 가이드 */}
+        <div className="relative bg-green-100 border-2 border-green-400 rounded-2xl px-5 py-3 max-w-xs">
+          <p className="font-black text-green-800 text-base">
+            {tutDone ? '🎉 완성! 대단해요!' : TUTORIAL_MESSAGES[Math.min(tutStep, TUTORIAL_MESSAGES.length - 1)]}
+          </p>
+          <p className="text-green-600 text-xs mt-0.5">
+            {tutDone ? '이제 혼자서도 할 수 있어요! 🌟' : `${tutStep + 1} / ${tutPath.length} 단계`}
+          </p>
+          {/* 말풍선 꼬리 */}
+          <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-4 h-3 overflow-hidden">
+            <div className="w-4 h-4 bg-green-400 rotate-45 -translate-y-2 mx-auto" />
+          </div>
+        </div>
+
+        {/* 튜토리얼 보드 (2×2) */}
+        <div className="grid grid-cols-2 gap-2 p-4 bg-green-50 rounded-2xl border-2 border-green-300 mt-2">
+          {tutBoard.map((val, idx) => {
+            const isBlank = val === 0;
+            const isHint  = idx === nextHintPos && !tutDone; // 눌러야 할 타일
+            const canSlide = !isBlank && isAdjacent(idx, tutBlank, 2);
+            const { main } = getTileLabel(val, 2);
+
+            if (isBlank) {
+              return (
+                <div key={idx} className="w-24 h-24 rounded-2xl bg-green-200/50 border-2 border-dashed border-green-400" />
+              );
+            }
+            return (
+              <button
+                key={idx}
+                onClick={() => handleTutClick(idx)}
+                disabled={!canSlide}
+                className={`
+                  w-24 h-24 rounded-2xl text-5xl font-black border-3 transition-all duration-200 select-none
+                  ${isHint
+                    ? 'bg-yellow-300 border-yellow-500 shadow-lg shadow-yellow-400/60 animate-bounce scale-105 cursor-pointer'
+                    : canSlide
+                    ? 'bg-white border-green-400 cursor-pointer hover:bg-green-50 active:scale-95'
+                    : 'bg-gray-100 border-gray-200 cursor-default opacity-60'
+                  }
+                `}
+              >
+                {main}
+                {isHint && !tutDone && (
+                  <div className="absolute -top-2 -right-2 text-xl animate-ping">👆</div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 목표 */}
+        <div className="flex items-center gap-3 text-sm text-joseon-brown">
+          <span>🎯 목표:</span>
+          <div className="grid grid-cols-2 gap-0.5">
+            {['🌸','🎈','⭐',''].map((e, i) => (
+              <div key={i} className={`w-7 h-7 rounded-lg text-sm flex items-center justify-center font-bold ${e ? 'bg-green-100 border border-green-300' : 'bg-gray-100 border border-dashed border-gray-300'}`}>
+                {e}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <button onClick={startGame} className="text-xs text-gray-400 underline mt-1">
+          튜토리얼 건너뛰기
         </button>
       </div>
     );
   }
 
-  // ── RESULT ─────────────────────────────────────────────────
-  if (gamePhase === 'result') {
-    const baseScore     = 1000;
-    const movesPenalty  = moves * 5;
-    const timeBonus     = Math.max(0, 300 - elapsed) * 2;
-    const totalScore    = Math.max(0, baseScore - movesPenalty + timeBonus);
-    const coins         = Math.max(5, Math.round(totalScore / 20));
-    const emoji         = totalScore >= 800 ? '🏆' : totalScore >= 500 ? '🎉' : '😊';
-    const mins          = Math.floor(elapsed / 60);
-    const secs          = elapsed % 60;
+  // ════════════════════════════════════════════
+  // GAVEUP 화면
+  // ════════════════════════════════════════════
+  if (gamePhase === 'gaveup') {
+    return (
+      <div className="flex flex-col items-center gap-4 p-4 text-center">
+        <div className="text-6xl">😮‍💨</div>
+        <h2 className="text-xl font-black text-joseon-dark">다음엔 꼭 완성해요!</h2>
+        <p className="text-joseon-brown text-sm">힌트를 활용하면 더 쉬워요 🔍</p>
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 w-full max-w-xs">
+          <p className="text-sm text-gray-500">이번 기록</p>
+          <div className="flex justify-center gap-6 mt-2">
+            <div><div className="font-black text-lg text-gray-700">{moves}</div><div className="text-xs text-gray-500">이동</div></div>
+            <div><div className="font-black text-lg text-gray-700">{elapsed}초</div><div className="text-xs text-gray-500">시간</div></div>
+          </div>
+        </div>
+        <div className="w-full max-w-xs space-y-2">
+          <button onClick={startGame} className="btn-joseon w-full py-3">
+            다시 도전 🔄
+          </button>
+          <button onClick={() => onComplete(2)} className="w-full py-3 rounded-xl border-2 border-gray-300 text-gray-600 font-bold text-sm hover:bg-gray-50 active:scale-95 transition-all">
+            완료 (🪙 2개 받기)
+          </button>
+        </div>
+      </div>
+    );
+  }
 
+  // ════════════════════════════════════════════
+  // RESULT 화면
+  // ════════════════════════════════════════════
+  if (gamePhase === 'result') {
+    const baseScore    = 1000;
+    const movePenalty  = moves * 5;
+    const timeBonus    = Math.max(0, 300 - elapsed) * 2;
+    const hintPenalty  = hintUsed * 30;
+    const totalScore   = Math.max(0, baseScore - movePenalty + timeBonus - hintPenalty);
+    const coins        = Math.max(5, Math.round(totalScore / 20));
+    const emoji        = totalScore >= 800 ? '🏆' : totalScore >= 500 ? '🎉' : '😊';
+    const mins         = Math.floor(elapsed / 60);
+    const secs         = elapsed % 60;
     return (
       <div className="flex flex-col items-center gap-4 p-4 text-center">
         <div className="text-6xl animate-level-up">{emoji}</div>
-        <h2 className="text-xl font-black text-joseon-dark">퍼즐 완성!</h2>
-
-        <div className="grid grid-cols-2 gap-3 w-full max-w-xs">
+        <h2 className="text-xl font-black text-joseon-dark">퍼즐 완성! 🎉</h2>
+        <div className="grid grid-cols-2 gap-2 w-full max-w-xs">
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
             <div className="text-2xl font-black text-blue-600">{moves}</div>
             <div className="text-xs text-blue-700">이동 횟수</div>
           </div>
           <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-            <div className="text-2xl font-black text-green-600">
-              {mins > 0 ? `${mins}분 ${secs}초` : `${secs}초`}
-            </div>
+            <div className="text-2xl font-black text-green-600">{mins > 0 ? `${mins}분${secs}초` : `${secs}초`}</div>
             <div className="text-xs text-green-700">소요 시간</div>
           </div>
           <div className="bg-joseon-gold/10 border border-joseon-gold/30 rounded-xl p-3">
@@ -175,7 +449,9 @@ export default function SlidingPuzzleGame({ onComplete, level = 1 }: SlidingPuzz
             <div className="text-xs text-yellow-700">엽전 획득</div>
           </div>
         </div>
-
+        {hintUsed > 0 && (
+          <p className="text-xs text-gray-400">힌트 {hintUsed}회 사용 (-{hintUsed * 30}점)</p>
+        )}
         <button onClick={() => onComplete(coins)} className="btn-joseon w-full max-w-xs py-4 text-lg">
           완료! →
         </button>
@@ -183,89 +459,132 @@ export default function SlidingPuzzleGame({ onComplete, level = 1 }: SlidingPuzz
     );
   }
 
-  // ── PLAYING ────────────────────────────────────────────────
-  const blankIdx = board.indexOf(0);
-  const mins = Math.floor(elapsed / 60);
-  const secs = elapsed % 60;
-
-  // 타일 크기 결정
-  const tileSize = SIZE === 3 ? 'w-20 h-20' : 'w-14 h-14';
-  const fontSize  = SIZE === 3 ? 'text-3xl'  : 'text-lg';
-  const subSize   = SIZE === 3 ? 'text-[10px]' : 'hidden';
+  // ════════════════════════════════════════════
+  // PLAYING 화면
+  // ════════════════════════════════════════════
+  const blankIdx  = board.indexOf(0);
+  const mins      = Math.floor(elapsed / 60);
+  const secs      = elapsed % 60;
+  const tileSize  = size === 2 ? 'w-24 h-24' : size === 3 ? 'w-[72px] h-[72px]' : 'w-14 h-14';
+  const fontMain  = size === 2 ? 'text-5xl'  : size === 3 ? 'text-3xl' : 'text-lg';
+  const fontSub   = size === 3 ? 'text-[10px]' : 'hidden';
 
   return (
     <div className="flex flex-col items-center gap-3 p-3">
+
       {/* 상태 바 */}
-      <div className="flex justify-between w-full max-w-xs text-sm font-bold">
-        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
-          👣 {moves}번 이동
+      <div className="flex justify-between items-center w-full max-w-xs">
+        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">
+          👣 {moves}번
         </span>
-        <span className={`px-3 py-1 rounded-full ${elapsed > 120 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
+        <span className={`px-3 py-1 rounded-full text-xs font-bold ${diff.bgColor} ${diff.color}`}>
+          {diff.label}
+        </span>
+        <span className={`px-3 py-1 rounded-full text-xs font-bold ${elapsed > 120 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
           ⏱ {mins > 0 ? `${mins}:${String(secs).padStart(2,'0')}` : `${secs}초`}
         </span>
       </div>
 
-      {/* 퍼즐 그리드 */}
+      {/* 퍼즐 보드 */}
       <div
         className="grid gap-1.5 p-3 bg-joseon-dark/10 rounded-2xl border-2 border-joseon-brown/30"
-        style={{ gridTemplateColumns: `repeat(${SIZE}, auto)` }}
+        style={{ gridTemplateColumns: `repeat(${size}, auto)` }}
       >
         {board.map((val, idx) => {
-          const isBlank    = val === 0;
-          const canSlide   = !isBlank && isAdjacent(idx, blankIdx, SIZE);
-          const justMoved  = idx === lastSlid;
+          const isBlank   = val === 0;
+          const canSlide  = !isBlank && isAdjacent(idx, blankIdx, size);
+          const isHint    = idx === hintTile;
+          const justMoved = idx === lastSlid;
+          const { main, sub } = getTileLabel(val, size);
 
           if (isBlank) {
             return (
-              <div
-                key={idx}
-                className={`${tileSize} rounded-xl bg-joseon-dark/20 border-2 border-dashed border-joseon-brown/30`}
-              />
+              <div key={idx} className={`${tileSize} rounded-xl bg-joseon-dark/20 border-2 border-dashed border-joseon-brown/30`} />
             );
           }
-
-          const label = SIZE === 3 ? LABELS_3[val] : String(val);
-          const sub   = SIZE === 3 ? SUBS_3[val]   : '';
-
           return (
             <button
               key={idx}
               onClick={() => handleTileClick(idx)}
               className={`
-                ${tileSize} rounded-xl border-2 flex flex-col items-center justify-center
-                font-black transition-all duration-100 select-none shadow-sm
-                ${canSlide
+                relative ${tileSize} rounded-xl border-2 flex flex-col items-center justify-center
+                font-black transition-all duration-150 select-none shadow-sm
+                ${isHint
+                  ? 'bg-yellow-300 border-yellow-500 shadow-yellow-400/70 shadow-lg scale-110 animate-pulse cursor-pointer z-10'
+                  : canSlide
                   ? 'bg-joseon-gold border-joseon-dark text-joseon-dark hover:bg-yellow-300 active:scale-95 cursor-pointer'
-                  : 'bg-joseon-cream border-joseon-brown/40 text-joseon-dark/60 cursor-default'
+                  : 'bg-joseon-cream border-joseon-brown/40 text-joseon-dark/50 cursor-default'
                 }
                 ${justMoved ? 'ring-2 ring-joseon-gold ring-offset-1' : ''}
               `}
             >
-              <span className={fontSize}>{label}</span>
-              {sub && <span className={`${subSize} text-joseon-brown/70 font-normal`}>{sub}</span>}
+              <span className={fontMain}>{main}</span>
+              {sub && <span className={`${fontSub} text-joseon-brown/60 font-normal mt-0.5`}>{sub}</span>}
+              {isHint && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-lg animate-bounce">👆</span>
+              )}
             </button>
           );
         })}
       </div>
 
-      {solved && (
-        <p className="text-green-600 font-black text-lg animate-pulse">🎉 완성!</p>
+      {/* 완성 메시지 */}
+      {solved && <p className="text-green-600 font-black text-lg animate-pulse">🎉 완성!</p>}
+
+      {/* 힌트 에러 메시지 */}
+      {hintMsg && (
+        <p className="text-red-500 text-xs font-bold animate-pulse">{hintMsg}</p>
       )}
 
-      {/* 목표 힌트 (3×3) */}
-      {SIZE === 3 && (
+      {/* 액션 버튼 */}
+      <div className="flex gap-2 w-full max-w-xs">
+        {/* 힌트 버튼 */}
+        <button
+          onClick={handleHint}
+          className={`flex-1 py-3 rounded-xl text-sm font-bold border-2 transition-all active:scale-95 ${
+            player.coins >= HINT_COST
+              ? 'bg-amber-50 border-amber-400 text-amber-700 hover:bg-amber-100'
+              : 'bg-gray-100 border-gray-200 text-gray-400'
+          }`}
+        >
+          🔍 힌트 ({HINT_COST}🪙)
+          {hintUsed > 0 && <span className="text-xs ml-1 opacity-70">{hintUsed}회</span>}
+        </button>
+
+        {/* 포기 버튼 — 일정 조건 후 표시 */}
+        {showGiveup && !confirmGiveup && (
+          <button
+            onClick={() => setConfirmGiveup(true)}
+            className="flex-1 py-3 rounded-xl text-sm font-bold border-2 bg-gray-50 border-gray-300 text-gray-500 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all active:scale-95"
+          >
+            🏳️ 포기
+          </button>
+        )}
+        {confirmGiveup && (
+          <button
+            onClick={handleGiveUp}
+            className="flex-1 py-3 rounded-xl text-sm font-bold border-2 bg-red-50 border-red-400 text-red-600 animate-pulse active:scale-95"
+          >
+            확인? 🏳️
+          </button>
+        )}
+      </div>
+
+      {/* 목표 미니 미리보기 (3×3) */}
+      {size === 3 && (
         <div className="flex items-center gap-2 text-xs text-joseon-brown/50">
           <span>목표:</span>
           <div className="grid grid-cols-3 gap-0.5">
             {LABELS_3.slice(1).map((l, i) => (
-              <div key={i} className="w-5 h-5 bg-joseon-gold/30 rounded text-[8px] font-bold flex items-center justify-center text-joseon-dark">
-                {l}
-              </div>
+              <div key={i} className="w-5 h-5 bg-joseon-gold/30 rounded text-[8px] font-bold flex items-center justify-center text-joseon-dark">{l}</div>
             ))}
             <div className="w-5 h-5 bg-gray-200 rounded" />
           </div>
         </div>
       )}
+
+      {/* 엽전 현황 */}
+      <p className="text-xs text-joseon-brown/50">보유 엽전: 🪙 {player.coins}개</p>
     </div>
   );
 }
