@@ -7,6 +7,16 @@ import AttendanceModal from '../components/ui/AttendanceModal';
 import DailyMissionCard from '../components/ui/DailyMissionCard';
 import { getLevelByXP } from '../data/levels';
 import { getDailyTip } from '../data/dailyTips';
+import type { QuizCategory } from '../types/hakdang';
+
+// 퀴즈 풀기 시작 시 랜덤으로 선택할 카테고리 목록
+const QUIZ_CATEGORIES: { id: QuizCategory; label: string; emoji: string; color: string }[] = [
+  { id: 'literacy',  label: '문해력',   emoji: '📖', color: '#7B68EE' },
+  { id: 'proverbs',  label: '속담',     emoji: '💬', color: '#E67E22' },
+  { id: 'idioms',    label: '사자성어', emoji: '🏮', color: '#C0392B' },
+  { id: 'history',   label: '역사',     emoji: '🏛️', color: '#27AE60' },
+  { id: 'etiquette', label: '예절',     emoji: '🎎', color: '#2980B9' },
+];
 
 export default function HomePage() {
   const {
@@ -260,14 +270,17 @@ export default function HomePage() {
         {/* 메뉴 버튼 */}
         <div className="grid grid-cols-1 gap-3">
           <button
-            onClick={() => navigate('/quiz')}
+            onClick={() => {
+              const picked = QUIZ_CATEGORIES[Math.floor(Math.random() * QUIZ_CATEGORIES.length)];
+              navigate(`/quiz?category=${picked.id}`);
+            }}
             className="btn-joseon text-xl py-6 flex items-center justify-center gap-4"
           >
             <span className="text-4xl">📚</span>
             <div className="text-left">
               <div className="text-xl font-black">퀴즈 풀기</div>
               <div className="text-xs font-normal opacity-80 mt-0.5">
-                스테이지 클리어 → 미니게임 → 신분 상승!
+                오늘의 카테고리 랜덤 선택 → 스테이지 클리어!
               </div>
             </div>
           </button>
