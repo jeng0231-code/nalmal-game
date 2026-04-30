@@ -129,6 +129,11 @@ export default function QuizPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const confettiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // 💥 화면 플래시 & 점수 팝업
+  const [flashClass, setFlashClass] = useState('');
+  const [flashKey, setFlashKey] = useState(0);
+  const [scorePopup, setScorePopup] = useState<{ xp: number; coins: number; key: number } | null>(null);
+
   // 🚪 관문 시험
   const [showGateQuiz, setShowGateQuiz] = useState(false);
   const [pendingNextStage, setPendingNextStage] = useState(false);
@@ -319,6 +324,11 @@ export default function QuizPage() {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
     const q = currentQuestions[currentIndex];
     if (correct) {
+      // 💥 정답 플래시 + 점수 팝업
+      setFlashClass('flash-correct');
+      setFlashKey(k => k + 1);
+      setScorePopup({ xp: q.xpReward, coins: q.coinReward, key: Date.now() });
+      setTimeout(() => { setFlashClass(''); setScorePopup(null); }, 1200);
       setLastExplanation(q.explanation);   // RewardModal에 해설 전달
       answerCorrect(q.xpReward, q.coinReward);
       setStageClearCorrect(p => p + 1);
@@ -340,6 +350,10 @@ export default function QuizPage() {
         confettiTimerRef.current = setTimeout(() => setShowConfetti(false), 2500);
       }
     } else {
+      // 💥 오답 플래시
+      setFlashClass('flash-wrong');
+      setFlashKey(k => k + 1);
+      setTimeout(() => setFlashClass(''), 600);
       answerWrong();
       // 카테고리 통계 업데이트
       const qCat = (q.category as QuizCategory) || activeCategory || 'literacy';
@@ -521,7 +535,7 @@ export default function QuizPage() {
   if (phase === 'stage-intro') {
     return (
       <div className="joseon-bg min-h-screen flex flex-col items-center justify-center p-6">
-        <div className="card-joseon p-8 max-w-sm w-full text-center">
+        <div key={`stage-intro-${currentStage}`} className="card-joseon p-8 max-w-sm w-full text-center page-enter">
           {activeCategory && (() => {
             const h = HAKDANGS.find(hd => hd.id === activeCategory);
             return h ? (
@@ -610,7 +624,7 @@ export default function QuizPage() {
     };
     return (
       <div className="joseon-bg min-h-screen flex flex-col items-center justify-center p-6">
-        <div className="card-joseon p-8 max-w-sm w-full text-center">
+        <div key={`minigame-intro-${currentStage}`} className="card-joseon p-8 max-w-sm w-full text-center page-enter">
           <div className="text-6xl mb-3 animate-float">{gameEmojis[currentMinigame]}</div>
           <div className="bg-joseon-gold/20 border border-joseon-gold rounded-full px-4 py-1 text-sm font-bold text-joseon-dark mb-3 inline-block">
             🎮 미니게임 TIME!
@@ -676,7 +690,7 @@ export default function QuizPage() {
     const isLastStage = currentStage >= STAGE_CONFIG.length;
     return (
       <div className="joseon-bg min-h-screen flex flex-col items-center justify-center p-6">
-        <div className="card-joseon p-8 max-w-sm w-full text-center">
+        <div key={`stage-clear-${currentStage}`} className="card-joseon p-8 max-w-sm w-full text-center page-enter">
           <div className="text-6xl mb-3 animate-level-up">
             {accuracy >= 80 ? '🏆' : accuracy >= 60 ? '🎊' : '📚'}
           </div>
@@ -965,6 +979,27 @@ export default function QuizPage() {
       {/* 🎊 Confetti */}
       <ConfettiEffect active={showConfetti} />
 
+      {/* 💥 화면 플래시 오버레이 */}
+      {flashClass && <div key={flashKey} className={`fixed inset-0 z-50 pointer-events-none ${flashClass}`} />}
+
+      {/* 🌟 점수 팝업 */}
+      {scorePopup && (
+        <div
+          key={scorePopup.key}
+          className="fixed z-50 pointer-events-none score-popup"
+          style={{ top: 130, left: '50%', transform: 'translateX(-50%)' }}
+        >
+          <div className="flex flex-col items-center gap-1 text-center">
+            <div className="bg-green-500 text-white font-black text-xl px-5 py-2 rounded-xl shadow-xl border-2 border-green-300">
+              +{scorePopup.xp} XP ✨
+            </div>
+            <div className="bg-yellow-400 text-black font-bold text-base px-4 py-1.5 rounded-lg shadow-lg">
+              +{scorePopup.coins} 🪙
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ⚡ 스피드 라운드 배너 */}
       {isSpeedRound && (
         <div className="fixed top-0 left-0 right-0 z-40 bg-yellow-400 text-black text-center py-1 text-sm font-black animate-bounce">
@@ -973,7 +1008,7 @@ export default function QuizPage() {
       )}
 
       {/* 헤더 */}
-      <header className={`text-white p-3 ${isSpeedRound ? 'bg-yellow-600' : 'bg-joseon-dark'}`}>
+      <header className={`text-white p-3 ${isSpeedRound ? 'bg-yellow-600 speed-aura' : 'bg-joseon-dark'}`}>
         <div className="flex items-center justify-between max-w-md mx-auto">
           <button onClick={() => navigate('/')} className="text-joseon-gold text-2xl">←</button>
           <div className="text-center">
@@ -1009,7 +1044,7 @@ export default function QuizPage() {
       <div className="bg-joseon-dark/90 text-white px-4 py-2">
         <div className="flex justify-between items-center max-w-md mx-auto text-sm">
           {/* 하트 (오답 시 흔들림) */}
-          <span className={heartShake ? 'animate-bounce' : ''}>
+          <span className={heartShake ? 'shake inline-block' : ''}>
             {'❤️'.repeat(player.hearts)}{'🖤'.repeat(Math.max(0, player.maxHearts - player.hearts))}
           </span>
           {/* 연속 정답 뱃지 */}

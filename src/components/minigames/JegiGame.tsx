@@ -223,9 +223,11 @@ export default function JegiGame({ onComplete }: JegiGameProps) {
   return (
     <div
       className={`flex flex-col select-none rounded-2xl overflow-hidden border-2 border-joseon-brown transition-colors duration-100 ${
-        bgFlash === 'perfect' ? 'bg-red-100' :
-        bgFlash === 'good'    ? 'bg-yellow-50' :
+        bgFlash === 'perfect' ? 'bg-red-100 glow-rainbow' :
+        bgFlash === 'good'    ? 'bg-yellow-50 glow-gold' :
         bgFlash === 'miss'    ? 'bg-gray-100' :
+        combo >= 6 ? 'bg-gradient-to-b from-sky-200 to-green-200 glow-rainbow' :
+        combo >= 3 ? 'bg-gradient-to-b from-sky-200 to-green-200 glow-gold' :
         'bg-gradient-to-b from-sky-200 to-green-200'
       }`}
       style={{ height: 400 }}
@@ -241,7 +243,7 @@ export default function JegiGame({ onComplete }: JegiGameProps) {
         </div>
         {multiplier > 1 && (
           <div className={`rounded-lg px-2 py-1 font-black text-white text-sm ${
-            multiplier >= 3 ? 'bg-red-500' : 'bg-orange-400'
+            multiplier >= 3 ? 'bg-red-500 glow-rainbow' : 'bg-orange-400 glow-gold'
           }`}>
             🔥 {multiplier}x 콤보!
           </div>
@@ -288,10 +290,10 @@ export default function JegiGame({ onComplete }: JegiGameProps) {
             className="absolute left-0 right-0 flex items-center justify-center pointer-events-none"
             style={{ top: `${Math.max(10, jegiY - 20)}%` }}
           >
-            <span className={`text-xl font-black px-3 py-1 rounded-full animate-bounce ${
-              grade === 'perfect' ? 'bg-red-500 text-white' :
-              grade === 'good'    ? 'bg-yellow-400 text-white' :
-              'bg-gray-400 text-white'
+            <span className={`text-xl font-black px-3 py-1 rounded-full ${
+              grade === 'perfect' ? 'bg-red-500 text-white score-popup' :
+              grade === 'good'    ? 'bg-yellow-400 text-white anim-in' :
+              'bg-gray-400 text-white anim-in'
             }`}>
               {grade === 'perfect' ? '✨ PERFECT!' :
                grade === 'good'    ? '👍 GOOD!' :

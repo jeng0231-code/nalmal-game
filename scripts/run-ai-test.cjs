@@ -29,6 +29,25 @@ async function main() {
   fs.writeFileSync(LOG_FILE, `=== K-Hakdang AI 테스트 ${new Date().toLocaleString('ko-KR')} ===\n`, 'utf8');
   log('🚀 AI 테스트 시작');
 
+  // ── 0. Playwright 브라우저 확인 및 설치 ───────────────────
+  log('🔍 Playwright 브라우저 확인 중...');
+  try {
+    const shellPath = path.join(
+      process.env.LOCALAPPDATA || '',
+      'ms-playwright', 'chromium_headless_shell-1217',
+      'chrome-headless-shell-win64', 'chrome-headless-shell.exe'
+    );
+    if (!fs.existsSync(shellPath)) {
+      log('⬇️  chromium headless shell 없음 → 자동 설치 중...');
+      execSync('npx playwright install chromium', { cwd: PROJECT, stdio: 'pipe' });
+      log('✅ Playwright 브라우저 설치 완료');
+    } else {
+      log('✅ Playwright 브라우저 확인 완료');
+    }
+  } catch (e) {
+    log(`⚠️  Playwright 설치 실패: ${e.message} — 계속 진행`);
+  }
+
   // ── 1. Dev 서버 시작 ──────────────────────────────────────
   log('🖥️  Vite dev 서버 시작 중...');
   const devServer = spawn('npm', ['run', 'dev'], {
@@ -39,24 +58,49 @@ async function main() {
   });
 
   let devReady = false;
-  devServer.stdout.on('data', data => {
+
+  // Vite는 stdout/stderr 둘 다 사용하므로 양쪽 모두 감지
+  const onViteOutput = (data) => {
     const text = data.toString();
-    if (text.includes('localhost:5173') || text.includes('Local:')) {
+    if (!devReady && (text.includes('localhost:5173') || text.includes('Local:') || text.includes('ready in'))) {
       devReady = true;
       log('✅ Dev 서버 준비 완료 (port 5173)');
     }
-  });
-  devServer.stderr.on('data', () => {}); // 무시
+  };
+  devServer.stdout.on('data', onViteOutput);
+  devServer.stderr.on('data', onViteOutput); // Vite 출력이 stderr로 나오는 경우 대비
 
-  // 서버 준비 대기 (최대 30초)
+  // 포트 직접 확인으로 2차 감지 (최대 30초)
+  const http = require('http');
+  const checkPort = () => new Promise(resolve => {
+    const req = http.get('http://localhost:5173', (res) => { resolve(true); res.destroy(); })
+      .on('error', () => resolve(false));
+    req.setTimeout(500, () => { req.destroy(); resolve(false); });
+  });
+
   for (let i = 0; i < 30; i++) {
     if (devReady) break;
     await wait(1000);
+    // 5초마다 포트 직접 체크
+    if (i > 0 && i % 5 === 0) {
+      const open = await checkPort();
+      if (open) {
+        devReady = true;
+        log('✅ Dev 서버 준비 완료 (포트 응답 확인, port 5173)');
+      }
+    }
   }
 
   if (!devReady) {
-    log('⚠️  Dev 서버 응답 없음 — 5초 추가 대기 후 진행');
-    await wait(5000);
+    // 마지막으로 포트 체크 한번 더
+    const open = await checkPort();
+    if (open) {
+      devReady = true;
+      log('✅ Dev 서버 준비 완료 (포트 최종 확인)');
+    } else {
+      log('⚠️  Dev 서버 응답 없음 — 5초 추가 대기 후 진행');
+      await wait(5000);
+    }
   }
 
   // ── 2. Playwright 테스트 실행 ──────────────────────────────

@@ -15,6 +15,9 @@ export default function TuhoGame({ onComplete }: TuhoGameProps) {
   const [feedback, setFeedback] = useState<'hit' | 'miss' | null>(null);
   const [jarShake, setJarShake] = useState(false);
   const [arrowVisible, setArrowVisible] = useState(false);
+  const [particles, setParticles] = useState<Array<{
+    id: number; tx: string; ty: string; dur: string; color: string;
+  }>>([]);
 
   const powerRef = useRef(0);
   const dirRef = useRef(1);
@@ -81,6 +84,17 @@ export default function TuhoGame({ onComplete }: TuhoGameProps) {
       if (hit) {
         setJarShake(true);
         setTimeout(() => setJarShake(false), 500);
+        // 🎇 명중 파티클
+        const COLORS = ['#F39C12','#27AE60','#E74C3C','#F1C40F','#FF69B4','#00CED1'];
+        const newParticles = Array.from({ length: 12 }, (_, i) => ({
+          id: Date.now() + i,
+          tx: `${(Math.random() - 0.5) * 90}px`,
+          ty: `${-(Math.random() * 55 + 15)}px`,
+          dur: `${0.4 + Math.random() * 0.35}s`,
+          color: COLORS[i % COLORS.length],
+        }));
+        setParticles(newParticles);
+        setTimeout(() => setParticles([]), 850);
       }
     }, 600);
 
@@ -212,6 +226,25 @@ export default function TuhoGame({ onComplete }: TuhoGameProps) {
             ))}
           </div>
         )}
+
+        {/* 🎇 명중 파티클 */}
+        {particles.map(p => (
+          <div
+            key={p.id}
+            className="particle rounded-full pointer-events-none"
+            style={{
+              position: 'absolute',
+              width: 8, height: 8,
+              background: p.color,
+              right: 44,
+              bottom: 44,
+              boxShadow: `0 0 6px ${p.color}`,
+              '--tx': p.tx,
+              '--ty': p.ty,
+              '--dur': p.dur,
+            } as React.CSSProperties}
+          />
+        ))}
 
         {/* 명중/빗나감 피드백 */}
         {feedback && (

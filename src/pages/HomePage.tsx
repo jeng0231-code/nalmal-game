@@ -40,6 +40,24 @@ export default function HomePage() {
   const currentLevel = getLevelByXP(player.xp);
   const dailyTip = getDailyTip();
   const heartsFullyRestored = player.hearts >= player.maxHearts;
+
+  // 🌌 시간대별 하늘 배경
+  const hour = new Date().getHours();
+  const isDawn    = hour >= 0 && hour < 6;
+  const isMorning = hour >= 6 && hour < 10;
+  const isDay     = hour >= 10 && hour < 18;
+  const isEvening = hour >= 18 && hour < 21;
+  const isNight   = hour >= 21;
+  const isNightOrDawn = isNight || isDawn;
+  const skyGradient = isDawn
+    ? 'linear-gradient(to bottom, #090921 0%, #1a1a4e 45%, #2d2b55 70%, #7c3d5b 100%)'
+    : isMorning
+    ? 'linear-gradient(to bottom, #ffecd2 0%, #fcb69f 35%, #ff9a9e 65%, #87ceeb 100%)'
+    : isDay
+    ? 'linear-gradient(to bottom, #87CEEB 0%, #b8e4f9 55%, #dff3fd 100%)'
+    : isEvening
+    ? 'linear-gradient(to bottom, #090921 0%, #7b3f6e 30%, #e8722a 62%, #f4a942 100%)'
+    : 'linear-gradient(to bottom, #090921 0%, #1a1a4e 50%, #2d2b55 100%)';
   const completedMissions = dailyMissions.filter(m => m.completed && !m.claimed).length;
 
   // 하트 회복까지 남은 시간 계산
@@ -141,7 +159,41 @@ export default function HomePage() {
 
   // ─── 메인 홈 화면 ─────────────────────────────────────────
   return (
-    <div className="joseon-bg min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col page-enter" style={{ background: skyGradient }}>
+      {/* 🌌 시간대별 하늘 배경 장식 */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
+        {isNightOrDawn && <>
+          {Array.from({ length: 22 }).map((_, i) => (
+            <div key={i} className="absolute rounded-full bg-white star-twinkle"
+              style={{
+                width: `${2 + i % 3}px`, height: `${2 + i % 3}px`,
+                top: `${(i * 17 + 5) % 65}%`, left: `${(i * 23 + 7) % 92}%`,
+                '--dur': `${1.5 + (i % 3) * 0.7}s`, '--delay': `${(i * 0.2) % 2}s`,
+              } as React.CSSProperties}
+            />
+          ))}
+          <div className="absolute moon-glow" style={{ top: '5%', right: '8%', fontSize: 52 }}>🌙</div>
+        </>}
+        {isDay && <>
+          <div className="absolute" style={{ top:'4%', right:'8%', fontSize:44, filter:'drop-shadow(0 0 14px rgba(255,220,0,0.6))' }}>☀️</div>
+          <div className="absolute opacity-70" style={{ top:'12%', fontSize:36, animation:'cloudDrift 20s linear -5s infinite' }}>☁️</div>
+          <div className="absolute opacity-50" style={{ top:'24%', fontSize:28, animation:'cloudDrift 28s linear -12s infinite' }}>☁️</div>
+          <div className="absolute opacity-30" style={{ top:'8%', fontSize:44, animation:'cloudDrift 35s linear -20s infinite' }}>☁️</div>
+        </>}
+        {isMorning && <>
+          <div className="absolute" style={{ top:'6%', right:'12%', fontSize:40 }}>🌅</div>
+          <div className="absolute opacity-60" style={{ top:'14%', fontSize:30, animation:'cloudDrift 22s linear -3s infinite' }}>☁️</div>
+          <div className="absolute opacity-40" style={{ top:'26%', fontSize:24, animation:'cloudDrift 30s linear -15s infinite' }}>☁️</div>
+        </>}
+        {isEvening && <>
+          <div className="absolute" style={{ top:'5%', right:'10%', fontSize:40 }}>🌇</div>
+          <div className="absolute opacity-60" style={{ top:'16%', fontSize:32, filter:'sepia(0.8) saturate(1.5)', animation:'cloudDrift 18s linear -6s infinite' }}>☁️</div>
+          <div className="absolute opacity-40" style={{ top:'28%', fontSize:26, filter:'sepia(0.6)', animation:'cloudDrift 25s linear -10s infinite' }}>☁️</div>
+        </>}
+      </div>
+
+      {/* 컨텐츠 레이어 (하늘 위) */}
+      <div className="relative flex flex-col min-h-screen" style={{ zIndex: 1 }}>
       {/* 출석 체크 모달 */}
       {showAttendance && <AttendanceModal />}
 
@@ -396,6 +448,7 @@ export default function HomePage() {
 
         <div className="h-4" />
       </div>
+      </div>{/* /컨텐츠 레이어 */}
     </div>
   );
 }

@@ -1,0 +1,112 @@
+{
+  "runAt": "2026-04-30T01:00:10.307Z",
+  "passed": [
+    {
+      "name": "페이지 타이틀",
+      "detail": "K-학당 🏫"
+    },
+    {
+      "name": "이름 입력 화면",
+      "detail": "표시 정상"
+    },
+    {
+      "name": "아바타 건너뛰기",
+      "detail": "정상 동작"
+    },
+    {
+      "name": "퀴즈 풀기 버튼 표시",
+      "detail": ""
+    },
+    {
+      "name": "학당 허브 버튼 표시",
+      "detail": ""
+    },
+    {
+      "name": "내 기록 버튼 표시",
+      "detail": ""
+    },
+    {
+      "name": "학당 카드: 서당",
+      "detail": ""
+    },
+    {
+      "name": "학당 카드: 격언당",
+      "detail": ""
+    },
+    {
+      "name": "학당 카드: 성어당",
+      "detail": ""
+    },
+    {
+      "name": "학당 카드: 사고당",
+      "detail": ""
+    },
+    {
+      "name": "학당 카드: 예절당",
+      "detail": ""
+    },
+    {
+      "name": "밸런스 미터 표시",
+      "detail": ""
+    },
+    {
+      "name": "퀴즈 스테이지 인트로 표시",
+      "detail": ""
+    },
+    {
+      "name": "역사 퀴즈 페이지 로드",
+      "detail": ""
+    },
+    {
+      "name": "프로필 페이지 로드 (업적/레벨 표시)",
+      "detail": ""
+    },
+    {
+      "name": "태블릿 뷰포트 렌더링",
+      "detail": ""
+    },
+    {
+      "name": "데스크탑 뷰포트 렌더링",
+      "detail": ""
+    }
+  ],
+  "failed": [
+    {
+      "name": "콘솔 에러",
+      "error": "Failed to load resource: the server responded with a status of 429 ()"
+    },
+    {
+      "name": "콘솔 에러",
+      "error": "Failed to load resource: the server responded with a status of 429 ()"
+    },
+    {
+      "name": "콘솔 에러",
+      "error": "Failed to load resource: the server responded with a status of 429 ()"
+    }
+  ],
+  "warnings": [
+    {
+      "name": "퀴즈 문제 버튼 미확인 (AI 생성 지연 가능)",
+      "detail": ""
+    },
+    {
+      "name": "속담 퀴즈 컨텐츠 미확인",
+      "detail": ""
+    }
+  ],
+  "screenshots": [
+    "D:\\1. Claude code\\1. K-Hakdang\\scripts\\screenshots\\01-home-1777510817946.png",
+    "D:\\1. Claude code\\1. K-Hakdang\\scripts\\screenshots\\02-name-input-1777510819409.png",
+    "D:\\1. Claude code\\1. K-Hakdang\\scripts\\screenshots\\03-main-home-1777510823293.png",
+    "D:\\1. Claude code\\1. K-Hakdang\\scripts\\screenshots\\04-hakdang-hub-1777510825208.png",
+    "D:\\1. Claude code\\1. K-Hakdang\\scripts\\screenshots\\05-quiz-literacy-loading-1777510827371.png",
+    "D:\\1. Claude code\\1. K-Hakdang\\scripts\\screenshots\\05-quiz-literacy-loaded-1777510856509.png",
+    "D:\\1. Claude code\\1. K-Hakdang\\scripts\\screenshots\\05-quiz-literacy-start-1777510858668.png",
+    "D:\\1. Claude code\\1. K-Hakdang\\scripts\\screenshots\\06-quiz-proverbs-1777510890854.png",
+    "D:\\1. Claude code\\1. K-Hakdang\\scripts\\screenshots\\07-quiz-history-1777510923007.png",
+    "D:\\1. Claude code\\1. K-Hakdang\\scripts\\screenshots\\08-profile-1777510924620.png",
+    "D:\\1. Claude code\\1. K-Hakdang\\scripts\\screenshots\\09-tablet-layout-1777510925279.png",
+    "D:\\1. Claude code\\1. K-Hakdang\\scripts\\screenshots\\09-desktop-layout-1777510925988.png"
+  ],
+  "summary": "통과 17개 / 실패 3개 / 경고 2개"
+}
