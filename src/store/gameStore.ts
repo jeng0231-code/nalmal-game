@@ -4,7 +4,6 @@ import type { PlayerState, QuizQuestion, DailyMission, DailyStats, MissionType }
 import { getLevelByXP, JOSEON_LEVELS } from '../data/levels';
 import { ACHIEVEMENTS } from '../data/achievements';
 import type { CharacterConfig } from '../types/character';
-import { DEFAULT_CHARACTER } from '../types/character';
 import type { QuizCategory, CategoryStats } from '../types/hakdang';
 import { DEFAULT_CATEGORY_STATS } from '../types/hakdang';
 
@@ -132,8 +131,8 @@ interface GameStore {
   addXP: (amount: number) => void;
 
   // ── 캐릭터 커스터마이제이션 ──
-  characterConfig: CharacterConfig;
-  setCharacterConfig: (config: CharacterConfig) => void;
+  characterConfig: CharacterConfig | null;
+  setCharacterConfig: (config: CharacterConfig | null) => void;
 
   // ── 카테고리 통계 ──
   categoryStats: CategoryStats;
@@ -186,7 +185,7 @@ export const useGameStore = create<GameStore>()(
       studyDays: [],
       seenQuestionIds: [],
       cycleCount: 0,
-      characterConfig: DEFAULT_CHARACTER,
+      characterConfig: null,
       categoryStats: DEFAULT_CATEGORY_STATS,
 
       // ─────────────────────────────────────────────────────
@@ -207,6 +206,7 @@ export const useGameStore = create<GameStore>()(
           wrongAnswers: [],
           studyDays: [],
           seenQuestionIds: [],
+          characterConfig: null, // 사진 아바타가 SVG 캐릭터에 가려지지 않도록 초기화
         });
       },
 

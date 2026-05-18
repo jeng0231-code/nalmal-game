@@ -614,12 +614,12 @@ export default function QuizPage() {
   if (phase === 'minigame-intro') {
     const gameNames: Record<MiniGameId, string> = {
       TUHO: '투호 놀이', JEGI: '제기차기',
-      MEMORY: '기억력 게임', WORDPUZZLE: '초성 퀴즈',
+      MEMORY: '기억력 게임', WORDPUZZLE: '숫자 기억 게임',
       ARCHERY: '활쏘기', SPOTDIFF: '틀린그림 찾기', PUZZLE: '슬라이딩 퍼즐',
     };
     const gameEmojis: Record<MiniGameId, string> = {
       TUHO: '🏺', JEGI: '🪶',
-      MEMORY: '🧠', WORDPUZZLE: '🔤',
+      MEMORY: '🧠', WORDPUZZLE: '🔢',
       ARCHERY: '🏹', SPOTDIFF: '🔍', PUZZLE: '🧩',
     };
     return (
@@ -662,7 +662,7 @@ export default function QuizPage() {
               {currentMinigame === 'TUHO'     ? '🏺 투호 놀이' :
                currentMinigame === 'JEGI'     ? '🪶 제기차기' :
                currentMinigame === 'MEMORY'   ? '🧠 기억력 게임' :
-               currentMinigame === 'WORDPUZZLE' ? '🔤 초성 퀴즈' :
+               currentMinigame === 'WORDPUZZLE' ? '🔢 숫자 기억 게임' :
                currentMinigame === 'ARCHERY'  ? '🏹 활쏘기' :
                currentMinigame === 'SPOTDIFF' ? '🔍 틀린그림 찾기' : '🧩 슬라이딩 퍼즐'}
             </h1>
