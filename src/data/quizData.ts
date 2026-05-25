@@ -10,6 +10,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: false,
     explanation: '우천시(雨天時)는 "비가 오는 날"이라는 뜻입니다. 비가 올 경우 체육관에서 한다는 뜻이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '한자어 시(時) 계열 어휘 이해',
+    hintText: '雨天은 비 오는 날씨예요. 그럼 雨天時는 어떤 상황일까요?',
+    tags: ['한자어', '날씨', '공문서'],
   },
   {
     id: 'q002', type: 'OX',
@@ -19,6 +22,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: false,
     explanation: '중식(中食)은 "점심 식사"를 뜻합니다. 중국 음식(中國食)과 헷갈리기 쉬운 말이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '동음이의 한자어 구별하기',
+    hintText: '中食의 中은 점심을, 中國食의 中은 나라 이름을 뜻해요.',
+    tags: ['한자어', '동음이의어', '식사'],
   },
   {
     id: 'q003', type: 'OX',
@@ -103,6 +109,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['오늘', '어제', '내일', '모레'],
     explanation: '명일(明日)은 "내일"을 뜻합니다. 밝을 明(명), 날 日(일)로 "밝아올 날"이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '날짜 관련 한자어 어휘력 향상',
+    hintText: '明은 "밝다"는 뜻이에요. 밝아오는 날은 언제일까요?',
+    tags: ['한자어', '날짜', '공문서'],
   },
   {
     id: 'q012', type: 'MULTIPLE',
@@ -113,6 +122,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['오늘', '내일', '그제', '어제'],
     explanation: '작일(昨日)은 "어제"를 뜻합니다. 어제 昨(작), 날 日(일)이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '날짜 관련 한자어 어휘력 향상',
+    hintText: '昨은 "지난, 어제"를 뜻하는 한자예요.',
+    tags: ['한자어', '날짜', '일상'],
   },
   {
     id: 'q013', type: 'MULTIPLE',
@@ -203,6 +215,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['방금', '앞으로', '이미', '아직'],
     explanation: '기히(旣히)는 "이미"라는 뜻입니다. 이미 알려진 것처럼 이라는 의미예요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '공문서·공식 문체에서 쓰는 고급 한자어 이해',
+    hintText: '旣(기)는 "이미 끝난, 완료된" 상태를 나타내는 한자예요.',
+    tags: ['한자어', '공문서', '고급 어휘'],
   },
   {
     id: 'q022', type: 'MULTIPLE',
@@ -213,6 +228,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['정해진', '바쁜', '중요한', '아직 정해지지 않은'],
     explanation: '미정(未定)은 "아직 정해지지 않음"입니다. 아닐 未(미), 정할 定(정)이에요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '공문서·공식 문체에서 쓰는 고급 한자어 이해',
+    hintText: '未는 "아직 ~하지 않음", 定은 "정하다"를 뜻해요.',
+    tags: ['한자어', '공문서', '고급 어휘'],
   },
   {
     id: 'q023', type: 'OX',

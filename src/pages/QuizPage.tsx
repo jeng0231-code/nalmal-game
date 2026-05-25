@@ -1,30 +1,27 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { ACHIEVEMENTS } from '../data/achievements';
-import { INITIAL_QUIZ_DATA } from '../data/quizData';
-import { PROVERBS_QUESTIONS } from '../data/proverbsData';
-import { IDIOMS_QUESTIONS } from '../data/idiomsData';
-import { HISTORY_QUESTIONS } from '../data/historyData';
-import { ETIQUETTE_QUESTIONS } from '../data/etiquetteData';
-import { getOrBuildAIBank, getOrBuildCategoryBank, getCategoryAIQuestions } from '../services/claudeApi';
-import GateQuizPage from './GateQuizPage';
 import type { QuizCategory } from '../types/hakdang';
 import { HAKDANGS } from '../types/hakdang';
 import OXQuiz from '../components/quiz/OXQuiz';
 import MultipleChoiceQuiz from '../components/quiz/MultipleChoiceQuiz';
 import RewardModal from '../components/ui/RewardModal';
 import PunishmentModal from '../components/ui/PunishmentModal';
-import LevelUpModal from '../components/ui/LevelUpModal';
 import CharacterDisplay from '../components/character/CharacterDisplay';
-import TuhoGame from '../components/minigames/TuhoGame';
-import JegiGame from '../components/minigames/JegiGame';
-import MemoryGame from '../components/minigames/MemoryGame';
-import WordPuzzleGame from '../components/minigames/WordPuzzleGame';
-import ArcheryGame from '../components/minigames/ArcheryGame';
-import SpotDifferenceGame from '../components/minigames/SpotDifferenceGame';
-import SlidingPuzzleGame from '../components/minigames/SlidingPuzzleGame';
 import type { QuizQuestion } from '../types';
+import { isClaudeFeaturesEnabled } from '../services/claudeFeatureFlag';
+import { loadAllCategoryQuestions, loadCategoryQuestions } from '../services/quizDataLoader';
+
+const GateQuizPage = lazy(() => import('./GateQuizPage'));
+const LevelUpModal = lazy(() => import('../components/ui/LevelUpModal'));
+const TuhoGame = lazy(() => import('../components/minigames/TuhoGame'));
+const JegiGame = lazy(() => import('../components/minigames/JegiGame'));
+const MemoryGame = lazy(() => import('../components/minigames/MemoryGame'));
+const WordPuzzleGame = lazy(() => import('../components/minigames/WordPuzzleGame'));
+const ArcheryGame = lazy(() => import('../components/minigames/ArcheryGame'));
+const SpotDifferenceGame = lazy(() => import('../components/minigames/SpotDifferenceGame'));
+const SlidingPuzzleGame = lazy(() => import('../components/minigames/SlidingPuzzleGame'));
 
 // 스테이지당 문제 수
 const QUESTIONS_PER_STAGE = 10;
@@ -39,6 +36,7 @@ const STAGE_CONFIG = [
 
 const MINIGAMES = ['TUHO', 'JEGI', 'MEMORY', 'WORDPUZZLE', 'ARCHERY', 'SPOTDIFF', 'PUZZLE'] as const;
 type MiniGameId = typeof MINIGAMES[number];
+const CLAUDE_FEATURES_ENABLED = isClaudeFeaturesEnabled();
 
 type Phase =
   | 'loading'
@@ -62,6 +60,7 @@ function ConfettiEffect({ active }: { active: boolean }) {
         const delay = (i * 0.07) % 1.2;
         const size = 6 + (i % 5) * 2;
         const duration = 1.2 + (i % 4) * 0.3;
+        const rotation = 360 + ((i * 83) % 720);
         return (
           <div
             key={i}
@@ -74,7 +73,8 @@ function ConfettiEffect({ active }: { active: boolean }) {
               background: color,
               borderRadius: i % 3 === 0 ? '50%' : i % 3 === 1 ? '0' : '2px',
               animation: `confettiFall ${duration}s ease-in ${delay}s forwards`,
-            }}
+              '--confetti-rotation': `${rotation}deg`,
+            } as React.CSSProperties}
           />
         );
       })}
@@ -82,11 +82,45 @@ function ConfettiEffect({ active }: { active: boolean }) {
         @keyframes confettiFall {
           0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
           80%  { opacity: 1; }
-          100% { transform: translateY(100vh) rotate(${Math.floor(Math.random()*720 + 360)}deg); opacity: 0; }
+          100% { transform: translateY(100vh) rotate(var(--confetti-rotation)); opacity: 0; }
         }
       `}</style>
     </div>
   );
+}
+
+function LazyPanelFallback({ emoji, message }: { emoji: string; message: string }) {
+  return (
+    <div className="card-joseon p-6 text-center">
+      <div className="text-5xl mb-3 animate-float">{emoji}</div>
+      <p className="text-joseon-dark font-bold">{message}</p>
+    </div>
+  );
+}
+
+function mergeUniqueQuestions(existing: QuizQuestion[], incoming: QuizQuestion[]): QuizQuestion[] {
+  if (incoming.length === 0) {
+    return existing;
+  }
+
+  const seen = new Set(existing.map((question) => question.id));
+  return [...existing, ...incoming.filter((question) => !seen.has(question.id))];
+}
+
+async function loadAIQuestionBank(selectedCategory: QuizCategory | null): Promise<QuizQuestion[]> {
+  const claudeApi = await import('../services/claudeApi');
+
+  if (selectedCategory) {
+    const aiBank = await claudeApi.getOrBuildCategoryBank(selectedCategory);
+    const aiExtra = claudeApi.getCategoryAIQuestions(selectedCategory);
+    return [...aiBank, ...aiExtra].filter((question) => question.category === selectedCategory);
+  }
+
+  const aiBank = await claudeApi.getOrBuildAIBank();
+  return aiBank.map((question) => ({
+    ...question,
+    category: (question.category || 'literacy') as QuizCategory,
+  }));
 }
 
 export default function QuizPage() {
@@ -128,6 +162,7 @@ export default function QuizPage() {
   // 🎊 Confetti
   const [showConfetti, setShowConfetti] = useState(false);
   const confettiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadRequestRef = useRef(0);
 
   // 💥 화면 플래시 & 점수 팝업
   const [flashClass, setFlashClass] = useState('');
@@ -153,6 +188,9 @@ export default function QuizPage() {
 
   // ─── 문제 로딩 ───────────────────────────────────────────
   const loadQuestions = useCallback(async () => {
+    const requestId = loadRequestRef.current + 1;
+    loadRequestRef.current = requestId;
+    setLoadError(false);
     resetSession(); // 세션 통계 초기화
     setLoadError(false);
 
@@ -174,45 +212,42 @@ export default function QuizPage() {
 
     setLoading(true);
     try {
-      let questions: QuizQuestion[];
-
       // 전체 카테고리 기본 데이터 항상 로드
       // (관문에서 어떤 카테고리를 선택해도 문제가 준비되어야 하므로)
-      // INITIAL_QUIZ_DATA는 category 필드가 없으므로 literacy 태그 명시적 추가
-      const allBase: QuizQuestion[] = [
-        ...INITIAL_QUIZ_DATA.map(q => ({ ...q, category: 'literacy' as const })),
-        ...PROVERBS_QUESTIONS,
-        ...IDIOMS_QUESTIONS,
-        ...HISTORY_QUESTIONS,
-        ...ETIQUETTE_QUESTIONS,
-      ];
+      const baseQuestions = selectedCategory
+        ? await loadCategoryQuestions(selectedCategory)
+        : await loadAllCategoryQuestions();
 
-      // AI 뱅크: 시작 카테고리가 있으면 해당 카테고리만, 없으면 일반 뱅크
-      let aiQuestions: QuizQuestion[] = [];
-      if (selectedCategory) {
-        const aiBank = await getOrBuildCategoryBank(selectedCategory);
-        const aiExtra = getCategoryAIQuestions(selectedCategory);
-        aiQuestions = [...aiBank, ...aiExtra].filter(
-          q => q.category === selectedCategory
-        );
-      } else {
-        const aiBank = await getOrBuildAIBank();
-        aiQuestions = aiBank.map(q => ({
-          ...q,
-          category: (q.category || 'literacy') as QuizCategory,
-        }));
+      if (requestId !== loadRequestRef.current) {
+        return;
       }
 
-      questions = [...allBase, ...aiQuestions]
+      const questions: QuizQuestion[] = baseQuestions
         .filter((q, i, arr) => arr.findIndex(x => x.id === q.id) === i);
 
       if (questions.length === 0) throw new Error('문제 없음');
       setAllQuestions(questions);
       setPhase('stage-intro');
+
+      if (CLAUDE_FEATURES_ENABLED) {
+        void loadAIQuestionBank(selectedCategory)
+          .then((aiQuestions) => {
+            if (requestId !== loadRequestRef.current || aiQuestions.length === 0) {
+              return;
+            }
+            setAllQuestions((current) => mergeUniqueQuestions(current, aiQuestions)
+              .filter((q, i, arr) => arr.findIndex(x => x.id === q.id) === i));
+          })
+          .catch((error: unknown) => {
+            console.warn('AI 문제 뱅크 백그라운드 준비 실패:', error);
+          });
+      }
     } catch {
       setLoadError(true);
     } finally {
-      setLoading(false);
+      if (requestId === loadRequestRef.current) {
+        setLoading(false);
+      }
     }
   }, [setLoading, resetSession, isReviewMode, setQuestions, selectedCategory]); // wrongAnswers는 ref로 접근 → deps 제외
 
@@ -284,6 +319,14 @@ export default function QuizPage() {
       const rest = categoryFiltered.filter(q => !pickedIds.has(q.id)).sort(() => Math.random() - 0.5);
       selected = [...selected, ...rest].slice(0, QUESTIONS_PER_STAGE);
     }
+
+    // 최종 중복 ID 제거 (key prop 기반 state 초기화 보장)
+    const seenIds = new Set<string>();
+    selected = selected.filter(q => {
+      if (seenIds.has(q.id)) return false;
+      seenIds.add(q.id);
+      return true;
+    });
 
     // seen 등록
     markQuestionsSeen(selected.map(q => q.id));
@@ -368,8 +411,9 @@ export default function QuizPage() {
         advanceQuestion();
       }
     }
-  }, [currentQuestions, currentIndex, answerCorrect, answerWrong, player.hearts, advanceQuestion,
-      timeLeft, addCoins, isReviewMode, removeWrongAnswer, addWrongAnswer, activeCategory]);
+  }, [currentQuestions, currentIndex, answerCorrect, answerWrong, player.hearts, player.streak,
+      advanceQuestion, timeLeft, addCoins, isReviewMode, removeWrongAnswer, addWrongAnswer,
+      activeCategory, isSpeedRound, updateCategoryStats]);
 
   // PunishmentModal이 닫힌 후 자동으로 다음 문제 진행
   const prevShowPunishment = useRef(false);
@@ -475,12 +519,14 @@ export default function QuizPage() {
     const toCfg = STAGE_CONFIG[Math.min(currentStage, STAGE_CONFIG.length - 1)];
     return (
       <div className="joseon-bg min-h-screen">
-        <GateQuizPage
-          fromLevel={`${fromCfg.label} (Stage ${currentStage})`}
-          toLevel={`${toCfg.label} (Stage ${currentStage + 1})`}
-          onPass={handleGatePass}
-          onFail={handleGateFail}
-        />
+        <Suspense fallback={<LazyPanelFallback emoji="🚪" message="관문 시험을 준비하는 중..." />}>
+          <GateQuizPage
+            fromLevel={`${fromCfg.label} (Stage ${currentStage})`}
+            toLevel={`${toCfg.label} (Stage ${currentStage + 1})`}
+            onPass={handleGatePass}
+            onFail={handleGateFail}
+          />
+        </Suspense>
       </div>
     );
   }
@@ -513,7 +559,7 @@ export default function QuizPage() {
               <div className="text-6xl mb-4 animate-float">📜</div>
               <p className="text-joseon-dark font-bold text-xl">문제를 준비하고 있어요...</p>
               <p className="text-joseon-brown text-sm mt-2">
-                내장 110문제 + AI 생성 문제 로딩 중!
+                {CLAUDE_FEATURES_ENABLED ? '내장 110문제 + AI 생성 문제 로딩 중!' : '내장 110문제를 준비하고 있어요!'}
               </p>
               <div className="mt-4 flex justify-center gap-2">
                 {[0,1,2].map(i => (
@@ -522,7 +568,7 @@ export default function QuizPage() {
                 ))}
               </div>
               <p className="text-joseon-brown/60 text-xs mt-4">
-                AI 문제는 매일 새로 추가돼요 ✨
+                {CLAUDE_FEATURES_ENABLED ? 'AI 문제는 매일 새로 추가돼요 ✨' : '기본 문제로 바로 학습을 시작할 수 있어요 ✨'}
               </p>
             </>
           )}
@@ -671,15 +717,17 @@ export default function QuizPage() {
           <div className="ml-auto text-joseon-gold font-bold text-sm">🪙 {player.coins}</div>
         </header>
         <div className="flex-1 max-w-md mx-auto w-full p-3 overflow-y-auto">
-          <div className="card-joseon p-2">
-            {currentMinigame === 'TUHO'       && <TuhoGame onComplete={handleMinigameComplete} />}
-            {currentMinigame === 'JEGI'       && <JegiGame onComplete={handleMinigameComplete} />}
-            {currentMinigame === 'MEMORY'     && <MemoryGame onComplete={handleMinigameComplete} level={player.level} />}
-            {currentMinigame === 'WORDPUZZLE' && <WordPuzzleGame onComplete={handleMinigameComplete} level={player.level} />}
-            {currentMinigame === 'ARCHERY'    && <ArcheryGame onComplete={handleMinigameComplete} level={player.level} />}
-            {currentMinigame === 'SPOTDIFF'   && <SpotDifferenceGame onComplete={handleMinigameComplete} level={player.level} />}
-            {currentMinigame === 'PUZZLE'     && <SlidingPuzzleGame onComplete={handleMinigameComplete} level={player.level} />}
-          </div>
+          <Suspense fallback={<LazyPanelFallback emoji="🎮" message="미니게임을 불러오는 중..." />}>
+            <div className="card-joseon p-2">
+              {currentMinigame === 'TUHO'       && <TuhoGame onComplete={handleMinigameComplete} />}
+              {currentMinigame === 'JEGI'       && <JegiGame onComplete={handleMinigameComplete} />}
+              {currentMinigame === 'MEMORY'     && <MemoryGame onComplete={handleMinigameComplete} level={player.level} />}
+              {currentMinigame === 'WORDPUZZLE' && <WordPuzzleGame onComplete={handleMinigameComplete} level={player.level} />}
+              {currentMinigame === 'ARCHERY'    && <ArcheryGame onComplete={handleMinigameComplete} level={player.level} />}
+              {currentMinigame === 'SPOTDIFF'   && <SpotDifferenceGame onComplete={handleMinigameComplete} level={player.level} />}
+              {currentMinigame === 'PUZZLE'     && <SlidingPuzzleGame onComplete={handleMinigameComplete} level={player.level} />}
+            </div>
+          </Suspense>
         </div>
       </div>
     );
@@ -1115,7 +1163,11 @@ export default function QuizPage() {
       {/* 모달 */}
       {showReward && !showLevelUp && <RewardModal onNext={handleNext} explanation={lastExplanation} />}
       {showPunishment && <PunishmentModal />}
-      {showLevelUp && <LevelUpModal />}
+      {showLevelUp && (
+        <Suspense fallback={null}>
+          <LevelUpModal />
+        </Suspense>
+      )}
     </div>
   );
 }

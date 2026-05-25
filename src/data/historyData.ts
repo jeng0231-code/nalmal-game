@@ -13,6 +13,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     difficulty: 1,
     xpReward: 30,
     coinReward: 5,
+    learningGoal: '우리나라 최초의 국가 고조선과 건국 시조 단군왕검 이해',
+    hintText: '10월 3일 개천절은 어떤 나라가 세워진 날을 기념할까요?',
+    tags: ['역사', '고조선', '건국'],
     category: 'history',
   },
   {
@@ -26,6 +29,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     difficulty: 1,
     xpReward: 30,
     coinReward: 5,
+    learningGoal: '세종대왕의 한글 창제 연도와 한글날의 의미 이해',
+    hintText: '훈민정음은 1443년 창제, 1446년 반포 — 한글날은 어느 해를 기념하는 날일까요?',
+    tags: ['역사', '조선', '세종대왕'],
     category: 'history',
   },
   {
@@ -117,6 +123,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '병자호란의 원인, 전개, 결과와 인조의 항전 이해',
+    hintText: '병자(丙子)년은 1636년 — 이 전쟁에서 인조 임금은 어느 성에서 버텼을까요?',
+    tags: ['역사', '조선', '전쟁'],
     category: 'history',
   },
   {
@@ -130,6 +139,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '삼국의 건국 순서와 신라의 삼국 통일 이해',
+    hintText: '기원전은 숫자가 클수록 더 오래된 것 — 신라(기원전 57), 고구려(기원전 37), 백제(기원전 18) 중 어느 나라가 가장 나중인가요?',
+    tags: ['역사', '삼국시대', '신라'],
     category: 'history',
   },
   {
@@ -314,6 +326,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     difficulty: 3,
     xpReward: 50,
     coinReward: 10,
+    learningGoal: '신라 삼국 통일 과정에서 태종무열왕과 문무왕의 역할 구분 이해',
+    hintText: '아버지가 당나라와 손잡아 백제를 멸했고, 아들이 고구려를 멸하고 당나라까지 몰아냈어요. 이 두 왕은 누구일까요?',
+    tags: ['역사', '신라', '삼국통일'],
     category: 'history',
   },
   {
@@ -356,6 +371,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     difficulty: 3,
     xpReward: 50,
     coinReward: 10,
+    learningGoal: '정약용의 목민심서가 담은 실학 사상과 백성 중심 통치 이해',
+    hintText: '목민(牧民)은 "백성을 다스린다"는 뜻 — 이 책은 어떤 사람들이 읽어야 할 지침서일까요?',
+    tags: ['역사', '조선', '실학'],
     category: 'history',
   },
   {

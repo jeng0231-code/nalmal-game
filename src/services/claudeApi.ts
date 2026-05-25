@@ -1,17 +1,65 @@
-import Anthropic from '@anthropic-ai/sdk';
+import type Anthropic from '@anthropic-ai/sdk';
 import type { QuizQuestion } from '../types';
 import type { QuizCategory } from '../types/hakdang';
+import { isClaudeFeaturesEnabled } from './claudeFeatureFlag';
 
 const RAW_KEY = import.meta.env.VITE_CLAUDE_API_KEY ?? '';
+const CLAUDE_FEATURES_ENABLED = isClaudeFeaturesEnabled();
 
 const isValidKey = (key: string) =>
-  key.startsWith('sk-ant-') && /^[\x00-\x7F]+$/.test(key);
+  key.startsWith('sk-ant-') && /^[\u0021-\u007E]+$/.test(key);
 
 const API_KEY = isValidKey(RAW_KEY) ? RAW_KEY : '';
 
-let client: Anthropic | null = null;
-if (API_KEY) {
-  client = new Anthropic({ apiKey: API_KEY, dangerouslyAllowBrowser: true });
+let clientPromise: Promise<Anthropic | null> | null = null;
+
+let apiFallbackReason: string | null = null;
+let apiFallbackAt: number | null = null;
+const API_FALLBACK_TTL_MS = 5 * 60 * 1000; // 5분 후 자동 재시도 허용
+
+function summarizeClaudeError(error: unknown): string {
+  if (error instanceof Error) {
+    return `${error.name}: ${error.message}`;
+  }
+  return String(error);
+}
+
+function disableClaudeTemporarily(reason: string) {
+  if (!apiFallbackReason) {
+    apiFallbackReason = reason;
+    apiFallbackAt = Date.now();
+    console.warn(`Claude API 일시 비활성화: ${reason}. 5분 후 자동 재시도합니다.`);
+  }
+}
+
+function canUseClaude(): boolean {
+  if (!CLAUDE_FEATURES_ENABLED) return false;
+  if (!API_KEY) return false;
+  if (!apiFallbackReason) return true;
+  // 5분 경과 시 자동 복구
+  if (apiFallbackAt !== null && Date.now() - apiFallbackAt > API_FALLBACK_TTL_MS) {
+    apiFallbackReason = null;
+    apiFallbackAt = null;
+    console.info('Claude API 재활성화: 5분 경과로 자동 복구됩니다.');
+    return true;
+  }
+  return false;
+}
+
+async function getClaudeClient(): Promise<Anthropic | null> {
+  if (!CLAUDE_FEATURES_ENABLED || !API_KEY || !canUseClaude()) return null;
+  if (!clientPromise) {
+    clientPromise = import('@anthropic-ai/sdk')
+      .then(({ default: AnthropicClient }) => (
+        new AnthropicClient({ apiKey: API_KEY, dangerouslyAllowBrowser: true })
+      ))
+      .catch((error: unknown) => {
+        disableClaudeTemporarily(`SDK 로딩 실패 - ${summarizeClaudeError(error)}`);
+        clientPromise = null;
+        return null;
+      });
+  }
+  return clientPromise;
 }
 
 // ─── 카테고리별 단어 풀 ────────────────────────────────────
@@ -72,7 +120,7 @@ function repairTruncatedJson(text: string): string | null {
   const start = text.indexOf('[');
   if (start === -1) return null;
 
-  let json = text.slice(start);
+  const json = text.slice(start);
 
   // 이미 완전한 배열이면 그대로 반환
   const trimmed = json.trimEnd();
@@ -106,10 +154,13 @@ export async function generateQuizQuestions(
   difficulty: 1 | 2 | 3 = 2,
   categoryIndex?: number
 ): Promise<QuizQuestion[]> {
-  if (!client) {
+  if (!API_KEY) {
     console.info('Claude API 키 없음. 기본 문제를 사용합니다.');
     return [];
   }
+  if (!canUseClaude()) return [];
+  const client = await getClaudeClient();
+  if (!client) return [];
 
   const diffLabel = difficulty === 1 ? '쉬운(초등 저학년)' : difficulty === 2 ? '보통(초등 중학년)' : '어려운(초등 고학년)';
   const xp   = difficulty === 1 ? 30 : difficulty === 2 ? 50 : 80;
@@ -160,7 +211,7 @@ JSON 배열만 출력 (다른 텍스트 없이):
 ]`;
 
   const callApi = async (questionCount: number) => {
-    const message = await client!.messages.create({
+    const message = await client.messages.create({
       model: 'claude-opus-4-5',
       max_tokens: 5000,           // 3000 → 5000 (잘림 방지)
       system: SYSTEM_PROMPT,
@@ -185,7 +236,7 @@ JSON 배열만 출력 (다른 텍스트 없이):
     const ts = Date.now();
     return parsed.map((q, i) => ({ ...q, id: `ai_${ts}_${i}` }));
   } catch (e) {
-    console.error('Claude API 오류:', e);
+    disableClaudeTemporarily(summarizeClaudeError(e));
     return [];
   }
 }
@@ -246,7 +297,7 @@ export async function getOrBuildAIBank(): Promise<QuizQuestion[]> {
     return bank;
   }
 
-  if (!client) return bank;
+  if (!canUseClaude()) return bank;
 
   // 카테고리 인덱스 순환
   const catIdx = meta.categoryIndex;
@@ -262,6 +313,13 @@ export async function getOrBuildAIBank(): Promise<QuizQuestion[]> {
     const newQuestions = [...easy, ...mid, ...hard];
     const unique = deduplicateByWord(bank, newQuestions);
 
+    // 실제로 추가된 문제가 없으면 lastGenDate를 기록하지 않음
+    // (transient error로 모두 빈 배열인 경우 날짜 낭비 방지)
+    if (unique.length === 0) {
+      console.info('AI 문제 뱅크: 새 문제 없음, 날짜 기록 생략');
+      return bank;
+    }
+
     const updatedBank = [...bank, ...unique];
     saveBank(updatedBank);
     saveMeta({
@@ -273,7 +331,7 @@ export async function getOrBuildAIBank(): Promise<QuizQuestion[]> {
     console.info(`AI 문제 뱅크 업데이트: +${unique.length}개 추가 (총 ${updatedBank.length}개)`);
     return updatedBank;
   } catch (e) {
-    console.error('AI 뱅크 생성 실패:', e);
+    disableClaudeTemporarily(`AI 뱅크 생성 실패 - ${summarizeClaudeError(e)}`);
     return bank;
   }
 }
@@ -371,6 +429,8 @@ export async function generateCategoryQuestions(
   difficulty: 1 | 2 | 3 = 2,
   count: number = 10
 ): Promise<QuizQuestion[]> {
+  if (!canUseClaude()) return [];
+  const client = await getClaudeClient();
   if (!client) return [];
 
   const diffLabel = difficulty === 1 ? '쉬운(초등 저학년)' : difficulty === 2 ? '보통(초등 중학년)' : '어려운(초등 고학년)';
@@ -382,7 +442,7 @@ export async function generateCategoryQuestions(
   const callApi = async (questionCount: number) => {
     const userContent = prompts.userTemplate(diffLabel, xp, coin)
       .replace(/퀴즈 10개/g, `퀴즈 ${questionCount}개`);
-    const message = await client!.messages.create({
+    const message = await client.messages.create({
       model: 'claude-opus-4-5',
       max_tokens: 5000,           // 3000 → 5000 (잘림 방지)
       system: prompts.system,
@@ -411,7 +471,7 @@ export async function generateCategoryQuestions(
       category,
     })).slice(0, count);
   } catch (e) {
-    console.error(`Claude API 오류 (${category}):`, e);
+    disableClaudeTemporarily(`${category} 생성 실패 - ${summarizeClaudeError(e)}`);
     return [];
   }
 }
@@ -460,7 +520,7 @@ export async function getOrBuildCategoryBank(category: QuizCategory): Promise<Qu
     return bank;
   }
 
-  if (!client) return bank;
+  if (!canUseClaude()) return bank;
 
   try {
     const [easy, mid, hard] = await Promise.all([
@@ -477,7 +537,7 @@ export async function getOrBuildCategoryBank(category: QuizCategory): Promise<Qu
     console.info(`${category} AI 뱅크: +${unique.length}개 추가 (총 ${updated.length}개)`);
     return updated;
   } catch (e) {
-    console.error(`${category} AI 뱅크 생성 실패:`, e);
+    disableClaudeTemporarily(`${category} AI 뱅크 생성 실패 - ${summarizeClaudeError(e)}`);
     return bank;
   }
 }

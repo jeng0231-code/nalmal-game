@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>K-학당 개인정보처리방침</title>
+    <meta
+      name="description"
+      content="K-학당 출시 준비용 개인정보처리방침 초안"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5efe6;
+        --paper: #fffdf8;
+        --text: #2f241d;
+        --muted: #6b5a4a;
+        --line: #ddcfbf;
+        --accent: #8a4b2a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Noto Sans KR", system-ui, sans-serif;
+        background:
+          radial-gradient(circle at top, rgba(138, 75, 42, 0.14), transparent 34%),
+          linear-gradient(180deg, #f8f2ea 0%, var(--bg) 100%);
+        color: var(--text);
+        line-height: 1.7;
+      }
+
+      main {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 48px 20px 72px;
+      }
+
+      .card {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 28px 24px;
+        box-shadow: 0 18px 48px rgba(47, 36, 29, 0.08);
+      }
+
+      h1,
+      h2 {
+        line-height: 1.3;
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: clamp(2rem, 4vw, 2.8rem);
+      }
+
+      h2 {
+        margin: 32px 0 12px;
+        font-size: 1.25rem;
+      }
+
+      p,
+      li {
+        font-size: 1rem;
+      }
+
+      .lead,
+      .meta {
+        color: var(--muted);
+      }
+
+      .notice {
+        margin-top: 20px;
+        padding: 14px 16px;
+        border-left: 4px solid var(--accent);
+        background: rgba(138, 75, 42, 0.08);
+        border-radius: 12px;
+      }
+
+      ul {
+        padding-left: 20px;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      @media (max-width: 640px) {
+        main {
+          padding: 24px 14px 40px;
+        }
+
+        .card {
+          padding: 22px 18px;
+          border-radius: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="card">
+        <p class="meta">최종 수정일: 2026-05-26</p>
+        <h1>K-학당 개인정보처리방침</h1>
+        <p class="lead">
+          K-학당은 한국어와 한국 문화 학습을 위한 교육용 게임입니다. 이 문서는 현재
+          코드 기준의 출시 준비용 개인정보처리방침 초안이며, 실제 출시 전에는 운영자
+          연락처와 최종 연동 SDK 기준으로 다시 갱신됩니다.
+        </p>
+        <div class="notice">
+          현재 기본 출시 설정에서는 AI 기능이 비활성화되어 있으며, 광고 SDK·결제 SDK·분석
+          SDK도 연동되어 있지 않습니다.
+        </div>
+
+        <h2>1. 수집하는 정보</h2>
+        <p>
+          K-학당은 회원가입이나 서버 계정을 요구하지 않습니다. 현재 기본 동작 기준으로
+          이름, 학습 진행 상태, 출석, 미션, 오답 노트, 캐릭터 설정 같은 학습 데이터는
+          사용자의 기기 또는 브라우저 저장소에만 저장됩니다.
+        </p>
+        <ul>
+          <li>학습 기록: 레벨, 경험치, 코인, 하트, 학습 일자, 카테고리 통계</li>
+          <li>캐릭터 정보: SVG 캐릭터 설정값, 선택한 꾸미기 정보</li>
+          <li>기타 기록: 출석, 미션, 업적, 오답 노트, 튜토리얼 확인 여부</li>
+        </ul>
+
+        <h2>2. 선택 기능과 카메라·사진 사용</h2>
+        <p>
+          사용자가 직접 사진을 고르거나 촬영하는 기능을 사용할 경우, 해당 사진 데이터는
+          기기 내 저장 상태에 포함될 수 있습니다. 현재 기본 출시 설정에서는 사진 기반 AI
+          변환 기능이 비활성화되어 있어 외부 AI 서비스 전송은 일어나지 않도록 설계되어
+          있습니다.
+        </p>
+
+        <h2>3. 외부 전송과 제3자 처리</h2>
+        <p>
+          현재 기본 출시 설정에서는 학습 기록, 이름, 캐릭터 설정을 외부 서버로 전송하지
+          않습니다. 다만 향후 AI 기능을 별도 활성화할 경우 사용자가 선택한 사진 또는 AI
+          문제 생성 요청 정보가 외부 AI 서비스로 전송될 수 있으며, 그 경우 본 문서와 앱
+          안내 문구를 다시 갱신합니다.
+        </p>
+
+        <h2>4. 광고·결제·분석</h2>
+        <p>
+          현재 코드 기준으로 광고 SDK, 인앱결제 SDK, 분석 SDK는 연동되어 있지 않습니다.
+          향후 수익화 기능을 추가하면 수집 데이터 범위와 제3자 제공 항목을 본 문서에 다시
+          반영합니다.
+        </p>
+
+        <h2>5. 아동·가족 대상 원칙</h2>
+        <p>
+          K-학당은 어린이 또는 가족 대상 가능성을 고려해 보수적으로 운영합니다. 맞춤형
+          광고는 기본적으로 피하고, 과도한 결제 유도나 불필요한 개인정보 수집을 지양합니다.
+        </p>
+
+        <h2>6. 보관 및 삭제</h2>
+        <p>
+          현재 학습 데이터는 사용자의 기기 또는 브라우저 저장소에만 남습니다. 앱 삭제,
+          브라우저 저장소 초기화, 또는 향후 제공될 초기화 기능을 사용하면 해당 로컬 데이터는
+          삭제될 수 있습니다.
+        </p>
+
+        <h2>7. 문의 및 업데이트</h2>
+        <p>
+          출시 전 최종 버전에는 운영 문의용 연락처를 추가할 예정입니다. 정책이나 기능이
+          바뀌면 이 문서의 날짜와 내용을 함께 갱신합니다.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

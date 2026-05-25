@@ -1,0 +1,37 @@
+{
+  "date": "2026. 5. 26.",
+  "lintOk": true,
+  "buildOk": true,
+  "addedQuestions": {},
+  "checklistItems": [
+    {
+      "name": "빌드 통과",
+      "ok": true
+    },
+    {
+      "name": "린트 에러 0개",
+      "ok": true
+    },
+    {
+      "name": "개인정보처리방침 페이지",
+      "ok": true
+    },
+    {
+      "name": "앱 아이콘 512x512",
+      "ok": false
+    },
+    {
+      "name": "피처 그래픽 1024x500",
+      "ok": false
+    },
+    {
+      "name": "스크린샷 최소 2장",
+      "ok": false
+    },
+    {
+      "name": "Capacitor android/ 디렉토리",
+      "ok": false
+    }
+  ],
+  "nextTask": "Capacitor Android 패키징 설정\n- npm install @capacitor/core @capacitor/cli @capacitor/android\n- npx cap init → npx cap add android\n- 앱 아이콘/피처그래픽 생성 필요"
+}

@@ -13,6 +13,9 @@ export const ETIQUETTE_QUESTIONS: QuizQuestion[] = [
     difficulty: 1,
     xpReward: 30,
     coinReward: 5,
+    learningGoal: '어른께 물건을 드릴 때 두 손을 사용하는 공손한 예절 이해',
+    hintText: '한 손으로 드리는 것과 두 손으로 드리는 것 — 어느 쪽이 더 공손하게 보일까요?',
+    tags: ['예절', '전통', '어른공경'],
     category: 'etiquette',
   },
   {
@@ -26,6 +29,9 @@ export const ETIQUETTE_QUESTIONS: QuizQuestion[] = [
     difficulty: 1,
     xpReward: 30,
     coinReward: 5,
+    learningGoal: '식사 자리에서 어른을 먼저 배려하는 우리나라 전통 식사 예절 이해',
+    hintText: '우리나라 전통에서는 나이 순서가 중요해요 — 식탁에서도 어른과 아랫사람 중 누가 먼저 수저를 들까요?',
+    tags: ['예절', '식사', '전통'],
     category: 'etiquette',
   },
   {
@@ -65,6 +71,9 @@ export const ETIQUETTE_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '설날 세배 시 남자와 여자의 손 위치(공수) 차이 이해',
+    hintText: '남자는 왼손이 위, 여자는 오른손이 위 — 이 문제는 남자의 세배 자세를 묻고 있어요.',
+    tags: ['예절', '전통', '세배'],
     category: 'etiquette',
   },
   {
@@ -117,6 +126,9 @@ export const ETIQUETTE_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '젓가락을 밥그릇에 꽂는 행위가 제사와 관련된 금기 예절임을 이해',
+    hintText: '제사를 지낼 때 음식 위에 젓가락을 꽂는 모습을 본 적 있나요? 평소 식사에서는 어떻게 해야 할까요?',
+    tags: ['예절', '식사', '금기'],
     category: 'etiquette',
   },
   {
@@ -246,6 +258,9 @@ export const ETIQUETTE_QUESTIONS: QuizQuestion[] = [
     difficulty: 3,
     xpReward: 50,
     coinReward: 10,
+    learningGoal: '차례상 차리는 전통 원칙(동두서미 등) 이해',
+    hintText: '동두서미(東頭西尾)는 "머리는 동쪽, 꼬리는 서쪽" — 생선 머리는 어느 방향으로 놓아야 할까요?',
+    tags: ['예절', '전통', '차례'],
     category: 'etiquette',
   },
   {

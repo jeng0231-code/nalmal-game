@@ -14,6 +14,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '상호 존중의 의미를 담은 속담 이해',
+    hintText: '내가 먼저 어떻게 행동하느냐에 따라 상대방의 반응이 달라져요.',
+    tags: ['속담', '인간관계', '배려'],
   },
   {
     id: 'prov_002',
@@ -27,6 +30,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '성공 후 초심을 잊는 상황을 표현하는 속담 이해',
+    hintText: '개구리는 원래 올챙이였어요. 지금의 나와 예전의 나를 떠올려보세요.',
+    tags: ['속담', '겸손', '교훈'],
   },
   {
     id: 'prov_003',
@@ -66,6 +72,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'proverbs',
+    learningGoal: '유유상종의 의미를 담은 속담 이해',
+    hintText: '가재와 게는 생김새가 비슷한 동물이에요. 비슷한 사람들은 어떻게 행동할까요?',
+    tags: ['속담', '인간관계', '교훈'],
   },
   {
     id: 'prov_006',
@@ -118,6 +127,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'proverbs',
+    learningGoal: '겉으로 떠드는 것과 실속의 관계를 표현하는 속담 이해',
+    hintText: '수레가 비어 있을 때와 가득 찼을 때, 어느 쪽이 더 시끄러울까요?',
+    tags: ['속담', '교훈', '겸손'],
   },
   {
     id: 'prov_010',

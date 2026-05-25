@@ -13,6 +13,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 1,
     xpReward: 30,
     coinReward: 5,
+    learningGoal: '한 번의 행동으로 두 가지 이익을 얻는 상황을 나타내는 사자성어 이해',
+    hintText: '一(하나) + 石(돌) + 二(둘) + 鳥(새)의 한자 뜻을 생각해보세요.',
+    tags: ['사자성어', '효율', '기회'],
     category: 'idioms',
   },
   {
@@ -26,6 +29,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 1,
     xpReward: 30,
     coinReward: 5,
+    learningGoal: '계절을 나타내는 사자성어를 통해 가을의 특징 이해',
+    hintText: '天(하늘) + 高(높다) + 馬(말) + 肥(살찌다) — 어느 계절에 하늘이 높고 말이 살찔까요?',
+    tags: ['사자성어', '계절', '가을'],
     category: 'idioms',
   },
   {
@@ -39,6 +45,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '늦더라도 꾸준히 노력하면 성공할 수 있다는 교훈을 담은 사자성어 이해',
+    hintText: '大(크다) + 器(그릇) + 晩(늦다) + 成(이루다) — 큰 그릇을 만드는 데 시간이 얼마나 걸릴까요?',
+    tags: ['사자성어', '노력', '인내'],
     category: 'idioms',
   },
   {
@@ -52,6 +61,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '여러 사람이 같은 의견을 말하는 상황을 나타내는 사자성어 이해',
+    hintText: '異(다르다) + 口(입) + 同(같다) + 聲(소리) — 입은 다른데 소리는 같다면 의견이 같을까요, 다를까요?',
+    tags: ['사자성어', '의견', '일치'],
     category: 'idioms',
   },
   {
@@ -78,6 +90,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 3,
     xpReward: 50,
     coinReward: 10,
+    learningGoal: '배움을 통해 스승을 능가하는 발전을 나타내는 사자성어 이해',
+    hintText: '靑(푸른색)이 藍(쪽 식물)에서 나왔는데 더 파랗다면, 제자와 스승의 관계는 어떨까요?',
+    tags: ['사자성어', '학습', '발전'],
     category: 'idioms',
   },
   {
@@ -91,6 +106,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 3,
     xpReward: 50,
     coinReward: 10,
+    learningGoal: '사방이 적에게 둘러싸인 절망적 상황을 나타내는 사자성어 이해',
+    hintText: '四(넷) + 面(방향) + 楚(나라 이름) + 歌(노래) — 사방에서 적의 노래가 들린다면 기쁜 상황일까요, 위기 상황일까요?',
+    tags: ['사자성어', '위기', '절망'],
     category: 'idioms',
   },
   {

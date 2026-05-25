@@ -15,6 +15,11 @@ export default function MultipleChoiceQuiz({ question, onAnswer, onSpendCoins, c
   const [revealed, setRevealed] = useState(false);
   const [hintShown, setHintShown] = useState(false);
   const [eliminatedChoice, setEliminatedChoice] = useState<number | null>(null);
+  const [textHintShown, setTextHintShown] = useState(false);
+
+  // 참고: 부모(QuizPage)가 key={currentQuestion.id}로 렌더링하므로
+  // 문제가 바뀔 때 컴포넌트가 재마운트되어 state가 자동 초기화됨.
+  // (중복 id 방지는 QuizPage의 startStage에서 처리)
 
   const handleHint = () => {
     if (hintShown || !onSpendCoins || chosen !== null) return;
@@ -44,6 +49,7 @@ export default function MultipleChoiceQuiz({ question, onAnswer, onSpendCoins, c
         setRevealed(false);
         setHintShown(false);
         setEliminatedChoice(null);
+        setTextHintShown(false);
       }, 800);
     }
     // 오답: 수동으로 다음 문제 버튼 클릭
@@ -55,6 +61,7 @@ export default function MultipleChoiceQuiz({ question, onAnswer, onSpendCoins, c
     setRevealed(false);
     setHintShown(false);
     setEliminatedChoice(null);
+    setTextHintShown(false);
   };
 
   const getChoiceClass = (index: number) => {
@@ -90,7 +97,24 @@ export default function MultipleChoiceQuiz({ question, onAnswer, onSpendCoins, c
         <p className="text-joseon-dark text-xl font-bold leading-relaxed">{question.question}</p>
       </div>
 
-      {/* 힌트 버튼 */}
+      {/* 학습 힌트 (hintText 필드가 있는 문제에만 표시, 무료) */}
+      {question.hintText && !revealed && (
+        <div className="text-center">
+          <button
+            onClick={() => setTextHintShown(h => !h)}
+            className="text-xs text-joseon-brown underline hover:text-joseon-dark transition-colors"
+          >
+            {textHintShown ? '💡 힌트 숨기기' : '💡 힌트 보기 (무료)'}
+          </button>
+          {textHintShown && (
+            <div className="mt-2 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-800 text-left">
+              {question.hintText}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 힌트 버튼 (오답 제거, 코인 소모) */}
       {!revealed && (
         <div className="flex justify-end mb-1">
           <button
