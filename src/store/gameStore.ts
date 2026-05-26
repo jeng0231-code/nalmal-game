@@ -95,10 +95,15 @@ interface GameStore {
   studyDays: string[];
   seenQuestionIds: string[];  // 최근 본 문제 ID (최대 500개 롤링)
 
+  // ── 시즌/주간 보상 ──
+  seasonalBadges: string[];          // 획득한 시즌 배지 목록
+  weeklyRewardClaimed: string;       // 마지막으로 보상 받은 주 키 ("2026-W21")
+  claimedWeeklyReward: () => void;   // 주간 챌린지 보상 수령
+
   // ── 기본 액션 ──
   initPlayer: (name: string, photo: string | null) => void;
   setQuestions: (questions: QuizQuestion[]) => void;
-  answerCorrect: (xp: number, coins: number) => void;
+  answerCorrect: (xp: number, coins: number, category?: string) => void;
   answerWrong: () => void;
   nextQuestion: () => void;
   closeReward: () => void;
@@ -184,6 +189,8 @@ export const useGameStore = create<GameStore>()(
       wrongAnswers: [],
       studyDays: [],
       seenQuestionIds: [],
+      seasonalBadges: [],
+      weeklyRewardClaimed: '',
       cycleCount: 0,
       characterConfig: null,
       categoryStats: DEFAULT_CATEGORY_STATS,
@@ -215,15 +222,39 @@ export const useGameStore = create<GameStore>()(
         set({ currentQuestions: questions, currentIndex: 0 });
       },
 
-      answerCorrect: (xp, coins) => {
-        const { player, dailyStats, dailyBonus } = get();
+      answerCorrect: (xp, coins, category?: string) => {
+        const { player, dailyStats, dailyBonus, seasonalBadges } = get();
         const streakBonus = player.streak >= 2 ? 1.5 : 1;
         const today = todayStr();
         const bonusMultiplier = dailyBonus.date === today && dailyBonus.type === 'double_xp' ? 2
           : dailyBonus.date === today && dailyBonus.type === 'double_coins' ? 1 : 1;
         const coinMultiplier = dailyBonus.date === today && dailyBonus.type === 'double_coins' ? 2 : 1;
-        const finalXP = Math.round(xp * streakBonus * bonusMultiplier);
+
+        // 시즌 이벤트 보너스 카테고리 XP +20%
+        const currentMonth = new Date().getMonth() + 1;
+        const SEASONAL_BONUS_MAP: Record<number, string> = {
+          1: 'etiquette', 2: 'history', 3: 'history', 4: 'literacy',
+          5: 'proverbs',  6: 'etiquette', 7: 'idioms', 8: 'history',
+          9: 'proverbs', 10: 'literacy', 11: 'etiquette', 12: 'history',
+        };
+        const seasonalBonusCategory = SEASONAL_BONUS_MAP[currentMonth];
+        const seasonalBonus = (category && category === seasonalBonusCategory) ? 1.2 : 1;
+
+        const finalXP = Math.round(xp * streakBonus * bonusMultiplier * seasonalBonus);
         const finalCoins = Math.round(coins * streakBonus * coinMultiplier);
+
+        // 이달 첫 시즌 보너스 획득 시 배지 지급
+        const SEASONAL_BADGES: Record<number, string> = {
+          1: '🎍 설날 학생', 2: '🌱 봄 새싹', 3: '🇰🇷 독립 선비', 4: '🌳 초록 선비',
+          5: '🎠 어린이 학자', 6: '🎋 단오 선비', 7: '☀️ 삼복 학생', 8: '🕊️ 광복 선비',
+          9: '🌕 한가위 학자', 10: '📜 훈민정음 학자', 11: '🥬 김장 학생', 12: '❄️ 동지 학자',
+        };
+        const thisMonthBadge = SEASONAL_BADGES[currentMonth];
+        const newSeasonalBadges = (
+          thisMonthBadge &&
+          !seasonalBadges.includes(thisMonthBadge) &&
+          category === seasonalBonusCategory
+        ) ? [...seasonalBadges, thisMonthBadge] : seasonalBadges;
 
         const oldLevel = getLevelByXP(player.xp);
         const newXP = player.xp + finalXP;
@@ -249,6 +280,7 @@ export const useGameStore = create<GameStore>()(
           lastXpGained: finalXP,
           lastCoinsGained: finalCoins,
           incorrectStreak: 0,
+          seasonalBadges: newSeasonalBadges,
           // 일일 통계 업데이트
           dailyStats: {
             ...dailyStats,
@@ -581,6 +613,27 @@ export const useGameStore = create<GameStore>()(
         set({ characterConfig: config });
       },
 
+      /** 주간 챌린지 보상 수령 (주당 1회) */
+      claimedWeeklyReward: () => {
+        const { player } = get();
+        // 이번 주 키 계산
+        const d = new Date();
+        const startOfYear = new Date(d.getFullYear(), 0, 1);
+        const week = Math.ceil(((d.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7);
+        const weekKey = `${d.getFullYear()}-W${week}`;
+        const newXP = player.xp + 200;
+        const newLevel = getLevelByXP(newXP);
+        set({
+          weeklyRewardClaimed: weekKey,
+          player: {
+            ...player,
+            xp: newXP,
+            level: newLevel.level,
+            coins: player.coins + 80,
+          },
+        });
+      },
+
       /** 카테고리별 통계 업데이트 */
       updateCategoryStats: (category, wasCorrect) => {
         const { categoryStats } = get();
@@ -617,6 +670,8 @@ export const useGameStore = create<GameStore>()(
         cycleCount: state.cycleCount,
         characterConfig: state.characterConfig,
         categoryStats: state.categoryStats,
+        seasonalBadges: state.seasonalBadges,
+        weeklyRewardClaimed: state.weeklyRewardClaimed,
       }),
     }
   )

@@ -9,8 +9,9 @@ import WordPuzzleGame from '../components/minigames/WordPuzzleGame';
 import ArcheryGame from '../components/minigames/ArcheryGame';
 import SpotDifferenceGame from '../components/minigames/SpotDifferenceGame';
 import SlidingPuzzleGame from '../components/minigames/SlidingPuzzleGame';
+import ChoseongGame from '../components/minigames/ChoseongGame';
 
-type GameId = 'TUHO' | 'JEGI' | 'YUT' | 'MEMORY' | 'WORDPUZZLE' | 'ARCHERY' | 'SPOTDIFF' | 'PUZZLE' | null;
+type GameId = 'TUHO' | 'JEGI' | 'YUT' | 'MEMORY' | 'WORDPUZZLE' | 'ARCHERY' | 'SPOTDIFF' | 'PUZZLE' | 'CHOSEONG' | null;
 
 const GAMES: {
   id: GameId;
@@ -110,6 +111,17 @@ const GAMES: {
     maxCoins: 100,
     tag: '전략',
     tagColor: 'bg-blue-100 text-blue-700',
+  },
+  {
+    id: 'CHOSEONG',
+    name: '초성 스피드 퀴즈',
+    emoji: '🔤',
+    desc: '초성만 보고 단어를 맞혀라! 타이머 압박 10라운드',
+    difficulty: '스피드',
+    diffColor: 'text-pink-600',
+    maxCoins: 150,
+    tag: '🆕 신규',
+    tagColor: 'bg-pink-100 text-pink-700',
   },
 ];
 
@@ -222,6 +234,7 @@ export default function MiniGamePage() {
           {selectedGame === 'ARCHERY'    && <ArcheryGame onComplete={handleGameComplete} level={player.level} />}
           {selectedGame === 'SPOTDIFF'   && <SpotDifferenceGame onComplete={handleGameComplete} level={player.level} />}
           {selectedGame === 'PUZZLE'     && <SlidingPuzzleGame onComplete={handleGameComplete} level={player.level} />}
+          {selectedGame === 'CHOSEONG'  && <ChoseongGame onComplete={handleGameComplete} />}
         </div>
       </div>
     </div>

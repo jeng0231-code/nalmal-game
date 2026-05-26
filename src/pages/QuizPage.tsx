@@ -373,7 +373,7 @@ export default function QuizPage() {
       setScorePopup({ xp: q.xpReward, coins: q.coinReward, key: Date.now() });
       setTimeout(() => { setFlashClass(''); setScorePopup(null); }, 1200);
       setLastExplanation(q.explanation);   // RewardModal에 해설 전달
-      answerCorrect(q.xpReward, q.coinReward);
+      answerCorrect(q.xpReward, q.coinReward, (q.category as string) || activeCategory || 'literacy');
       setStageClearCorrect(p => p + 1);
       // 카테고리 통계 업데이트
       const qCat = (q.category as QuizCategory) || activeCategory || 'literacy';
@@ -1088,68 +1088,115 @@ export default function QuizPage() {
         </div>
       </header>
 
-      {/* 스탯 바 */}
-      <div className="bg-joseon-dark/90 text-white px-4 py-2">
-        <div className="flex justify-between items-center max-w-md mx-auto text-sm">
-          {/* 하트 (오답 시 흔들림) */}
-          <span className={heartShake ? 'shake inline-block' : ''}>
+      {/* ── 스탯 바 (개선) ── */}
+      <div className="bg-joseon-dark/95 text-white px-4 py-2.5 backdrop-blur-sm">
+        <div className="flex items-center justify-between max-w-md mx-auto gap-3">
+          {/* 하트 */}
+          <span className={`text-base tabular-nums ${heartShake ? 'shake inline-block' : ''}`}>
             {'❤️'.repeat(player.hearts)}{'🖤'.repeat(Math.max(0, player.maxHearts - player.hearts))}
           </span>
-          {/* 연속 정답 뱃지 */}
-          {player.streak >= 10
-            ? <span className="bg-purple-600 text-white text-xs font-black px-2 py-1 rounded-full animate-pulse shadow-lg shadow-purple-500/50">
-                ⚡ {player.streak}연속 신들린!
-              </span>
-            : player.streak >= 5
-            ? <span className="bg-red-500 text-white text-xs font-black px-2 py-0.5 rounded-full animate-bounce">
-                🔥 {player.streak}연속 불꽃!
-              </span>
-            : player.streak >= 2
-            ? <span className="bg-joseon-gold text-black text-xs font-black px-2 py-0.5 rounded-full">
-                🔥 {player.streak}연속
-              </span>
-            : <span className="text-white/70 text-xs">✅ {sessionCorrect} | ❌ {sessionWrong}</span>
-          }
-          <span className={`text-xs font-bold tabular-nums ${
-            timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-white/60'
-          }`}>⏱{timeLeft}s</span>
-          <span className="text-joseon-gold font-bold">🪙 {player.coins}</span>
+
+          {/* 스트릭 / 세션 통계 */}
+          <div className="flex-1 flex justify-center">
+            {player.streak >= 10
+              ? <span className="bg-purple-600 text-white text-[11px] font-black px-3 py-1 rounded-full animate-pulse" style={{ boxShadow: '0 0 12px rgba(147,51,234,0.6)' }}>
+                  ⚡ {player.streak}연속 신들린!
+                </span>
+              : player.streak >= 5
+              ? <span className="bg-red-500 text-white text-[11px] font-black px-3 py-1 rounded-full" style={{ animation: 'glowGold 1s infinite' }}>
+                  🔥 {player.streak}연속 불꽃!
+                </span>
+              : player.streak >= 2
+              ? <span className="text-[11px] font-black px-3 py-1 rounded-full text-black" style={{ background: 'linear-gradient(135deg, #F39C12, #F1C40F)' }}>
+                  🔥 {player.streak}연속
+                </span>
+              : <span className="text-white/60 text-xs">✅{sessionCorrect} ❌{sessionWrong}</span>
+            }
+          </div>
+
+          {/* 타이머 + 코인 */}
+          <div className="flex items-center gap-2">
+            <span className={`text-xs font-black tabular-nums px-2 py-1 rounded-lg ${
+              timeLeft <= 5 ? 'bg-red-500/80 text-white animate-pulse' :
+              timeLeft <= 10 ? 'bg-yellow-500/70 text-black' :
+              'bg-white/10 text-white/80'
+            }`}>⏱{timeLeft}s</span>
+            <span className="text-joseon-gold font-bold text-xs">🪙{player.coins}</span>
+          </div>
         </div>
       </div>
 
-      {/* 타이머 바 */}
-      <div className={`w-full h-2 ${isSpeedRound ? 'bg-yellow-200' : 'bg-gray-200'}`}>
-        <div
-          className={`h-full transition-all duration-1000 ease-linear ${
-            isSpeedRound
-              ? timeLeft <= 2 ? 'bg-red-600' : 'bg-yellow-500'
-              : timeLeft <= 5 ? 'bg-red-500' : timeLeft <= 10 ? 'bg-yellow-400' : 'bg-green-500'
-          }`}
-          style={{ width: `${(timeLeft / effectiveTimerDuration) * 100}%` }}
-        />
+      {/* ── 진행 표시 (문제 번호 + 타이머 바 통합) ── */}
+      <div className="max-w-md mx-auto w-full px-4 pt-2 pb-0">
+        <div className="flex items-center gap-2 mb-1">
+          {/* 문제 번호 도트 */}
+          <div className="flex gap-1 flex-1">
+            {Array.from({ length: isReviewMode ? Math.min(allQuestions.length, 10) : QUESTIONS_PER_STAGE }).map((_, i) => (
+              <div
+                key={i}
+                className="flex-1 h-2 rounded-full transition-all duration-300"
+                style={{
+                  background: i < stageIndex ? '#27AE60'
+                    : i === stageIndex ? (isSpeedRound ? '#F39C12' : '#C0392B')
+                    : 'rgba(139,69,19,0.15)',
+                  boxShadow: i === stageIndex ? `0 0 6px ${isSpeedRound ? '#F39C12' : '#C0392B'}` : 'none',
+                }}
+              />
+            ))}
+          </div>
+          <span className="text-[10px] text-joseon-brown/60 whitespace-nowrap">
+            {stageIndex + 1}/{isReviewMode ? allQuestions.length : QUESTIONS_PER_STAGE}
+          </span>
+        </div>
+        {/* 타이머 바 */}
+        <div className={`w-full h-1.5 rounded-full overflow-hidden ${isSpeedRound ? 'bg-yellow-100' : 'bg-gray-100'}`}>
+          <div
+            className="h-full rounded-full transition-none"
+            style={{
+              width: `${(timeLeft / effectiveTimerDuration) * 100}%`,
+              background: isSpeedRound
+                ? timeLeft <= 2 ? '#E74C3C' : 'linear-gradient(90deg, #F39C12, #F1C40F)'
+                : timeLeft <= 5 ? '#E74C3C'
+                : timeLeft <= 10 ? '#F39C12'
+                : 'linear-gradient(90deg, #27AE60, #2ECC71)',
+              transition: 'width 1s linear',
+            }}
+          />
+        </div>
       </div>
 
-      {/* 퀴즈 영역 */}
-      <div className="flex-1 p-4 max-w-md mx-auto w-full overflow-y-auto">
+      {/* ── 퀴즈 영역 ── */}
+      <div className="flex-1 px-4 pt-3 pb-4 max-w-md mx-auto w-full overflow-y-auto">
         {currentQuestion && (
-          <div className="flex flex-col gap-4">
-            {/* 뱃지 */}
-            <div className="flex gap-2 flex-wrap">
-              <span className={`text-xs px-3 py-1 rounded-full font-bold ${
+          <div className="flex flex-col gap-3">
+            {/* 뱃지 행 */}
+            <div className="flex gap-1.5 flex-wrap">
+              <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${
                 currentQuestion.type === 'OX' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
               }`}>
-                {currentQuestion.type === 'OX' ? '⭕❌ OX 퀴즈' : '📝 4지선다'}
+                {currentQuestion.type === 'OX' ? '⭕❌ OX' : '📝 4지선다'}
               </span>
-              <span className={`text-xs px-3 py-1 rounded-full font-bold ${
+              <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${
                 currentQuestion.difficulty === 1 ? 'bg-green-100 text-green-700' :
                 currentQuestion.difficulty === 2 ? 'bg-yellow-100 text-yellow-700' :
                 'bg-red-100 text-red-700'
               }`}>
-                {'⭐'.repeat(currentQuestion.difficulty)} 난이도
+                {'⭐'.repeat(currentQuestion.difficulty)}
               </span>
-              <span className="text-xs px-3 py-1 rounded-full bg-joseon-gold/20 text-joseon-dark font-bold">
+              <span className="text-[10px] px-2.5 py-1 rounded-full font-bold bg-joseon-gold/20 text-joseon-dark">
                 +{currentQuestion.xpReward} XP
               </span>
+              {/* 시즌 보너스 표시 */}
+              {(() => {
+                const SEASONAL_MAP: Record<number, string> = { 1:'etiquette',2:'history',3:'history',4:'literacy',5:'proverbs',6:'etiquette',7:'idioms',8:'history',9:'proverbs',10:'literacy',11:'etiquette',12:'history' };
+                const m = new Date().getMonth() + 1;
+                const cat = (currentQuestion.category as string) || activeCategory;
+                return cat === SEASONAL_MAP[m] ? (
+                  <span className="text-[10px] px-2.5 py-1 rounded-full font-bold bg-pink-100 text-pink-700">
+                    🗓️ 시즌 +20%
+                  </span>
+                ) : null;
+              })()}
             </div>
 
             {currentQuestion.type === 'OX'
