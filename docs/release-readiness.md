@@ -4,9 +4,9 @@
 
 ## 현재 확인
 
-- 프로덕션 빌드: 2026-05-26 재검증 통과
+- 프로덕션 빌드: 2026-05-27 재검증 통과
 - 앱 메타데이터: `index.html`, `public/manifest.json` 한글 깨짐 수정 완료
-- 린트: 통과. 에러 0개, 경고 0개
+- 린트: 2026-05-27 재검증 통과. 에러 0개, 경고 0개
 - E2E 브라우저 검증: 최신 재실행(2026-05-26) 통과 21개, 실패 0개, 경고 1개
 - 초기 엔트리 번들: `dist/assets/index-CtOayi58.js` 약 185 kB, 라우트/미니게임/모달 분리 완료
 - 잔여 대형 청크: `quizData` 약 45 kB, `sdk` 약 80.5 kB, `QuizPage` 약 43.8 kB. 이번 세션에서 SDK 정적 import 제거 및 AI 뱅크 백그라운드 로딩으로 초기 진입 경로 분리 적용
@@ -15,7 +15,7 @@
 - 제품 전략 분석: `docs/product-strategy-audit.md` 추가 완료
 - 교육 적합성: 신분제 중심 표현 일부를 성장 단계 표현으로 수정 완료
 - 퀴즈 메타데이터 리포트: `npm run report:quiz-metadata`로 적용 현황 확인 가능
-- 퀴즈 메타데이터 회귀 검증: `npm run check:quiz-metadata`로 완전 적용 27문제 기준 유지 확인 가능
+- 퀴즈 메타데이터 회귀 검증: `npm run check:quiz-metadata`로 완전 적용 92문제 기준 유지 확인 가능
 - 정책 초안: `docs/privacy-data-safety-draft.md`에 개인정보·데이터 안전·가족 대상 보수 기준 초안 추가
 - 배포용 개인정보처리방침 초안: `public/privacy-policy.html` 추가
 - Play Console 데이터 안전 입력 초안: `docs/google-play-data-safety.md` 추가
@@ -23,8 +23,190 @@
 
 ## 현재 블로커
 
+- 2026-05-27 현재 우선순위 재정렬: 교육 메타데이터는 `220/220`으로 마감됐다. 이제 제품 우선순위의 다음 축은 지속성으로, `오늘의 추천 학습`과 `주간 도전`을 실제 재방문 이유가 되도록 연결하는 작업이 가장 시급하다.
+- 교육 메타데이터 실제 상태: `npm run report:quiz-metadata` 기준 전체 220문제가 완전 적용 상태다. 문해력 110/110, 사자성어 30/30, 속담 30/30, 역사 30/30, 생활예절 20/20으로 교육 신뢰도 기준선은 현 버전에서 충족했다.
+- 지속성 공백: 홈/학당 허브/주간 보상 흐름은 존재하지만, `7일 학습 코스`, `약점 학당 3스테이지 주간 도전`, `복습 재진입`이 한 줄로 연결된 제품 경험은 아직 약하다.
 - 정책 영향: 브라우저에서 Claude API를 직접 호출하는 경로(`src/services/claudeApi.ts`, `src/services/avatarAiService.ts`)는 기본 비활성화가 완료됐지만, 정식 출시 전에 "계속 비활성화 유지" 또는 "서버 경유 전환" 중 하나를 최종 결정해야 한다.
 - 정책 문서: `public/privacy-policy.html`는 출시 준비용 초안이므로, 정식 출시 전 운영 문의 연락처와 실제 SDK 기준 최종 문구 확정이 필요하다.
+- Android 패키징: 현재 저장소에 Capacitor 패키지 선언, 설정 파일, `android/` 프로젝트가 없고, 이번 Codex 실행 환경에서는 `npm install @capacitor/...`가 진행되지 않아 직접 생성까지 완료하지 못했다.
+
+## 이번 루프 변경 (2026-05-27 Claude Code 일일 루프)
+
+### Google Play 체크리스트 자동 검증
+
+| 항목 | 상태 | 비고 |
+|------|------|------|
+| 린트 에러 0개 | ✅ | 에러 0, 경고 0 |
+| 빌드 통과 | ✅ | 1.02s |
+| 초기 번들 185kB 이하 | ✅ | 180.7kB (gzip 58.6kB) |
+| 앱 아이콘 512×512 | ✅ | `public/icon-512.png` |
+| 피처 그래픽 1024×500 | ✅ | `public/feature-graphic.png` |
+| 스크린샷 2장 이상 | ✅ | 4장 (`public/screenshots/`) |
+| 개인정보처리방침 | ✅ | `public/privacy-policy.html` |
+| Capacitor android/ | ❌ | 미생성 — 최우선 블로커 |
+| 서명된 AAB | ❌ | android/ 완료 후 생성 가능 |
+| E2E 21개 통과 | ✅ | 직전 통과 유지 (2026-05-26) |
+
+### 콘텐츠 갭 분석
+
+| 데이터 | 문제 수 | 기준 | 상태 |
+|--------|---------|------|------|
+| quizData (문해력) | 110 | 30+ | ✅ |
+| proverbsData (속담) | 30 | 20+ | ✅ |
+| idiomsData (사자성어) | 30 | 20+ | ✅ |
+| historyData (역사) | 30 | 20+ | ✅ |
+| etiquetteData (예절) | 23 (+3) | 20+ | ✅ |
+
+### 변경 사항
+
+- `src/data/etiquetteData.ts`: etq_021~023 추가 (20→23문제, 인사·앉음새·통행 예절)
+- `docs/release-readiness.md`: 일일 루프 결과 기록 및 체크리스트 갱신
+
+### 다음 최우선 과제
+
+Android 패키징(`Capacitor`)이 남은 유일한 하드 블로커. 린트·빌드·아이콘·스크린샷·개인정보처리방침은 모두 완료 상태.
+
+---
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, 문해력 메타데이터 110/110 마감)
+
+- `src/data/quizData.ts`
+  - 문해력 문항 `q097`~`q110`에 `learningGoal`, `hintText`, `tags`를 추가해 문해력당 완전 적용을 `110/110`으로 마감
+  - 기존 문제 문장, 정답, 해설, 보상 수치는 변경하지 않음
+- `docs/release-readiness.md`
+  - 현재 블로커 섹션을 최신 검증값과 다음 제품 공백 기준으로 갱신
+- `.claude/current-task.md`
+  - 다음 Claude Code 작업을 지속성 우선 과제인 `7일 학습 코스 + 주간 도전 연결` 구현 지시로 전환
+- 검증
+  - `npm run report:quiz-metadata`: 통과, 전체 220/220 · 문해력 110/110
+  - `npm run lint`: 통과
+  - `npm run build`: 통과
+  - `npm run check:release-readiness`: 통과, 필수 누락 0건 / Android 경고 1건
+
+## 이번 루프 변경 (2026-05-26 Codex 세션 — 사자성어당 메타데이터 목표선 달성)
+
+- `src/data/idiomsData.ts`
+  - 사자성어 문항 18개에 `learningGoal`, `hintText`, `tags`를 추가해 사자성어당 완전 적용 수치를 24/30까지 끌어올림
+  - 기존 문제 문장, 정답, 해설, 보상 수치는 변경하지 않음
+- `package.json`
+  - `report:quiz-metadata:idioms-worklist`, `check:quiz-metadata:idioms-target` 스크립트를 추가해 이번 목표를 자동 검증 기준으로 고정
+  - 다음 작업 전환을 위해 `report:quiz-metadata:quiz-worklist`, `check:quiz-metadata:quiz-target` 스크립트도 추가
+- `.claude/current-task.md`
+  - 다음 Claude Code 작업을 문해력당 메타데이터 30문항 이상 보강으로 갱신
+- 검증
+  - `npm run check:quiz-metadata:idioms-target`: 통과, 전체 140/220 · 사자성어 24/30
+  - `npm run lint`: 통과
+  - `npm run build`: 통과
+
+## 이번 루프 변경 (2026-05-26 Codex 세션 — 문해력 메타데이터 30문항 보강)
+
+- `src/data/quizData.ts`
+  - 문해력당 q003~q036에 `learningGoal`, `hintText`, `tags`를 추가
+  - 기존 정답, 해설, 보상 수치, 문제 문장은 변경하지 않음
+- `.claude/current-task.md`
+  - 다음 Claude Code 작업을 사자성어당 메타데이터 보강으로 전환
+  - 완료 기준을 사자성어 24/30 이상으로 갱신
+- 검증
+  - `npm run check:quiz-metadata`: 통과, 전체 122/220 · 문해력 36/110 · 사자성어 6/30
+  - `npm run check:release-readiness`: 직전 통과 유지, 필수 누락 0건 / Android 경고 1건
+  - `npm run lint`: 통과
+  - `npm run build`: 통과
+
+## 이번 루프 변경 (2026-05-26 Codex 세션 — 스토어 자산 규격 검증 보강)
+
+- `scripts/release-readiness-check.cjs`
+  - 앱 아이콘과 피처 그래픽을 파일 존재 여부만 보지 않고 PNG 헤더에서 실제 규격을 읽어 검증하도록 보강
+  - 규격이 맞지 않으면 현재 크기와 요구 크기를 함께 출력해 바로 수정할 수 있게 개선
+- 검증
+  - `npm run check:release-readiness`: 통과, 필수 누락 0건 / Android 경고 1건
+  - `npm run lint`: 통과
+  - `npm run build`: 통과
+
+## 이번 루프 변경 (2026-05-26 Codex 세션 — Android 사전 점검 추가)
+
+- `scripts/android-preflight-check.cjs`
+  - Android 패키징 진입 전 저장소 상태와 로컬 도구 상태를 분리해 점검하는 스크립트 추가
+  - Capacitor 패키지 선언, 설정 파일, `android/` 디렉터리를 필수 항목으로 검사
+  - `java`, `adb`, `ANDROID_HOME`/`ANDROID_SDK_ROOT`, 앱 아이콘 파일을 경고 항목으로 함께 보고
+- `package.json`
+  - `npm run check:android-preflight` 스크립트 추가
+- `docs/android-release-plan.md`
+  - Android 작업 시작 전 사전 점검 실행과 이번 환경의 설치 블로커를 명시
+- 검증
+  - `npm run check:android-preflight`: 의도대로 실패, Capacitor 패키지 선언/설정 파일/`android/` 디렉터리 누락 3건과 로컬 Java·SDK·adb 경고 3건을 분리 보고
+  - `npm run lint`: 통과
+  - `npm run build`: 통과, 초기 엔트리 `dist/assets/index-BZpxGLbF.js` 185.05 kB 유지
+  - `npm run check:release-readiness`: 통과, 필수 누락 0건 / Android 경고 1건 유지
+
+## 이번 루프 변경 (2026-05-26 Codex 세션 — 퀴즈 메타데이터 검증 기준 고정)
+
+- `scripts/quiz-metadata-report.cjs`
+  - 데이터 파일 설정에 카테고리 키를 추가해 학당별 완료 기준을 기계적으로 검사할 수 있게 정리
+  - `--require-category-complete=<category>:<count>` 옵션을 추가해 특정 학당의 완전 적용 목표를 실패 조건으로 강제
+  - 현재 리포트에 가장 적용률이 낮은 학당을 함께 출력해 다음 콘텐츠 보강 대상을 바로 보이게 개선
+- `package.json`
+  - `check:quiz-metadata:history-proverbs` 스크립트를 추가해 역사 30/30, 속담 30/30, 총 92개 완전 적용을 한 번에 검증하도록 고정
+- `.claude/current-task.md`
+  - Claude Code 작업 범위를 "역사 + 속담 완전 적용"으로 좁히고, 완료 기준에 새 검증 명령을 명시
+- 검증
+  - `npm run report:quiz-metadata`: 통과, 현재 42개 완전 적용 / 최우선 보강 대상은 문해력으로 표시
+  - `npm run check:quiz-metadata:history-proverbs`: 의도대로 실패, 역사 6/30 · 속담 4/30 · 총 42개 상태를 정확히 보고
+  - `npm run lint`: 통과
+
+## 이번 루프 변경 (2026-05-26 Codex 세션 — 메타데이터 작업 목록 자동 생성)
+
+- `scripts/quiz-metadata-report.cjs`
+  - `--only-category=<key>` 옵션으로 특정 학당만 추려 볼 수 있게 확장
+  - `--worklist=<path>` 옵션으로 미적용/부분 적용 문항의 문제·해설·누락 필드를 마크다운 작업 목록으로 생성
+- `package.json`
+  - `npm run report:quiz-metadata:history-proverbs-worklist` 스크립트를 추가해 역사/속담 작업 목록을 `.claude/quiz-metadata-worklist.md`로 바로 생성
+- `.claude/current-task.md`
+  - Claude Code가 위 작업 목록 파일을 기준으로 남은 역사·속담 문항을 순차 보강하도록 지시 보강
+- 검증
+  - `npm run report:quiz-metadata:history-proverbs-worklist`: 통과, 작업 목록 생성 확인
+  - `npm run check:quiz-metadata:history-proverbs`: 의도대로 실패, 아직 역사·속담 메타데이터 본작업이 남아 있음을 재확인
+  - `npm run lint`: 통과
+  - `npm run build`: 통과
+
+## 이번 루프 변경 (2026-05-26 Codex 세션 — 일일 보고서 출시 운영형으로 개편)
+
+- `scripts/daily-report.cjs`
+  - 기존 범용 개발 요약을 출시 운영 중심 보고서로 재작성
+  - 스토어 자산, 개인정보처리방침, 데이터 안전, Android 패키징, AI 기본 비활성화 예시를 자동 점검 항목으로 추가
+  - 최근 E2E 결과, 퀴즈 메타데이터 점검, 현재 Claude Code 작업 요약, 남은 출시 리스크를 한 번에 보고하도록 정리
+- 검증
+  - `npm run report:daily`: 보고서 미리보기 생성 성공, 외부 전송 단계는 네트워크 제한 `EACCES`로 실패
+  - `npm run lint`: 통과
+  - `npm run build`: 통과
+
+## 이번 루프 변경 (2026-05-26 Codex 세션 — 출시 준비 자동 점검 추가)
+
+- `scripts/release-readiness-check.cjs`
+  - 출시 준비 핵심 항목을 필수/경고로 구분해 한 번에 점검하는 자동 검증 스크립트 추가
+  - 교육 메타데이터 기준선 42문제, 스토어 문안, 데이터 안전, 개인정보처리방침, 문의 문구, 스크린샷 수, 앱 아이콘, 피처 그래픽, AI 기본 비활성화 예시를 점검
+  - Android 패키징은 아직 경로 확정 전 단계로 경고 항목으로만 보고
+- `package.json`
+  - `npm run check:release-readiness` 명령 추가
+- 검증
+  - `npm run check:release-readiness`: 의도대로 실패, 현재 누락 항목은 앱 아이콘과 피처 그래픽
+  - `npm run lint`: 예정
+  - `npm run build`: 예정
+
+## 이번 루프 변경 (2026-05-26 Codex 세션 — 스토어 자산 기준선 정리)
+
+- `public/screenshots/`
+  - 최신 E2E 산출물에서 스토어 시안으로 재사용 가능한 모바일 스크린샷 4장을 복사해 배치
+  - 홈, 학당 허브, 퀴즈 문항, 프로필 흐름이 바로 보이도록 파일명 정리
+- `docs/google-play-store-listing.md`
+  - Play Console용 앱 이름, 짧은 설명 후보, 자세한 설명 초안 작성
+  - 현재 기본 출시안인 AI 비활성화·광고/결제 미연동 기준을 문안에 반영
+- `docs/google-play-assets-brief.md`
+  - 앱 아이콘, 피처 그래픽, 스크린샷, 캡션 방향을 한 문서에 정리
+  - 다음 Claude Code 작업이 바로 이어질 수 있게 시각 방향과 완료 범위 명시
+- 검증
+  - `cmd /c npm.cmd run report:daily`: 보고서 미리보기 생성 성공, 외부 전송 단계는 네트워크 제한 `EACCES`로 실패
+  - `cmd /c npm.cmd run lint`: 통과
+  - `cmd /c npm.cmd run build`: 통과
 
 ## 이번 루프 변경 (2026-05-26 Codex 세션 — 정책 제출 문안 마감 시작)
 
@@ -90,7 +272,7 @@
   - 기존 코인 힌트는 `해설 미리보기`로 이름을 분리해 무료 학습 힌트와 역할을 구분
 - `scripts/quiz-metadata-report.cjs`
   - 5개 학당 전체 문제의 `learningGoal`, `hintText`, `tags` 적용 현황을 집계하는 리포트 스크립트 추가
-  - `--strict --min-complete=27` 옵션으로 메타데이터 회귀를 막는 검증 모드 추가
+  - `--strict --min-complete=42` 옵션으로 메타데이터 회귀를 막는 검증 모드로 상향
 - `package.json`
   - `report:quiz-metadata`, `check:quiz-metadata` 스크립트 추가
 
@@ -104,20 +286,36 @@
 - 검증
   - `npm run lint`: 통과
 
-## 일일 자동 루프 (2026-05-26 10:13)
+## 일일 자동 루프 (2026-05-26 18:20)
+
+## 이번 루프 변경 (2026-05-26 Codex 세션 — 주간 챌린지 학습일 집계 보정)
+
+- `src/store/gameStore.ts`
+  - 로그인 시 자동으로 `studyDays`에 오늘 날짜를 넣던 동작을 제거
+  - 실제 학습 행동이 일어난 경우에만 학습일이 기록되도록 문제 풀이 정답/오답, 미니게임 완료, 스테이지 완료 경로에서 `studyDays`를 갱신
+- `src/components/ui/WeeklyChallenge.tsx`
+  - 오늘 날짜라는 이유만으로 주간 학습일 수에 자동 포함하던 계산을 제거
+  - 주간 챌린지가 실제 학습일 기준으로만 5일 목표를 계산하도록 보정
+- 판단
+  - 기존 구현은 앱만 열어도 주간 보상 진행도가 오르는 상태라 교육 신뢰도와 지속성 지표를 왜곡할 수 있었음
+  - 이번 수정으로 주간 보상은 실제 학습 행동과 직접 연결됨
+- 검증
+  - `cmd /c npm.cmd run lint`: 통과
+  - `cmd /c npm.cmd run build`: 통과
+  - `cmd /c npm.cmd run test:e2e`: 통과 21개, 실패 0개, 경고 1개
 
 | 항목 | 결과 |
 |------|------|
 | 린트 | ✅ 에러 0개 |
 | 빌드 | ✅ 통과 (131 modules, 185kB) |
-| 콘텐츠 | ✅ 전 학당 기준 충족 (언어 117 / 속담 30 / 사자성어 30 / 역사 30 / 예절 20) |
-| 앱 아이콘 | ❌ public/icon-512.png 없음 |
-| 피처 그래픽 | ❌ public/feature-graphic.png 없음 |
-| 스크린샷 | ❌ public/screenshots/ 없음 |
+| 콘텐츠 | ⚠️ 메타데이터 보강 진행 중 (완전 적용 122 / 220, 사자성어 6 / 30) |
+| 앱 아이콘 | ✅ public/icon-512.png 512x512 확인 |
+| 피처 그래픽 | ✅ public/feature-graphic.png 1024x500 확인 |
+| 스크린샷 | ✅ public/screenshots/ 4장 배치 |
 | Capacitor | ❌ android/ 없음 |
 | 개인정보처리방침 | ✅ 존재 |
 
-→ 다음 Claude Code 작업: Capacitor Android 설정 + Google Play 출시 자산 생성
+→ 다음 Claude Code 작업: 사자성어당 메타데이터 18문항 이상 보강
 
 ## 이번 루프 변경 (2026-05-26 Claude Code 세션 — 코드리뷰 버그픽스)
 
@@ -155,6 +353,7 @@
   - `hintText?: string` — 정답 직접 노출 없는 학습 힌트
   - `tags?: string[]` — 세부 분류 태그
 - 5개 학당 데이터 파일에 각 4~6문제씩 메타데이터 예시 적용 (총 27문제)
+- 이번 Codex 세션에서 `src/data/etiquetteData.ts` 나머지 15문항까지 메타데이터를 보강해 생활예절 20문항 전체를 완전 적용으로 끌어올림 (총 42문제)
 - `src/components/quiz/MultipleChoiceQuiz.tsx` — `hintText` 있는 문제에 💡 힌트 보기(무료) 토글 UI 추가
 - 린트: **에러 0개**, 빌드: **통과** (130 modules)
 
@@ -222,3 +421,112 @@
 - 실패가 있으면 가장 작은 원인 묶음 하나를 고친다.
 - 변경 후 다시 검증한다.
 - 출시 준비 문서는 새로 발견한 리스크나 완료 항목에 맞춰 갱신한다.
+## 이번 루프 변경 (2026-05-26 Codex 세션, Android 출시 경로 계획 고정)
+
+- `docs/android-release-plan.md`
+  - 기본 출시 경로를 `Capacitor + Android App Bundle`로 정리
+  - 이번 단계 목표, 완료 기준, Codex 검증 기준, 보류 범위를 문서화
+- `scripts/release-readiness-check.cjs`
+  - Android 경고 문구가 단순 미확정 대신 "계획 문서 존재, 프로젝트 생성 대기"를 보여 주도록 보강
+- `.claude/current-task.md`
+  - Claude Code 다음 작업을 Android 패키징 연결로 전환
+- 검증
+  - `npm run check:release-readiness`: 통과, 필수 누락 0건 / 경고 1건
+  - `npm run check:quiz-metadata`: 통과, 기준선 42문제 유지
+  - `npm run lint`: 통과
+
+## 이번 루프 변경 (2026-05-26 Codex 세션, 검증 기준선 재확인)
+
+- 재검증 결과
+  - `npm run check:release-readiness`: 통과, 필수 누락 0건 / Android 경고 1건
+  - `npm run lint`: 통과
+  - `npm run build`: 통과
+  - `npm run test:e2e`: 통과 21개, 실패 0개, 경고 1개
+  - `npm run check:quiz-metadata:history-proverbs`: 실패, 전체 42/220 · 역사 6/30 · 속담 4/30
+- 판단
+  - 스토어 자산, 개인정보처리방침, 데이터 안전 문안, 출시 준비 자동 점검은 현재 기준선 충족
+  - Android 패키징은 여전히 경고 항목이지만 즉시 출시 가치를 가장 크게 올리는 작업은 교육 메타데이터 보강
+  - 따라서 Claude Code 다음 작업은 Android가 아니라 역사당·격언당 메타데이터 완전 적용으로 유지
+- 문서/지시 정리
+  - `.claude/current-task.md`를 최신 검증 수치 기준으로 다시 작성
+  - 과거 루프의 "다음 Claude Code 작업: 아이콘/피처 그래픽" 기록은 이 최신 섹션보다 우선하지 않음
+
+## 이번 루프 변경 (2026-05-26 Codex 세션, 역사당·격언당 메타데이터 완료)
+
+- `src/data/historyData.ts`
+  - 미적용 24문항에 `learningGoal`, `hintText`, `tags`를 추가해 역사당 30문항 전체를 완전 적용으로 끌어올림
+- `src/data/proverbsData.ts`
+  - 미적용 26문항에 `learningGoal`, `hintText`, `tags`를 추가해 격언당 30문항 전체를 완전 적용으로 끌어올림
+- `.claude/quiz-metadata-worklist.md`
+  - 다음 작업 전환을 위해 문해력당 기준 작업 목록으로 다시 생성
+- `.claude/current-task.md`
+  - Claude Code 다음 작업을 문해력당 메타데이터 30문항 이상 보강으로 갱신
+- 검증
+  - `npm run check:quiz-metadata:history-proverbs`: 통과, 전체 92/220 · 역사 30/30 · 속담 30/30
+  - `npm run lint`: 통과
+  - `npm run build`: 통과
+- 판단
+  - 교육 신뢰도 기준에서 역사당·격언당의 구조적 공백은 해소됨
+- 현재 최우선 보강 대상은 문해력당 66/110이며, 다음 자동화/Claude Code 작업도 이 영역에 집중하는 것이 출시 가치가 가장 큼
+
+## 이번 루프 변경 (2026-05-26 Codex 세션, 문해력 작업 목록 재동기화)
+
+- `.claude/quiz-metadata-worklist.md`
+  - `npm run report:quiz-metadata:quiz-worklist`를 다시 실행해 문해력 작업 시작 지점을 `q067` 이후로 재생성
+  - Claude Code가 오래된 작업 목록 대신 현재 기준 66/110 완료 상태를 바로 참조할 수 있게 정리
+- `docs/release-readiness.md`
+  - 현재 블로커 섹션의 교육 메타데이터 수치를 최신 검증값 170/220 · 문해력 66/110으로 갱신
+- 검증
+  - `npm run report:quiz-metadata`: 통과, 전체 170/220 · 문해력 66/110
+  - `npm run report:quiz-metadata:quiz-worklist`: 통과, `.claude/quiz-metadata-worklist.md` 재생성
+  - `npm run check:release-readiness`: 통과, 필수 누락 0건 / Android 경고 1건
+
+## 이번 루프 변경 (2026-05-26 Codex 세션, 현재 작업트리 재검증)
+
+- 판단
+  - 현재 작업트리에 홈, 미니게임, 퀴즈, 프로필, 데이터 파일 변경이 넓게 쌓여 있어 새 기능 추가보다 검증 재확인이 우선이었다.
+  - 출시 가치 기준은 여전히 교육 신뢰도 보강이 가장 높고, 문해력 메타데이터 66/110이 다음 실작업 대상이다.
+- 문서/지시 정리
+  - `.claude/current-task.md`의 Codex 재검증 시각을 2026-05-26 22:55 기준으로 갱신
+  - `.claude/quiz-metadata-worklist.md`를 다시 생성해 시작 지점이 `q067` 이후인지 재확인
+- 재검증 결과
+  - `npm run report:quiz-metadata`: 통과, 전체 170/220 · 문해력 66/110
+  - `npm run report:quiz-metadata:quiz-worklist`: 통과, `.claude/quiz-metadata-worklist.md` 재생성
+  - `npm run check:release-readiness`: 통과, 필수 누락 0건 / Android 경고 1건
+  - `npm run lint`: 통과
+  - `npm run build`: 통과
+  - `npm run test:e2e`: 통과 21개, 실패 0개, 경고 1개
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, 문해력 메타데이터 30문항 추가 보강)
+
+- `src/data/quizData.ts`
+  - 문해력 문항 `q067`~`q096`에 `learningGoal`, `hintText`, `tags`를 추가
+  - 기존 문제 문장, 정답, 해설, 보상 수치는 변경하지 않음
+- `package.json`
+  - 다음 마감 배치를 위해 `check:quiz-metadata:idioms-complete` 스크립트를 추가
+- `.claude/quiz-metadata-worklist.md`
+  - `npm run report:quiz-metadata:idioms-worklist` 재실행으로 사자성어 잔여 작업 목록 기준으로 전환
+- `.claude/quiz-metadata-batch-idm025-idm030.md`
+  - 다음 Claude Code 작업이 바로 이어질 수 있도록 사자성어 6문항 배치 지시를 추가
+- `.claude/current-task.md`
+  - 다음 Claude Code 작업을 사자성어 `idm_025`~`idm_030` 메타데이터 마감으로 갱신
+- 검증
+  - `npm run report:quiz-metadata`: 통과, 전체 200/220 · 문해력 96/110 · 사자성어 24/30
+  - `npm run lint`: 통과
+  - `npm run build`: 통과
+  - `npm run check:release-readiness`: 통과, 필수 누락 0건 / Android 경고 1건
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, 사자성어 메타데이터 30/30 완료)
+
+- `src/data/idiomsData.ts`
+  - 사자성어 문항 `idm_025`~`idm_030`에 `learningGoal`, `hintText`, `tags`를 추가해 사자성어당 완전 적용을 `30/30`으로 마감
+  - 기존 문제 문장, 정답, 해설, 보상 수치는 변경하지 않음
+- `.claude/quiz-metadata-worklist.md`
+  - `npm run report:quiz-metadata:quiz-worklist` 재실행으로 문해력 잔여 14문항 기준 작업 목록으로 전환
+- `.claude/current-task.md`
+  - 다음 Claude Code 작업을 문해력 `q097`~`q110` 메타데이터 마감으로 갱신
+- 검증
+  - `npm run check:quiz-metadata:idioms-complete`: 통과, 전체 206/220 · 사자성어 30/30
+  - `npm run lint`: 통과
+  - `npm run build`: 통과
+  - `npm run check:release-readiness`: 통과, 필수 누락 0건 / Android 경고 1건
