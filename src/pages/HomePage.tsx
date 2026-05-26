@@ -1,13 +1,25 @@
-import { useState, useEffect, useCallback } from 'react';
+import { Suspense, lazy, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import CharacterDisplay from '../components/character/CharacterDisplay';
-import AvatarCreator from '../components/character/AvatarCreator';
 import AttendanceModal from '../components/ui/AttendanceModal';
 import DailyMissionCard from '../components/ui/DailyMissionCard';
+import TodayRecommendation from '../components/ui/TodayRecommendation';
 import { getLevelByXP } from '../data/levels';
 import { getDailyTip } from '../data/dailyTips';
 import type { QuizCategory } from '../types/hakdang';
+
+const AvatarCreator = lazy(() => import('../components/character/AvatarCreator'));
+
+function AvatarCreatorFallback() {
+  return (
+    <div className="p-8 text-center">
+      <div className="text-5xl mb-3 animate-float">🎨</div>
+      <p className="text-joseon-dark font-bold">아바타 공방을 준비하는 중...</p>
+      <p className="text-joseon-brown text-sm mt-2">첫 설정에서만 필요한 도구를 불러옵니다.</p>
+    </div>
+  );
+}
 
 // 퀴즈 풀기 시작 시 랜덤으로 선택할 카테고리 목록
 const QUIZ_CATEGORIES: { id: QuizCategory; label: string; emoji: string; color: string }[] = [
@@ -20,7 +32,7 @@ const QUIZ_CATEGORIES: { id: QuizCategory; label: string; emoji: string; color: 
 
 export default function HomePage() {
   const {
-    player, initPlayer,
+    player, initPlayer, setCharacterConfig,
     checkDailyLogin, checkAndRegenHearts,
     showAttendance,
     loginStreak, dailyMissions, lastHeartRegenTime,
@@ -34,8 +46,7 @@ export default function HomePage() {
   const [inputName, setInputName] = useState('');
   const [tempName, setTempName] = useState('');
 
-  // ── 하트 회복 카운트다운 (early return 전에 선언 — Rules of Hooks) ──
-  const [regenCountdown, setRegenCountdown] = useState('');
+  const [now, setNow] = useState(() => Date.now());
 
   const currentLevel = getLevelByXP(player.xp);
   const dailyTip = getDailyTip();
@@ -61,23 +72,24 @@ export default function HomePage() {
   const completedMissions = dailyMissions.filter(m => m.completed && !m.claimed).length;
 
   // 하트 회복까지 남은 시간 계산
-  const calcRegenTime = useCallback(() => {
+  const calcRegenTime = useCallback((currentTime: number) => {
     if (heartsFullyRestored) return '';
     const REGEN_MS = 30 * 60 * 1000;
-    const elapsed = Date.now() - (lastHeartRegenTime || Date.now());
+    const baseTime = lastHeartRegenTime || currentTime;
+    const elapsed = currentTime - baseTime;
     const nextRegen = REGEN_MS - (elapsed % REGEN_MS);
     const mins = Math.floor(nextRegen / 60000);
     const secs = Math.floor((nextRegen % 60000) / 1000);
     return `${mins}분 ${secs.toString().padStart(2, '0')}초`;
   }, [heartsFullyRestored, lastHeartRegenTime]);
+  const regenCountdown = calcRegenTime(now);
 
   // 매초 카운트다운 갱신
   useEffect(() => {
-    if (heartsFullyRestored) { setRegenCountdown(''); return; }
-    setRegenCountdown(calcRegenTime());
-    const t = setInterval(() => setRegenCountdown(calcRegenTime()), 1000);
+    if (heartsFullyRestored) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
-  }, [heartsFullyRestored, calcRegenTime]);
+  }, [heartsFullyRestored]);
 
   // 앱 시작 시: 하트 회복 체크 + 출석 체크
   useEffect(() => {
@@ -103,6 +115,13 @@ export default function HomePage() {
 
   const handleAvatarCreated = (photo: string | null) => {
     initPlayer(tempName, photo);
+    setSetupStep(null);
+  };
+
+  const handleCharacterCreated = (config: import('../types/character').CharacterConfig) => {
+    // AI로 생성된 SVG 캐릭터 적용 (사진 없이)
+    initPlayer(tempName, null);
+    setCharacterConfig(config);
     setSetupStep(null);
   };
 
@@ -148,10 +167,13 @@ export default function HomePage() {
     return (
       <div className="joseon-bg min-h-screen flex flex-col items-center justify-center p-6">
         <div className="card-joseon max-w-sm w-full">
-          <AvatarCreator
-            onAvatarCreated={handleAvatarCreated}
-            onSkip={() => handleAvatarCreated(null)}
-          />
+          <Suspense fallback={<AvatarCreatorFallback />}>
+            <AvatarCreator
+              onAvatarCreated={handleAvatarCreated}
+              onCharacterCreated={handleCharacterCreated}
+              onSkip={() => handleAvatarCreated(null)}
+            />
+          </Suspense>
         </div>
       </div>
     );
@@ -208,11 +230,31 @@ export default function HomePage() {
             <h1 className="text-xl font-black">🏫 K-학당</h1>
             <p className="text-joseon-gold text-xs">한국문화를 배우는 조선의 학당</p>
           </div>
-          {/* 연속 출석 배지 */}
+          {/* 연속 출석 배지 — 불꽃 애니메이션 */}
           {loginStreak > 0 && (
-            <div className="bg-joseon-gold/20 border border-joseon-gold/50 rounded-xl px-3 py-1.5 text-right">
-              <div className="text-joseon-gold text-xs font-bold">📅 {loginStreak}일 연속</div>
-              <div className="text-white/70 text-[10px]">출석 중!</div>
+            <div
+              className="rounded-xl px-3 py-1.5 text-right border"
+              style={{
+                background: loginStreak >= 7
+                  ? 'linear-gradient(135deg, rgba(255,80,0,0.25), rgba(255,160,0,0.2))'
+                  : loginStreak >= 3
+                  ? 'linear-gradient(135deg, rgba(255,140,0,0.2), rgba(255,200,0,0.15))'
+                  : 'rgba(243,156,18,0.15)',
+                borderColor: loginStreak >= 7 ? 'rgba(255,100,0,0.6)' : 'rgba(243,156,18,0.5)',
+              }}
+            >
+              <div className="flex items-center gap-1 justify-end">
+                <span
+                  className={loginStreak >= 3 ? 'streak-fire' : ''}
+                  style={{ fontSize: loginStreak >= 7 ? 18 : 15 }}
+                >
+                  {loginStreak >= 7 ? '🔥' : loginStreak >= 3 ? '🔥' : '📅'}
+                </span>
+                <span className="text-joseon-gold text-xs font-black">{loginStreak}일 연속!</span>
+              </div>
+              <div className="text-white/60 text-[10px] text-right">
+                {loginStreak >= 7 ? '완벽한 출석 🏆' : loginStreak >= 3 ? '스트릭 유지 중 ✨' : '출석 중'}
+              </div>
             </div>
           )}
         </div>
@@ -220,42 +262,116 @@ export default function HomePage() {
 
       <div className="flex-1 p-4 flex flex-col gap-4 max-w-md mx-auto w-full overflow-y-auto">
 
-        {/* 캐릭터 카드 */}
-        <div className="card-joseon p-5 text-center">
-          <CharacterDisplay size="large" showStats={true} />
-          <div className="mt-3 flex items-center justify-center gap-3 text-xs text-joseon-brown">
-            <span>📝 {player.totalCorrect + player.totalWrong}문제</span>
-            <span>•</span>
-            <span>🎯 정답률 {player.totalCorrect + player.totalWrong > 0
-              ? Math.round(player.totalCorrect / (player.totalCorrect + player.totalWrong) * 100)
-              : 0}%</span>
-            <span>•</span>
-            <span>🔥 최고 {player.maxStreak}연속</span>
+        {/* 캐릭터 카드 — 레벨 링 + XP 바 강화 */}
+        <div
+          className="card-joseon p-5 text-center relative overflow-hidden"
+          style={{
+            '--ring-color': currentLevel.level >= 20
+              ? '#E74C3C'
+              : currentLevel.level >= 10
+              ? '#8E44AD'
+              : currentLevel.level >= 5
+              ? '#F39C12'
+              : '#27AE60',
+          } as React.CSSProperties}
+        >
+          {/* 레벨 티어별 배경 글로우 */}
+          <div
+            className="absolute inset-0 opacity-10 pointer-events-none rounded-xl"
+            style={{
+              background: currentLevel.level >= 20
+                ? 'radial-gradient(ellipse, rgba(231,76,60,0.4) 0%, transparent 70%)'
+                : currentLevel.level >= 10
+                ? 'radial-gradient(ellipse, rgba(142,68,173,0.4) 0%, transparent 70%)'
+                : currentLevel.level >= 5
+                ? 'radial-gradient(ellipse, rgba(243,156,18,0.4) 0%, transparent 70%)'
+                : 'transparent',
+            }}
+          />
+
+          <div className="relative z-10">
+            <CharacterDisplay size="large" showStats={true} />
+
+            {/* 통계 행 */}
+            <div className="mt-3 flex items-center justify-center gap-3 text-xs text-joseon-brown">
+              <div className="flex flex-col items-center">
+                <span className="font-black text-joseon-dark text-sm">{player.totalCorrect + player.totalWrong}</span>
+                <span>📝 총 문제</span>
+              </div>
+              <div className="w-px h-8 bg-joseon-brown/20" />
+              <div className="flex flex-col items-center">
+                <span className="font-black text-joseon-dark text-sm">
+                  {player.totalCorrect + player.totalWrong > 0
+                    ? Math.round(player.totalCorrect / (player.totalCorrect + player.totalWrong) * 100)
+                    : 0}%
+                </span>
+                <span>🎯 정답률</span>
+              </div>
+              <div className="w-px h-8 bg-joseon-brown/20" />
+              <div className="flex flex-col items-center">
+                <span className="font-black text-joseon-dark text-sm">{player.maxStreak}</span>
+                <span>🔥 최고연속</span>
+              </div>
+              <div className="w-px h-8 bg-joseon-brown/20" />
+              <div className="flex flex-col items-center">
+                <span className="font-black text-joseon-dark text-sm">{player.coins}</span>
+                <span>🪙 엽전</span>
+              </div>
+            </div>
+
+            {/* XP 진행 바 */}
+            <div className="mt-4">
+              {currentLevel.level < 30 ? (() => {
+                const pct = Math.min(100,
+                  Math.round(((player.xp - currentLevel.minXP) / (currentLevel.maxXP - currentLevel.minXP)) * 100)
+                );
+                return (
+                  <>
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="text-xs font-black text-joseon-brown">
+                        Lv.{currentLevel.level} {currentLevel.title}
+                      </span>
+                      <span className="text-xs text-joseon-brown/70">
+                        {player.xp - currentLevel.minXP} / {currentLevel.maxXP - currentLevel.minXP} XP
+                        <span className="ml-1 font-bold text-joseon-red">({pct}%)</span>
+                      </span>
+                    </div>
+                    <div className="h-3 bg-gray-200 rounded-full overflow-hidden relative">
+                      <div
+                        className="h-full rounded-full transition-all duration-700 relative"
+                        style={{
+                          width: `${pct}%`,
+                          background: currentLevel.level >= 20
+                            ? 'linear-gradient(90deg, #C0392B, #E74C3C, #F39C12)'
+                            : currentLevel.level >= 10
+                            ? 'linear-gradient(90deg, #8E44AD, #9B59B6, #3498DB)'
+                            : currentLevel.level >= 5
+                            ? 'linear-gradient(90deg, #E67E22, #F39C12, #F1C40F)'
+                            : 'linear-gradient(90deg, #27AE60, #2ECC71, #1ABC9C)',
+                        }}
+                      >
+                        {/* 빛나는 하이라이트 */}
+                        <div className="absolute inset-0 rounded-full" style={{
+                          background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 60%)'
+                        }} />
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-joseon-brown/60 text-right mt-1">
+                      다음 단계까지 {currentLevel.maxXP - player.xp} XP
+                    </p>
+                  </>
+                );
+              })() : (
+                <div className="text-center py-1">
+                  <span className="text-joseon-gold font-black text-sm">👑 최고 경지 달성!</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* 신분 & 다음 목표 */}
-        <div className="card-joseon p-4 bg-gradient-to-r from-joseon-gold/10 to-joseon-red/10">
-          <p className="text-joseon-brown text-sm text-center">{currentLevel.description}</p>
-          {currentLevel.level < 10 ? (
-            <div className="mt-2">
-              <div className="flex justify-between text-xs text-joseon-brown mb-1">
-                <span>Lv.{currentLevel.level} {currentLevel.title}</span>
-                <span>다음 신분까지 {currentLevel.maxXP - player.xp} XP</span>
-              </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-joseon-red to-joseon-gold rounded-full transition-all duration-500"
-                  style={{
-                    width: `${Math.min(100, ((player.xp - currentLevel.minXP) / (currentLevel.maxXP - currentLevel.minXP)) * 100)}%`
-                  }}
-                />
-              </div>
-            </div>
-          ) : (
-            <p className="text-center text-joseon-gold font-bold text-sm mt-1">👑 최고 신분 달성!</p>
-          )}
-        </div>
+        {/* 🎯 오늘의 추천 학습 (최우선 CTA) */}
+        <TodayRecommendation />
 
         {/* 🎲 오늘의 보너스 이벤트 */}
         {dailyBonus.type && (
@@ -376,7 +492,7 @@ export default function HomePage() {
             <span className="text-4xl">👤</span>
             <div className="text-left">
               <div className="text-xl font-black">내 기록</div>
-              <div className="text-xs font-normal text-joseon-brown mt-0.5">업적 · 통계 · 신분 여정</div>
+              <div className="text-xs font-normal text-joseon-brown mt-0.5">업적 · 통계 · 성장 여정</div>
             </div>
           </button>
         </div>

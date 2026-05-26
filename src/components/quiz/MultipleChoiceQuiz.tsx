@@ -1,21 +1,24 @@
 import { useState } from 'react';
 import type { QuizQuestion } from '../../types';
+import AnswerEffect from '../ui/AnswerEffect';
 
 interface MultipleChoiceQuizProps {
   question: QuizQuestion;
   onAnswer: (correct: boolean) => void;
   onSpendCoins?: (amount: number) => boolean;
   coins?: number;
+  streak?: number;
 }
 
 const CHOICE_LABELS = ['①', '②', '③', '④'];
 
-export default function MultipleChoiceQuiz({ question, onAnswer, onSpendCoins, coins }: MultipleChoiceQuizProps) {
+export default function MultipleChoiceQuiz({ question, onAnswer, onSpendCoins, coins, streak = 0 }: MultipleChoiceQuizProps) {
   const [chosen, setChosen] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [hintShown, setHintShown] = useState(false);
   const [eliminatedChoice, setEliminatedChoice] = useState<number | null>(null);
   const [textHintShown, setTextHintShown] = useState(false);
+  const [showEffect, setShowEffect] = useState<'correct' | 'wrong' | null>(null);
 
   // 참고: 부모(QuizPage)가 key={currentQuestion.id}로 렌더링하므로
   // 문제가 바뀔 때 컴포넌트가 재마운트되어 state가 자동 초기화됨.
@@ -40,9 +43,10 @@ export default function MultipleChoiceQuiz({ question, onAnswer, onSpendCoins, c
     const correct = index === question.answer;
     setChosen(index);
     setRevealed(true);
+    setShowEffect(correct ? 'correct' : 'wrong');
 
     if (correct) {
-      // 정답: 0.8초 후 onAnswer (RewardModal이 해설 표시)
+      // 정답: 이펙트(0.9s) 후 onAnswer (RewardModal이 해설 표시)
       setTimeout(() => {
         onAnswer(correct);
         setChosen(null);
@@ -50,7 +54,7 @@ export default function MultipleChoiceQuiz({ question, onAnswer, onSpendCoins, c
         setHintShown(false);
         setEliminatedChoice(null);
         setTextHintShown(false);
-      }, 800);
+      }, 900);
     }
     // 오답: 수동으로 다음 문제 버튼 클릭
   };
@@ -72,7 +76,15 @@ export default function MultipleChoiceQuiz({ question, onAnswer, onSpendCoins, c
   };
 
   return (
-    <div className="flex flex-col gap-4 animate-bounce-in">
+    <div className={`flex flex-col gap-4 animate-bounce-in ${revealed && chosen === question.answer ? 'jump-bounce' : ''}`}>
+      {/* 정답/오답 이펙트 오버레이 */}
+      {showEffect && (
+        <AnswerEffect
+          type={showEffect}
+          streak={streak}
+          onDone={() => setShowEffect(null)}
+        />
+      )}
       {/* 문맥 문장 */}
       {question.context && (
         <div className="card-joseon p-4 text-center">

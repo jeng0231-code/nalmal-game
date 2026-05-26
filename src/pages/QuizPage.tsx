@@ -1153,8 +1153,8 @@ export default function QuizPage() {
             </div>
 
             {currentQuestion.type === 'OX'
-              ? <OXQuiz key={currentQuestion.id} question={currentQuestion} onAnswer={handleAnswer} onSpendCoins={spendCoins} coins={player.coins} />
-              : <MultipleChoiceQuiz key={currentQuestion.id} question={currentQuestion} onAnswer={handleAnswer} onSpendCoins={spendCoins} coins={player.coins} />
+              ? <OXQuiz key={currentQuestion.id} question={currentQuestion} onAnswer={handleAnswer} onSpendCoins={spendCoins} coins={player.coins} streak={player.streak} />
+              : <MultipleChoiceQuiz key={currentQuestion.id} question={currentQuestion} onAnswer={handleAnswer} onSpendCoins={spendCoins} coins={player.coins} streak={player.streak} />
             }
           </div>
         )}
