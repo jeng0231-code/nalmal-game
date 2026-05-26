@@ -5,6 +5,8 @@ import CharacterDisplay from '../components/character/CharacterDisplay';
 import AttendanceModal from '../components/ui/AttendanceModal';
 import DailyMissionCard from '../components/ui/DailyMissionCard';
 import TodayRecommendation from '../components/ui/TodayRecommendation';
+import SeasonalBanner from '../components/ui/SeasonalBanner';
+import WeeklyChallenge from '../components/ui/WeeklyChallenge';
 import { getLevelByXP } from '../data/levels';
 import { getDailyTip } from '../data/dailyTips';
 import type { QuizCategory } from '../types/hakdang';
@@ -370,6 +372,9 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* 🗓️ 이달의 시즌 이벤트 */}
+        <SeasonalBanner />
+
         {/* 🎯 오늘의 추천 학습 (최우선 CTA) */}
         <TodayRecommendation />
 
@@ -543,6 +548,9 @@ export default function HomePage() {
             </div>
           </button>
         )}
+
+        {/* 주간 챌린지 */}
+        <WeeklyChallenge />
 
         {/* 오늘의 미션 */}
         {dailyMissions.length > 0 && <DailyMissionCard />}
