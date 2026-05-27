@@ -149,7 +149,7 @@ export default function SlidingPuzzleGame({ onComplete, level = 1 }: SlidingPuzz
   }, [hintTile]);
 
   // ── 일반 게임 시작 ────────────────────────────────────────
-  const startGame = useCallback(() => {
+  const startGame = () => {
     const { board: b } = shuffleBoard(size, shuffleMoves);
     setBoard(b);
     setMoves(0);
@@ -161,10 +161,10 @@ export default function SlidingPuzzleGame({ onComplete, level = 1 }: SlidingPuzz
     setHintMsg('');
     setConfirmGiveup(false);
     setGamePhase('playing');
-  }, [size, shuffleMoves]);
+  };
 
   // ── 재배치 (리셔플) ───────────────────────────────────────
-  const handleReset = useCallback(() => {
+  const handleReset = () => {
     const { board: b } = shuffleBoard(size, shuffleMoves);
     setBoard(b);
     setMoves(0);
@@ -174,13 +174,13 @@ export default function SlidingPuzzleGame({ onComplete, level = 1 }: SlidingPuzz
     setHintTile(null);
     setHintMsg('');
     setConfirmGiveup(false);
-  }, [size, shuffleMoves]);
+  };
 
   // ── 포기 ─────────────────────────────────────────────────
-  const handleGiveUp = useCallback(() => {
+  const handleGiveUp = () => {
     setGamePhase('gaveup');
     setConfirmGiveup(false);
-  }, []);
+  };
 
   // ── 힌트 ─────────────────────────────────────────────────
   const handleHint = useCallback(() => {
@@ -208,7 +208,7 @@ export default function SlidingPuzzleGame({ onComplete, level = 1 }: SlidingPuzz
   }, []);
 
   // ── 튜토리얼 타일 클릭 ───────────────────────────────────
-  const handleTutClick = useCallback((idx: number) => {
+  const handleTutClick = (idx: number) => {
     const blankIdx = tutBoard.indexOf(0);
     if (tutBoard[idx] === 0 || !isAdjacent(idx, blankIdx, 2)) return;
 
@@ -223,7 +223,7 @@ export default function SlidingPuzzleGame({ onComplete, level = 1 }: SlidingPuzz
       localStorage.setItem(TUTORIAL_KEY, '1');
       setTimeout(() => startGame(), 1800);
     }
-  }, [tutBoard, startGame]);
+  };
 
   // ── 일반 플레이 타일 클릭 ─────────────────────────────────
   const handleTileClick = useCallback((idx: number) => {

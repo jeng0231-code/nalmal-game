@@ -87,7 +87,8 @@ Claude Code는 이 문서를 보고 역할을 분담한다.
 □ 짧은 설명 80자 이하
 □ 자세한 설명 4000자 이하
 □ Capacitor android/ 디렉토리 존재
-□ 서명된 APK 또는 AAB 존재 (수동 서명 필요)
+□ `android/key.properties` 준비
+□ 서명된 AAB 생성 가능
 ```
 
 ### 자동화 가능 단계
@@ -96,11 +97,11 @@ Claude Code는 이 문서를 보고 역할을 분담한다.
 # Codex가 자동 실행 가능
 npm run build
 npx cap sync android
-cd android && ./gradlew bundleRelease   # 서명 전 AAB
+npm run android:bundle:release          # 서명된 AAB
 
 # 사용자가 직접 해야 하는 단계
-keytool -genkey ...           # 서명 키 생성 (최초 1회)
-jarsigner / apksigner ...     # APK 서명
+keytool -genkeypair ...       # 업로드 키 생성 (최초 1회)
+android/key.properties 작성   # 저장소 예시 파일 기반
 Google Play Console 업로드    # 브라우저에서 직접
 ```
 

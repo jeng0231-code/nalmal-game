@@ -27,6 +27,7 @@ export default function JegiGame({ onComplete }: JegiGameProps) {
   const [grade, setGrade] = useState<Grade>(null);
   const [gradeKey, setGradeKey] = useState(0);
   const [bgFlash, setBgFlash] = useState<'perfect' | 'good' | 'miss' | null>(null);
+  const [jegiRotation, setJegiRotation] = useState(0);
 
   const yRef = useRef(GROUND_Y);
   const xRef = useRef(50);
@@ -39,6 +40,7 @@ export default function JegiGame({ onComplete }: JegiGameProps) {
   const scoreRef = useRef(0);
   const comboRef = useRef(0);
   const gradeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const physicsLoopRef = useRef<() => void>(() => {});
 
   const stopAll = useCallback(() => {
     activeRef.current = false;
@@ -67,8 +69,13 @@ export default function JegiGame({ onComplete }: JegiGameProps) {
 
     setJegiY(yRef.current);
     setJegiX(xRef.current);
-    rafRef.current = requestAnimationFrame(physicsLoop);
+    setJegiRotation(velYRef.current * -12);
+    rafRef.current = requestAnimationFrame(() => physicsLoopRef.current());
   }, []);
+
+  useEffect(() => {
+    physicsLoopRef.current = physicsLoop;
+  }, [physicsLoop]);
 
   const startGame = useCallback(() => {
     yRef.current = GROUND_Y;
@@ -87,9 +94,10 @@ export default function JegiGame({ onComplete }: JegiGameProps) {
     setCombo(0);
     setTimeLeft(GAME_TIME);
     setGrade(null);
+    setJegiRotation(0);
     setPhase('playing');
 
-    rafRef.current = requestAnimationFrame(physicsLoop);
+    rafRef.current = requestAnimationFrame(() => physicsLoopRef.current());
 
     timerRef.current = setInterval(() => {
       setTimeLeft(t => {
@@ -101,7 +109,7 @@ export default function JegiGame({ onComplete }: JegiGameProps) {
         return t - 1;
       });
     }, 1000);
-  }, [physicsLoop, stopAll]);
+  }, [stopAll]);
 
   useEffect(() => () => stopAll(), [stopAll]);
 
@@ -159,7 +167,7 @@ export default function JegiGame({ onComplete }: JegiGameProps) {
     }
   }, [showGrade]);
 
-  const finalScore = Math.min(100, scoreRef.current);
+  const finalScore = Math.min(100, score);
   const isKickable = jegiY >= GOOD_Y;
   const isPerfect = jegiY >= PERFECT_Y;
 
@@ -277,7 +285,7 @@ export default function JegiGame({ onComplete }: JegiGameProps) {
           style={{
             top: `${jegiY}%`,
             left: `${jegiX}%`,
-            transform: `translateX(-50%) rotate(${velYRef.current * -12}deg)`,
+            transform: `translateX(-50%) rotate(${jegiRotation}deg)`,
           }}
         >
           🪶

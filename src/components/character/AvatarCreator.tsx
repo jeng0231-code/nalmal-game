@@ -10,6 +10,8 @@ interface AvatarCreatorProps {
 
 export default function AvatarCreator({ onAvatarCreated, onCharacterCreated, onSkip }: AvatarCreatorProps) {
   const claudeFeaturesEnabled = isClaudeFeaturesEnabled();
+  const photoStartLabel = claudeFeaturesEnabled ? '📸 사진 그대로 사용' : '📸 이 사진으로 시작';
+  const aiPreviewNotice = '자동 꾸미기는 출시 준비 중이에요. 지금은 사진으로 바로 시작할 수 있어요.';
   const [mode, setMode] = useState<'choose' | 'camera' | 'preview' | 'converting' | 'converted'>('choose');
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -240,7 +242,7 @@ export default function AvatarCreator({ onAvatarCreated, onCharacterCreated, onS
       const { analyzePhotoToCharacter } = await import('../../services/avatarAiService');
       const config = await analyzePhotoToCharacter(capturedPhoto);
       if (!config) {
-        setAiError('AI 분석에 실패했어요. API 키를 확인하거나 원본 사진을 사용해 보세요.');
+        setAiError('자동 꾸미기를 마치지 못했어요. 원본 사진으로 바로 시작할 수 있어요.');
         setMode('preview');
         return;
       }
@@ -248,7 +250,7 @@ export default function AvatarCreator({ onAvatarCreated, onCharacterCreated, onS
       setMode('converted');
     } catch (e) {
       console.error('AI 변환 오류:', e);
-      setAiError('AI 변환 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.');
+      setAiError('자동 꾸미기를 잠시 마치지 못했어요. 원본 사진으로 바로 시작할 수 있어요.');
       setMode('preview');
     }
   };
@@ -382,16 +384,16 @@ export default function AvatarCreator({ onAvatarCreated, onCharacterCreated, onS
                   </>
                 ) : (
                   <div className="rounded-xl border border-joseon-gold/40 bg-joseon-gold/10 px-4 py-3 text-center text-sm text-joseon-brown">
-                    AI 캐릭터 변환은 출시 준비 중이에요. 지금은 사진 그대로 사용할 수 있어요.
+                    {aiPreviewNotice}
                   </div>
                 )}
 
                 <div className="flex gap-2 mt-1">
                   <button
                     onClick={() => onAvatarCreated(capturedPhoto)}
-                    className="btn-gold flex-1 py-3 text-sm"
+                    className={`${claudeFeaturesEnabled ? 'btn-gold' : 'btn-joseon'} flex-1 py-3 text-sm`}
                   >
-                    📸 사진 그대로 사용
+                    {photoStartLabel}
                   </button>
                   <button
                     onClick={() => { setCapturedPhoto(null); setMode('choose'); }}

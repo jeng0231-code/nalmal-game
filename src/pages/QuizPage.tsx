@@ -476,7 +476,7 @@ export default function QuizPage() {
 
   // ─── 다음 스테이지 or 완료 ──────────────────────────────
   const handleNextStage = useCallback(() => {
-    recordStageCleared();     // 미션/업적 기록
+    recordStageCleared(activeCategory ?? undefined);     // 미션/업적 기록
     const nextStage = currentStage + 1;
     if (nextStage > STAGE_CONFIG.length) {
       // 마지막 스테이지 완주 → 회차 클리어
@@ -489,7 +489,7 @@ export default function QuizPage() {
       setPendingNextStage(true);
       setShowGateQuiz(true);
     }
-  }, [currentStage, recordStageCleared, incrementCycle]);
+  }, [activeCategory, currentStage, recordStageCleared, incrementCycle]);
 
   const handleGatePass = useCallback((category: QuizCategory) => {
     setShowGateQuiz(false);

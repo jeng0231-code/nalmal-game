@@ -1,18 +1,49 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { getLevelByXP, getXPProgress, JOSEON_LEVELS, getPrestigeTitle, getPrestigeProgress } from '../data/levels';
 import { ACHIEVEMENTS } from '../data/achievements';
 import CharacterDisplay from '../components/character/CharacterDisplay';
+import { getCurrentWeekKey, getTodayLocalDate } from '../utils/date';
+import { getRecommendation, WEEKLY_STAGE_GOAL } from '../components/ui/todayRecommendationLogic';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { player, initPlayer, unlockedAchievements, loginStreak, dailyStats, studyDays } = useGameStore();
+  const {
+    player,
+    initPlayer,
+    unlockedAchievements,
+    loginStreak,
+    dailyStats,
+    studyDays,
+    categoryStats,
+    wrongAnswers,
+    weeklyStageProgress,
+  } = useGameStore();
   const currentLevel = getLevelByXP(player.xp);
   const xpProgress = getXPProgress(player.xp);
   const accuracy = player.totalCorrect + player.totalWrong > 0
     ? Math.round(player.totalCorrect / (player.totalCorrect + player.totalWrong) * 100)
     : 0;
+  const recommendation = useMemo(() => getRecommendation(categoryStats), [categoryStats]);
+  const currentWeekKey = getCurrentWeekKey();
+  const focusedStages = weeklyStageProgress.weekKey === currentWeekKey
+    ? weeklyStageProgress.byCategory[recommendation.hakdang.id]
+    : 0;
+  const weeklyGoalReached = focusedStages >= WEEKLY_STAGE_GOAL;
+  const remainingFocusedStages = Math.max(0, WEEKLY_STAGE_GOAL - focusedStages);
+  const profileActionLabel = weeklyGoalReached
+    ? wrongAnswers.length > 0
+      ? `오답 ${wrongAnswers.length}개 복습하기`
+      : '새 학당 이어서 둘러보기'
+    : `${recommendation.hakdang.koreanName} 이어서 풀기`;
+  const profileActionDescription = weeklyGoalReached
+    ? wrongAnswers.length > 0
+      ? '이번 주 목표를 채웠어요. 틀린 문제를 다시 풀며 배운 내용을 굳혀요.'
+      : '이번 주 목표를 채웠어요. 다른 학당으로 넓혀 보며 배움을 이어가요.'
+    : focusedStages > 0
+      ? `이번 주 ${focusedStages}스테이지 완료. 앞으로 ${remainingFocusedStages}스테이지만 더 채우면 권장 목표예요.`
+      : `이번 주에는 ${recommendation.hakdang.koreanName}에서 첫 스테이지를 시작해 보세요.`;
 
   // 달력 상태
   const [calendarDate, setCalendarDate] = useState(new Date());
@@ -93,6 +124,54 @@ export default function ProfilePage() {
           </button>
         </div>
 
+        <div className="card-joseon p-4 bg-gradient-to-br from-amber-50 via-rose-50 to-orange-50 border-amber-200">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-black text-amber-800">이번 주 이어서 할 학습</p>
+              <p className="text-base font-black text-joseon-dark mt-1">
+                {recommendation.hakdang.emoji} {recommendation.hakdang.koreanName}
+              </p>
+              <p className="text-xs text-joseon-brown mt-1 leading-relaxed">{recommendation.reason}</p>
+            </div>
+            <div className="shrink-0 rounded-full border border-amber-200 bg-white/80 px-2.5 py-1 text-[11px] font-bold text-amber-700">
+              {Math.min(focusedStages, WEEKLY_STAGE_GOAL)}/{WEEKLY_STAGE_GOAL} 단계
+            </div>
+          </div>
+
+          <div className="mt-3 rounded-xl border border-amber-100 bg-white/80 px-3 py-3">
+            <p className="text-[11px] font-black text-rose-700">지금 할 일</p>
+            <p className="text-sm font-black text-joseon-dark mt-1">{profileActionLabel}</p>
+            <p className="text-xs text-joseon-brown mt-1 leading-relaxed">{profileActionDescription}</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+            <button
+              onClick={() => {
+                if (weeklyGoalReached && wrongAnswers.length > 0) {
+                  navigate('/quiz?mode=review');
+                  return;
+                }
+
+                if (weeklyGoalReached) {
+                  navigate('/hakdang');
+                  return;
+                }
+
+                navigate(`/quiz?category=${recommendation.hakdang.id}`);
+              }}
+              className="w-full rounded-xl bg-rose-500 py-3 text-sm font-black text-white transition-all hover:bg-rose-600 active:scale-95"
+            >
+              {profileActionLabel}
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="w-full rounded-xl border border-amber-200 bg-white/90 py-3 text-sm font-black text-amber-800 transition-all hover:bg-white active:scale-95"
+            >
+              홈으로 돌아가기
+            </button>
+          </div>
+        </div>
+
         {/* 학습 통계 */}
         <div className="card-joseon p-4">
           <h3 className="font-black text-joseon-dark mb-3 text-center">📊 학습 통계</h3>
@@ -148,7 +227,7 @@ export default function ProfilePage() {
             const month = calendarDate.getMonth();
             const firstDow = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = getTodayLocalDate();
             const cells: (number | null)[] = [
               ...Array(firstDow).fill(null),
               ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
@@ -196,9 +275,9 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* 신분 레벨 로드맵 */}
+        {/* 성장 단계 로드맵 */}
         <div className="card-joseon p-4">
-          <h3 className="font-black text-joseon-dark mb-3 text-center">⚔️ 신분 상승 여정</h3>
+          <h3 className="font-black text-joseon-dark mb-3 text-center">⚔️ 성장 단계 여정</h3>
           <div className="space-y-1.5">
             {JOSEON_LEVELS.map((lvl) => {
               const isUnlocked = currentLevel.level >= lvl.level;

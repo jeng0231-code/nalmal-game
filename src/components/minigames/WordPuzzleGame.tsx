@@ -246,7 +246,7 @@ const WordPuzzleGame: FC<WordPuzzleGameProps> = ({ onComplete, level = 1 }) => {
         'bg-gray-100 text-gray-600'
       }`}>
         {isFeedback && lastCorrect ? '✅ 정답! 잘 기억했어요!' :
-         isFeedback               ? `❌ 오답! 정답: ${seqRef.current.join(' - ')}` :
+         isFeedback               ? `❌ 오답! 정답: ${sequence.join(' - ')}` :
          isShowing                ? `👀 숫자를 기억하세요! (${timeLeft}초)` :
          `✏️ 순서대로 입력하세요 (${input.length}/${currentDigits})`}
       </div>

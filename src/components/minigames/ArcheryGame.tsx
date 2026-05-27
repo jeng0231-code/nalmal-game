@@ -39,6 +39,7 @@ export default function ArcheryGame({ onComplete, level = 1 }: ArcheryGameProps)
   const rafRef = useRef<number>(0);
   const isShootingRef = useRef(false);
   const arrowsRef = useRef<Arrow[]>([]);
+  const tickRef = useRef<() => void>(() => {});
 
   const tick = useCallback(() => {
     if (isShootingRef.current) return;
@@ -47,13 +48,17 @@ export default function ArcheryGame({ onComplete, level = 1 }: ArcheryGameProps)
     const y = CENTER + AMPLITUDE * Math.sin(tRef.current * 1.3 + 1.2);
     crosshairRef.current = { x, y };
     setCrosshair({ x, y });
-    rafRef.current = requestAnimationFrame(tick);
+    rafRef.current = requestAnimationFrame(() => tickRef.current());
   }, [AMPLITUDE, SPEED]);
+
+  useEffect(() => {
+    tickRef.current = tick;
+  }, [tick]);
 
   const startAnim = useCallback(() => {
     cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(tick);
-  }, [tick]);
+    rafRef.current = requestAnimationFrame(() => tickRef.current());
+  }, []);
 
   const stopAnim = useCallback(() => {
     cancelAnimationFrame(rafRef.current);

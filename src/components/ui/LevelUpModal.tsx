@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { JOSEON_LEVELS } from '../../data/levels';
 
+const FIREWORK_POSITIONS = [18, 54, 28, 62, 24, 58, 36];
+
 export default function LevelUpModal() {
   const { newLevelIndex, closeLevelUp } = useGameStore();
   const [showContent, setShowContent] = useState(false);
@@ -22,7 +24,7 @@ export default function LevelUpModal() {
             className="absolute text-4xl animate-float"
             style={{
               left: `${10 + i * 13}%`,
-              top: `${Math.random() * 60 + 10}%`,
+              top: `${FIREWORK_POSITIONS[i]}%`,
               animationDelay: `${i * 0.2}s`,
             }}
           >
@@ -36,7 +38,7 @@ export default function LevelUpModal() {
       }`} style={{ borderColor: '#F39C12', borderWidth: 4 }}>
 
         <div className="text-6xl mb-2 animate-level-up">{newLevel.emoji}</div>
-        <div className="text-yellow-500 font-bold text-sm mb-1">신분 상승!</div>
+        <div className="text-yellow-500 font-bold text-sm mb-1">성장 단계 상승!</div>
         <h2 className="text-4xl font-black mb-1" style={{ color: '#C0392B' }}>
           {newLevel.hat} {newLevel.title}
         </h2>

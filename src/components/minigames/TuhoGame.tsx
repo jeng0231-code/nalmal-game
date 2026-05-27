@@ -25,6 +25,7 @@ export default function TuhoGame({ onComplete }: TuhoGameProps) {
   const playingRef = useRef(false);
   const resultsRef = useRef<boolean[]>([]);
   const arrowRef = useRef<HTMLDivElement>(null);
+  const tickRef = useRef<() => void>(() => {});
 
   const tick = useCallback(() => {
     if (!playingRef.current) return;
@@ -32,13 +33,17 @@ export default function TuhoGame({ onComplete }: TuhoGameProps) {
     if (powerRef.current >= 100) { powerRef.current = 100; dirRef.current = -1; }
     if (powerRef.current <= 0)   { powerRef.current = 0;   dirRef.current =  1; }
     setPower(Math.round(powerRef.current));
-    rafRef.current = requestAnimationFrame(tick);
+    rafRef.current = requestAnimationFrame(() => tickRef.current());
   }, []);
+
+  useEffect(() => {
+    tickRef.current = tick;
+  }, [tick]);
 
   const startAnim = useCallback(() => {
     playingRef.current = true;
-    rafRef.current = requestAnimationFrame(tick);
-  }, [tick]);
+    rafRef.current = requestAnimationFrame(() => tickRef.current());
+  }, []);
 
   const stopAnim = useCallback(() => {
     playingRef.current = false;

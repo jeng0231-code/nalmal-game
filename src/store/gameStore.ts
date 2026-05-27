@@ -6,6 +6,7 @@ import { ACHIEVEMENTS } from '../data/achievements';
 import type { CharacterConfig } from '../types/character';
 import type { QuizCategory, CategoryStats } from '../types/hakdang';
 import { DEFAULT_CATEGORY_STATS } from '../types/hakdang';
+import { getCurrentWeekKey, getRelativeLocalDate, getTodayLocalDate } from '../utils/date';
 
 // ─── 출석 보상 (7일 사이클) ────────────────────────────────
 const ATTENDANCE_REWARDS = [
@@ -52,7 +53,11 @@ function generateDailyMissions(dateStr: string, accuracy = 0.5): DailyMission[] 
 }
 
 function todayStr(): string {
-  return new Date().toISOString().split('T')[0];
+  return getTodayLocalDate();
+}
+
+function appendStudyDay(studyDays: string[], day: string): string[] {
+  return studyDays.includes(day) ? studyDays : [...studyDays, day];
 }
 
 const HEART_REGEN_MS = 30 * 60 * 1000; // 30분마다 하트 1개 회복
@@ -88,7 +93,11 @@ interface GameStore {
   } | null;
 
   streakProtected: boolean;
-  dailyBonus: { type: 'double_xp' | 'double_coins' | 'free_heart' | null; date: string };
+  dailyBonus: {
+    type: 'double_xp' | 'double_coins' | 'free_heart' | null;
+    date: string;
+    grantedHearts: number;
+  };
 
   // ── 새 기능 상태 ──
   wrongAnswers: QuizQuestion[];
@@ -98,6 +107,11 @@ interface GameStore {
   // ── 시즌/주간 보상 ──
   seasonalBadges: string[];          // 획득한 시즌 배지 목록
   weeklyRewardClaimed: string;       // 마지막으로 보상 받은 주 키 ("2026-W21")
+  weeklyStageProgress: {
+    weekKey: string;
+    totalStages: number;
+    byCategory: Record<QuizCategory, number>;
+  };
   claimedWeeklyReward: () => void;   // 주간 챌린지 보상 수령
 
   // ── 기본 액션 ──
@@ -128,7 +142,8 @@ interface GameStore {
   checkAndRegenHearts: () => void;
   checkAchievements: () => void;
   recordMinigamePlayed: () => void;
-  recordStageCleared: () => void;
+  recordStageCleared: (category?: QuizCategory) => void;
+  syncTodayStudyActivity: () => void;
 
   // ── 회차 시스템 ──
   cycleCount: number;
@@ -155,6 +170,18 @@ const DEFAULT_PLAYER: PlayerState = {
 
 const DEFAULT_DAILY_STATS: DailyStats = {
   date: '', solved: 0, coinsEarned: 0, minigamesPlayed: 0, stagesCleared: 0,
+};
+
+const DEFAULT_WEEKLY_STAGE_PROGRESS = {
+  weekKey: '',
+  totalStages: 0,
+  byCategory: {
+    literacy: 0,
+    proverbs: 0,
+    idioms: 0,
+    history: 0,
+    etiquette: 0,
+  } satisfies Record<QuizCategory, number>,
 };
 
 export const useGameStore = create<GameStore>()(
@@ -185,12 +212,13 @@ export const useGameStore = create<GameStore>()(
       showAttendance: false,
       pendingAttendanceReward: null,
       streakProtected: false,
-      dailyBonus: { type: null, date: '' },
+      dailyBonus: { type: null, date: '', grantedHearts: 0 },
       wrongAnswers: [],
       studyDays: [],
       seenQuestionIds: [],
       seasonalBadges: [],
       weeklyRewardClaimed: '',
+      weeklyStageProgress: DEFAULT_WEEKLY_STAGE_PROGRESS,
       cycleCount: 0,
       characterConfig: null,
       categoryStats: DEFAULT_CATEGORY_STATS,
@@ -209,10 +237,11 @@ export const useGameStore = create<GameStore>()(
           dailyMissionDate: '',
           dailyStats: DEFAULT_DAILY_STATS,
           streakProtected: false,
-          dailyBonus: { type: null, date: '' },
+          dailyBonus: { type: null, date: '', grantedHearts: 0 },
           wrongAnswers: [],
           studyDays: [],
           seenQuestionIds: [],
+          weeklyStageProgress: DEFAULT_WEEKLY_STAGE_PROGRESS,
           characterConfig: null, // 사진 아바타가 SVG 캐릭터에 가려지지 않도록 초기화
         });
       },
@@ -223,7 +252,7 @@ export const useGameStore = create<GameStore>()(
       },
 
       answerCorrect: (xp, coins, category?: string) => {
-        const { player, dailyStats, dailyBonus, seasonalBadges } = get();
+        const { player, dailyStats, dailyBonus, seasonalBadges, studyDays } = get();
         const streakBonus = player.streak >= 2 ? 1.5 : 1;
         const today = todayStr();
         const bonusMultiplier = dailyBonus.date === today && dailyBonus.type === 'double_xp' ? 2
@@ -287,6 +316,7 @@ export const useGameStore = create<GameStore>()(
             solved: dailyStats.solved + 1,
             coinsEarned: dailyStats.coinsEarned + finalCoins,
           },
+          studyDays: appendStudyDay(studyDays, today),
         });
 
         // 미션 진행 업데이트
@@ -299,8 +329,9 @@ export const useGameStore = create<GameStore>()(
       },
 
       answerWrong: () => {
-        const { player, incorrectStreak, dailyStats } = get();
+        const { player, incorrectStreak, dailyStats, studyDays } = get();
         const newHearts = Math.max(0, player.hearts - 1);
+        const today = todayStr();
 
         set({
           player: {
@@ -317,6 +348,7 @@ export const useGameStore = create<GameStore>()(
             ...dailyStats,
             solved: dailyStats.solved + 1,
           },
+          studyDays: appendStudyDay(studyDays, today),
         });
 
         // 오답도 solve_n 미션 진행도 업데이트 (문제 풀기 = 시도)
@@ -328,11 +360,7 @@ export const useGameStore = create<GameStore>()(
         if (currentIndex < currentQuestions.length - 1) {
           set({ currentIndex: currentIndex + 1, showReward: false });
         } else {
-          const { player } = get();
-          set({
-            player: { ...player, quizzesCompleted: player.quizzesCompleted + 1 },
-            showReward: false,
-          });
+          set({ showReward: false });
         }
       },
 
@@ -404,11 +432,18 @@ export const useGameStore = create<GameStore>()(
 
       /** 앱 시작 시 호출 - 출석 체크 */
       checkDailyLogin: () => {
-        const { lastLoginDate, loginStreak, dailyMissionDate, streakProtected, dailyBonus } = get();
+        const {
+          lastLoginDate,
+          loginStreak,
+          dailyMissionDate,
+          streakProtected,
+          dailyBonus,
+          player: currentPlayer,
+        } = get();
         const today = todayStr();
         if (lastLoginDate === today) return; // 이미 오늘 체크함
 
-        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+        const yesterday = getRelativeLocalDate(-1);
         const isConsecutive = lastLoginDate === yesterday;
 
         // 🛡️ 스트릭 보호: 연속이 끊겼지만 보호 아이템 있으면 유지
@@ -422,9 +457,9 @@ export const useGameStore = create<GameStore>()(
         const todayBonus = dailyBonus.date !== today
           ? bonusTypes[Math.floor(Math.abs(Math.sin(today.split('-').reduce((a, b) => a + parseInt(b), 0))) * bonusTypes.length)]
           : dailyBonus.type;
-        if (dailyBonus.date !== today) {
-          set({ dailyBonus: { type: todayBonus ?? null, date: today } });
-        }
+        const grantedHearts = dailyBonus.date !== today && todayBonus === 'free_heart'
+          ? Math.min(1, currentPlayer.maxHearts - currentPlayer.hearts)
+          : dailyBonus.grantedHearts;
 
         // 7일 사이클 보상
         const cycleDay = ((newStreak - 1) % 7);
@@ -439,7 +474,6 @@ export const useGameStore = create<GameStore>()(
         };
 
         // 오늘의 미션 생성 (날짜가 바뀌었으면)
-        const { player: currentPlayer } = get();
         const accuracy = currentPlayer.totalCorrect + currentPlayer.totalWrong > 0
           ? currentPlayer.totalCorrect / (currentPlayer.totalCorrect + currentPlayer.totalWrong)
           : 0.5;
@@ -447,16 +481,20 @@ export const useGameStore = create<GameStore>()(
           ? generateDailyMissions(today, accuracy)
           : get().dailyMissions;
 
-        const prevStudyDays = get().studyDays;
         set({
+          player: dailyBonus.date !== today && grantedHearts > 0
+            ? { ...currentPlayer, hearts: currentPlayer.hearts + grantedHearts }
+            : currentPlayer,
           lastLoginDate: today,
           loginStreak: newStreak,
           dailyMissions: newMissions,
           dailyMissionDate: today,
           dailyStats: { date: today, solved: 0, coinsEarned: 0, minigamesPlayed: 0, stagesCleared: 0 },
+          dailyBonus: dailyBonus.date !== today
+            ? { type: todayBonus ?? null, date: today, grantedHearts }
+            : dailyBonus,
           showAttendance: true,
           pendingAttendanceReward: reward,
-          studyDays: prevStudyDays.includes(today) ? prevStudyDays : [...prevStudyDays, today],
         });
       },
 
@@ -576,23 +614,60 @@ export const useGameStore = create<GameStore>()(
 
       /** 미니게임 1판 완료 기록 */
       recordMinigamePlayed: () => {
-        const { player, dailyStats } = get();
+        const { player, dailyStats, studyDays } = get();
+        const today = todayStr();
         set({
           player: { ...player, minigamesPlayed: player.minigamesPlayed + 1 },
           dailyStats: { ...dailyStats, minigamesPlayed: dailyStats.minigamesPlayed + 1 },
+          studyDays: appendStudyDay(studyDays, today),
         });
         get().updateMissionProgress('play_minigame', 1);
         setTimeout(() => get().checkAchievements(), 0);
       },
 
       /** 스테이지 클리어 기록 */
-      recordStageCleared: () => {
-        const { dailyStats, player } = get();
+      recordStageCleared: (category) => {
+        const { dailyStats, player, studyDays, weeklyStageProgress } = get();
+        const today = todayStr();
+        const weekKey = getCurrentWeekKey();
+        const baseWeeklyProgress = weeklyStageProgress.weekKey === weekKey
+          ? weeklyStageProgress
+          : { ...DEFAULT_WEEKLY_STAGE_PROGRESS, weekKey };
+        const nextWeeklyProgress = {
+          weekKey,
+          totalStages: baseWeeklyProgress.totalStages + 1,
+          byCategory: category
+            ? {
+                ...baseWeeklyProgress.byCategory,
+                [category]: baseWeeklyProgress.byCategory[category] + 1,
+              }
+            : baseWeeklyProgress.byCategory,
+        };
+
         set({
           dailyStats: { ...dailyStats, stagesCleared: dailyStats.stagesCleared + 1 },
           player: { ...player, quizzesCompleted: player.quizzesCompleted + 1 },
+          studyDays: appendStudyDay(studyDays, today),
+          weeklyStageProgress: nextWeeklyProgress,
         });
         get().updateMissionProgress('complete_stage', 1);
+      },
+
+      /** 오늘 학습일 기록을 실제 활동량과 동기화 */
+      syncTodayStudyActivity: () => {
+        const { dailyStats, studyDays } = get();
+        const today = todayStr();
+        const didStudyToday = dailyStats.date === today
+          && (dailyStats.solved > 0 || dailyStats.minigamesPlayed > 0 || dailyStats.stagesCleared > 0);
+
+        if (didStudyToday) {
+          set({ studyDays: appendStudyDay(studyDays, today) });
+          return;
+        }
+
+        if (studyDays.includes(today)) {
+          set({ studyDays: studyDays.filter(day => day !== today) });
+        }
       },
 
       /** 회차 증가 */
@@ -617,10 +692,7 @@ export const useGameStore = create<GameStore>()(
       claimedWeeklyReward: () => {
         const { player } = get();
         // 이번 주 키 계산
-        const d = new Date();
-        const startOfYear = new Date(d.getFullYear(), 0, 1);
-        const week = Math.ceil(((d.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7);
-        const weekKey = `${d.getFullYear()}-W${week}`;
+        const weekKey = getCurrentWeekKey();
         const newXP = player.xp + 200;
         const newLevel = getLevelByXP(newXP);
         set({
@@ -672,6 +744,7 @@ export const useGameStore = create<GameStore>()(
         categoryStats: state.categoryStats,
         seasonalBadges: state.seasonalBadges,
         weeklyRewardClaimed: state.weeklyRewardClaimed,
+        weeklyStageProgress: state.weeklyStageProgress,
       }),
     }
   )

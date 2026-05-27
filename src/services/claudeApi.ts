@@ -2,6 +2,7 @@ import type Anthropic from '@anthropic-ai/sdk';
 import type { QuizQuestion } from '../types';
 import type { QuizCategory } from '../types/hakdang';
 import { isClaudeFeaturesEnabled } from './claudeFeatureFlag';
+import { getTodayLocalDate } from '../utils/date';
 
 const RAW_KEY = import.meta.env.VITE_CLAUDE_API_KEY ?? '';
 const CLAUDE_FEATURES_ENABLED = isClaudeFeaturesEnabled();
@@ -290,7 +291,7 @@ function deduplicateByWord(existing: QuizQuestion[], incoming: QuizQuestion[]): 
 export async function getOrBuildAIBank(): Promise<QuizQuestion[]> {
   const bank = loadBank();
   const meta = loadMeta();
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayLocalDate();
 
   // 뱅크가 충분하고 오늘 이미 생성했으면 기존 반환
   if (meta.lastGenDate === today && bank.length >= 30) {
@@ -514,7 +515,7 @@ function saveCategoryMeta(category: QuizCategory, meta: { lastGenDate: string })
 export async function getOrBuildCategoryBank(category: QuizCategory): Promise<QuizQuestion[]> {
   const bank = loadCategoryBank(category);
   const meta = loadCategoryMeta(category);
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayLocalDate();
 
   if (meta.lastGenDate === today && bank.length >= 20) {
     return bank;

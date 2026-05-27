@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import type { CharacterConfig } from '../../types/character';
 import { SKIN_COLORS, HAIR_COLORS, OUTFIT_COLORS, BG_COLORS } from '../../types/character';
 
@@ -192,7 +193,7 @@ function Hair({ style, color }: { style: CharacterConfig['hairStyle']; color: st
   const dark = darken(color, 20);
 
   // 공통: 이마 가림 레이어 (모든 스타일에 적용)
-  const FrontCap = () => (
+  const frontCap = (
     <path d="M42,72 Q44,25 80,22 Q116,25 118,72 Q100,50 80,48 Q60,50 42,72 Z" fill={color} />
   );
 
@@ -200,7 +201,7 @@ function Hair({ style, color }: { style: CharacterConfig['hairStyle']; color: st
     <g>
       {/* 뒤쪽 (얼굴 뒤로) */}
       <ellipse cx="80" cy="50" rx="40" ry="30" fill={dark} />
-      <FrontCap />
+      {frontCap}
       {/* 사이드 라인 디테일 */}
       <path d="M42,65 Q42,72 48,78" stroke={dark} strokeWidth="2" fill="none" />
       <path d="M118,65 Q118,72 112,78" stroke={dark} strokeWidth="2" fill="none" />
@@ -210,7 +211,7 @@ function Hair({ style, color }: { style: CharacterConfig['hairStyle']; color: st
   if (style === 'topknot') return (
     <g>
       <ellipse cx="80" cy="50" rx="38" ry="28" fill={dark} />
-      <FrontCap />
+      {frontCap}
       {/* 상투(머리 묶음) */}
       <ellipse cx="80" cy="20" rx="10" ry="7" fill={color} />
       <line x1="72" y1="20" x2="88" y2="20" stroke="#8B6544" strokeWidth="2.5" strokeLinecap="round" />
@@ -224,7 +225,7 @@ function Hair({ style, color }: { style: CharacterConfig['hairStyle']; color: st
       <path d="M42,72 Q28,110 25,165 L38,168 Q42,125 50,90 Z" fill={dark} />
       <path d="M118,72 Q132,110 135,165 L122,168 Q118,125 110,90 Z" fill={dark} />
       <ellipse cx="80" cy="50" rx="40" ry="30" fill={dark} />
-      <FrontCap />
+      {frontCap}
       {/* 긴 앞머리 옆라인 */}
       <path d="M42,68 Q33,108 30,160" stroke={color} strokeWidth="4" fill="none" strokeLinecap="round" />
       <path d="M118,68 Q127,108 130,160" stroke={color} strokeWidth="4" fill="none" strokeLinecap="round" />
@@ -237,7 +238,7 @@ function Hair({ style, color }: { style: CharacterConfig['hairStyle']; color: st
       <path d="M42,72 Q32,95 36,115 L48,112 Q44,96 50,84 Z" fill={dark} />
       <path d="M118,72 Q128,95 124,115 L112,112 Q116,96 110,84 Z" fill={dark} />
       <ellipse cx="80" cy="50" rx="40" ry="30" fill={dark} />
-      <FrontCap />
+      {frontCap}
       <path d="M42,70 Q34,95 38,112" stroke={color} strokeWidth="4" fill="none" strokeLinecap="round" />
       <path d="M118,70 Q126,95 122,112" stroke={color} strokeWidth="4" fill="none" strokeLinecap="round" />
     </g>
@@ -247,7 +248,7 @@ function Hair({ style, color }: { style: CharacterConfig['hairStyle']; color: st
   return (
     <g>
       <ellipse cx="80" cy="52" rx="39" ry="22" fill={color} opacity="0.8" />
-      <FrontCap />
+      {frontCap}
     </g>
   );
 }
@@ -258,13 +259,13 @@ function Outfit({ style, outfitColor, skin }: { style: CharacterConfig['outfit']
   const { main, light, dark } = oc;
 
   // 목
-  const Neck = () => (
+  const neck = (
     <rect x="68" y="108" width="24" height="20" rx="4" fill={skin} />
   );
 
   if (style === 'peasant') return (
     <g>
-      <Neck />
+      {neck}
       <path d="M28,128 L28,198 L132,198 L132,128 L110,115 L80,126 L50,115 Z" fill={main} />
       <path d="M28,128 L8,175 L22,180 L44,146" fill={main} stroke={dark} strokeWidth="1" />
       <path d="M132,128 L152,175 L138,180 L116,146" fill={main} stroke={dark} strokeWidth="1" />
@@ -275,7 +276,7 @@ function Outfit({ style, outfitColor, skin }: { style: CharacterConfig['outfit']
 
   if (style === 'commoner') return (
     <g>
-      <Neck />
+      {neck}
       {/* 흰 속옷 */}
       <path d="M50,115 L80,128 L110,115 L115,198 L45,198 Z" fill="#F5F0E8" />
       {/* 겉옷 */}
@@ -294,7 +295,7 @@ function Outfit({ style, outfitColor, skin }: { style: CharacterConfig['outfit']
 
   if (style === 'scholar') return (
     <g>
-      <Neck />
+      {neck}
       {/* 도포(흰 넓은 소매 도포) */}
       <path d="M80,118 L35,135 L-5,185 L10,192 L48,152 L48,198 L112,198 L112,152 L150,192 L165,185 L125,135 Z" fill={main} />
       {/* 깃 */}
@@ -313,7 +314,7 @@ function Outfit({ style, outfitColor, skin }: { style: CharacterConfig['outfit']
 
   if (style === 'official') return (
     <g>
-      <Neck />
+      {neck}
       {/* 단령(관복) */}
       <path d="M28,130 L28,198 L132,198 L132,130 L108,116 L80,124 L52,116 Z" fill={main} />
       {/* 둥근 깃 */}
@@ -333,7 +334,7 @@ function Outfit({ style, outfitColor, skin }: { style: CharacterConfig['outfit']
   // king (곤룡포)
   return (
     <g>
-      <Neck />
+      {neck}
       {/* 곤룡포 - 황금/붉은 왕 의상 */}
       <path d="M22,128 L22,198 L138,198 L138,128 L112,114 L80,122 L48,114 Z" fill={main} />
       {/* 소매 */}
@@ -455,6 +456,7 @@ function Accessory({ style }: { style: CharacterConfig['accessory'] }) {
 
 // ─── 메인 CharacterSVG 컴포넌트 ────────────────────────────
 export default function CharacterSVG({ config, size = 160 }: Props) {
+  const reactId = useId();
   const {
     skinTone, faceShape, eyeStyle, eyeColor, mouthStyle,
     hairStyle, hairColor, outfit, outfitColor, hat, accessory,
@@ -465,7 +467,7 @@ export default function CharacterSVG({ config, size = 160 }: Props) {
   const hair = HAIR_COLORS[hairColor];
   const bg   = BG_COLORS[bgStyle];
   const svgH = Math.round(size * 1.25);
-  const uid  = Math.random().toString(36).slice(2, 8); // clipPath id용
+  const uid = reactId.replace(/:/g, ''); // clipPath id용
 
   // 사진 모드
   if (photoMode && photoData) {

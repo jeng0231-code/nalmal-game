@@ -1,10 +1,10 @@
 import type { JoseonLevel } from '../types';
 
 export const JOSEON_LEVELS: JoseonLevel[] = [
-  { level: 1, title: '노비', emoji: '😔', hat: '', outfit: '허름한 베옷',
-    description: '신분의 시작. 열심히 배워서 신분을 높여보자!',
+  { level: 1, title: '입문생', emoji: '🌱', hat: '', outfit: '처음 배우는 학습복',
+    description: '배움의 시작. 차근차근 익히며 성장해보자!',
     minXP: 0, maxXP: 250,
-    unlockMessage: '🌱 여정을 시작했습니다. 공부하여 신분을 높이세요!' },
+    unlockMessage: '🌱 여정을 시작했습니다. 오늘의 배움을 쌓아보세요!' },
   { level: 2, title: '백성', emoji: '🧑‍🌾', hat: '🪖', outfit: '평범한 백의',
     description: '평범한 백성. 더 배워서 더 높은 곳으로!',
     minXP: 250, maxXP: 1200,

@@ -359,7 +359,7 @@ export default function SpotDifferenceGame({ onComplete, level = 1 }: SpotDiffer
   const [hintActive, setHintActive]   = useState<DiffArea | null>(null);
   const [hintCount, setHintCount]     = useState(0);
   const [coins, setCoins]             = useState(40);
-  const startRef = useRef(Date.now());
+  const startRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const stopTimer = useCallback(() => {

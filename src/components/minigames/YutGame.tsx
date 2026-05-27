@@ -132,31 +132,8 @@ export default function YutGame({ onComplete }: YutGameProps) {
     });
   }, [rolling, step, doRoll]);
 
-  // 플레이어 말 선택
-  const handleSelectPiece = useCallback((idx: number) => {
-    if (!lastYut || step !== 'player-move') return;
-    const moves = YUT_MOVES[lastYut];
-    const updated = movePiece(myPieces, idx, moves);
-    setMovingPiece({ who: 'me', idx });
-    setMyPieces(updated);
-    addLog(`👤 내 말${idx + 1}: ${updated[idx].done ? '완주! 🎉' : updated[idx].pos + '칸'}`);
-
-    setTimeout(() => setMovingPiece(null), 400);
-
-    if (checkWin(updated)) { setWinner('me'); setPhase('result'); return; }
-
-    if (extraTurn) {
-      setLastYut(null);
-      setExtraTurn(false);
-      setStep('player-throw');
-    } else {
-      setLastYut(null);
-      setStep('cpu-throw');
-      setTimeout(() => runCpuTurn(cpuPieces), 700);
-    }
-  }, [lastYut, step, myPieces, extraTurn, cpuPieces]);
-
   // CPU 자동 턴
+  // handleSelectPiece에서 참조하므로 먼저 선언한다 (deps 안정화)
   const runCpuTurn = useCallback((currentPieces: Piece[]) => {
     setStep('cpu-auto');
 
@@ -190,6 +167,30 @@ export default function YutGame({ onComplete }: YutGameProps) {
 
     setTimeout(() => takeCpuThrow(currentPieces), 400);
   }, [doRoll]);
+
+  // 플레이어 말 선택
+  const handleSelectPiece = useCallback((idx: number) => {
+    if (!lastYut || step !== 'player-move') return;
+    const moves = YUT_MOVES[lastYut];
+    const updated = movePiece(myPieces, idx, moves);
+    setMovingPiece({ who: 'me', idx });
+    setMyPieces(updated);
+    addLog(`👤 내 말${idx + 1}: ${updated[idx].done ? '완주! 🎉' : updated[idx].pos + '칸'}`);
+
+    setTimeout(() => setMovingPiece(null), 400);
+
+    if (checkWin(updated)) { setWinner('me'); setPhase('result'); return; }
+
+    if (extraTurn) {
+      setLastYut(null);
+      setExtraTurn(false);
+      setStep('player-throw');
+    } else {
+      setLastYut(null);
+      setStep('cpu-throw');
+      setTimeout(() => runCpuTurn(cpuPieces), 700);
+    }
+  }, [lastYut, step, myPieces, extraTurn, cpuPieces, runCpuTurn]);
 
   const startGame = () => {
     setMyPieces(INITIAL_PIECES());

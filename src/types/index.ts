@@ -14,12 +14,16 @@ export interface QuizQuestion {
   xpReward: number;
   coinReward: number;
   category?: string;
+  // ── 교육 메타데이터 (선택 필드, 기존 데이터 호환) ──
+  learningGoal?: string;  // 이 문제를 통해 배우는 핵심 개념 (예: "한자어 시간 표현 이해")
+  hintText?: string;      // 문제 풀기 전 힌트 (정답을 직접 노출하지 않는 선에서)
+  tags?: string[];        // 세부 분류 태그 (예: ["한자어", "시간", "공문서"])
 }
 
 // 미니게임 타입
 export type MiniGameType = 'TUHO' | 'JEGI' | 'YUT';
 
-// 조선 신분 레벨
+// 조선풍 성장 레벨
 export interface JoseonLevel {
   level: number;
   title: string;

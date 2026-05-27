@@ -34,6 +34,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '조식(朝食)은 "아침 식사"를 뜻합니다. 아침 朝(조), 밥 食(식)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '식사 관련 한자어 어휘 구별하기',
+    hintText: '朝는 아침을 뜻해요. 하루를 시작할 때 먹는 식사는 무엇일까요?',
+    tags: ['한자어', '식사', '일상'],
   },
   {
     id: 'q004', type: 'OX',
@@ -43,6 +46,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '석식(夕食)은 "저녁 식사"를 뜻합니다. 저녁 夕(석), 밥 食(식)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '시간대에 따른 식사 어휘 이해',
+    hintText: '夕은 저녁을 뜻해요. 해가 진 뒤 먹는 식사를 떠올려 보세요.',
+    tags: ['한자어', '식사', '시간'],
   },
   {
     id: 'q005', type: 'OX',
@@ -52,6 +58,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '당일(當日)은 "바로 그날"을 뜻합니다. 마땅할 當(당), 날 日(일)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '날짜 표현 한자어 이해',
+    hintText: '당일치기는 잠을 자지 않고 바로 그날 다녀오는 여행이에요.',
+    tags: ['한자어', '날짜', '일상'],
   },
   {
     id: 'q006', type: 'OX',
@@ -61,6 +70,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: false,
     explanation: '금일(今日)은 "오늘"이라는 뜻입니다. 이제 今(금), 날 日(일)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '공식 문체 날짜 어휘 이해',
+    hintText: '今은 지금을 뜻해요. 금일 행사는 어느 날 행사일까요?',
+    tags: ['한자어', '날짜', '공문서'],
   },
   {
     id: 'q007', type: 'OX',
@@ -70,6 +82,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '익일(翌日)은 "다음날"을 뜻합니다. 翌(익)은 다음으로 나아간다는 의미예요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '배송·안내 문구에서 쓰는 날짜 어휘 이해',
+    hintText: '오늘 바로가 아니라 그다음 날 도착하는 상황이에요.',
+    tags: ['한자어', '날짜', '안내문'],
   },
   {
     id: 'q008', type: 'OX',
@@ -79,6 +94,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: false,
     explanation: '간담회(懇談會)는 "서로 터놓고 이야기하는 모임"입니다. 밥이 아니라 대화를 나누는 자리예요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '학교 행사 관련 어휘 정확히 이해하기',
+    hintText: '학부모가 학교와 의견을 나누는 자리라는 점에 집중해 보세요.',
+    tags: ['한자어', '학교', '모임'],
   },
   {
     id: 'q009', type: 'OX',
@@ -88,6 +106,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '종례(終禮)는 수업이 끝난 후 담임 선생님과 함께 하루를 마무리하는 모임이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '학교 일과 어휘 이해',
+    hintText: '하교 직전에 담임 선생님과 마지막으로 모이는 시간을 떠올려 보세요.',
+    tags: ['한자어', '학교', '일과'],
   },
   {
     id: 'q010', type: 'OX',
@@ -97,6 +118,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '조회(朝會)는 아침에 모여서 하는 집회입니다. 아침 朝(조), 모일 會(회)예요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '학교 시간표 속 한자어 이해',
+    hintText: '朝는 아침이라는 뜻이에요. 등교 후 처음 하는 큰 모임을 생각해 보세요.',
+    tags: ['한자어', '학교', '아침'],
   },
 
   // ─── 난이도 2 (보통) ───────────────────────────────────────
@@ -135,6 +159,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['위에 적힌', '외워야 할', '중요한', '어려운'],
     explanation: '상기(上記)는 "위에 적힌"이라는 뜻입니다. 위 上(상), 기록할 記(기)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '문서 지시 표현 이해',
+    hintText: '上은 위를 뜻해요. 문서에서 어느 위치를 가리키는지 생각해 보세요.',
+    tags: ['한자어', '문서', '위치'],
   },
   {
     id: 'q014', type: 'MULTIPLE',
@@ -145,6 +172,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['위에 적힌', '아래에 적힌', '중요한', '어려운'],
     explanation: '하기(下記)는 "아래에 적힌"이라는 뜻입니다. 아래 下(하), 기록할 記(기)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '문서에서 위치를 나타내는 표현 구별하기',
+    hintText: '下는 아래를 뜻해요. 상기와 반대 위치를 떠올려 보세요.',
+    tags: ['한자어', '문서', '위치'],
   },
   {
     id: 'q015', type: 'MULTIPLE',
@@ -155,6 +185,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['지난번', '다음번', '이번', '매번'],
     explanation: '금번(今番)은 "이번"이라는 뜻입니다. 이제 今(금), 차례 番(번)이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '차례와 시점을 나타내는 한자어 이해',
+    hintText: '今은 지금을 뜻해요. 지금 열리는 행사는 몇 번째 차례일까요?',
+    tags: ['한자어', '시점', '행사'],
   },
   {
     id: 'q016', type: 'MULTIPLE',
@@ -165,6 +198,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['수업이 두 번 있음', '수업이 빠짐', '수업이 바뀜', '수업이 일찍 끝남'],
     explanation: '결손(缺損)은 "빠지거나 부족한 것"을 뜻합니다. 수업 결손은 수업이 빠졌다는 의미예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '학교 공지에 쓰이는 행정 어휘 이해',
+    hintText: '缺은 비거나 빠진 상태를 뜻해요. 수업이 어떻게 된 상황인지 보세요.',
+    tags: ['한자어', '학교', '행정'],
   },
   {
     id: 'q017', type: 'OX',
@@ -174,6 +210,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '해당(該當)은 "그것에 알맞거나 관계가 있음"을 뜻합니다. 맞는 것이 없으면 해당 없다고 해요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '안내문에서 조건에 맞는 표현 이해하기',
+    hintText: '해당 사항 없음은 "내게 맞는 항목이 없다"는 뜻으로 자주 써요.',
+    tags: ['한자어', '안내문', '조건'],
   },
   {
     id: 'q018', type: 'MULTIPLE',
@@ -184,6 +223,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['여러 사람이 돌려 봄', '혼자서 읽음', '버림', '복사함'],
     explanation: '공람(公覽)은 "여러 사람이 돌려가며 봄"을 뜻합니다. 공개할 公(공), 볼 覽(람)이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '문서 처리 절차 어휘 이해',
+    hintText: '한 사람만 보는 문서가 아니라 여러 사람이 차례로 보는 상황이에요.',
+    tags: ['한자어', '문서', '절차'],
   },
   {
     id: 'q019', type: 'OX',
@@ -193,6 +235,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '추후(追後)는 "나중에" 또는 "뒤에"라는 뜻입니다. 나중에 알려준다는 뜻이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '시간 순서를 나타내는 공식 어휘 이해',
+    hintText: '지금 바로가 아니라 조금 뒤에 다시 알려주는 상황이에요.',
+    tags: ['한자어', '시간', '공지'],
   },
   {
     id: 'q020', type: 'MULTIPLE',
@@ -203,6 +248,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['같은 방법으로', '따로 따로', '빠르게', '천천히'],
     explanation: '별도(別途)는 "따로"라는 뜻입니다. 다를 別(별), 길 途(도)로 "다른 길"이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '분리된 안내를 뜻하는 표현 이해하기',
+    hintText: '같이 묶지 않고 나누어 처리하는 상황을 떠올려 보세요.',
+    tags: ['한자어', '공지', '구분'],
   },
 
   // ─── 난이도 3 (어려움) ───────────────────────────────────────
@@ -240,6 +288,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '귀교(貴校)는 "상대방의 학교"를 높여 부르는 말입니다. 귀할 貴(귀), 학교 校(교)예요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '높임 표현이 들어간 공문서 어휘 이해',
+    hintText: '본교가 우리 학교라면, 귀교는 누구의 학교를 가리킬까요?',
+    tags: ['한자어', '공문서', '높임말'],
   },
   {
     id: 'q024', type: 'MULTIPLE',
@@ -250,6 +301,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['정해진', '복잡한', '빠른', '느린'],
     explanation: '소정(所定)은 "정해진 바"라는 뜻입니다. 바 所(소), 정할 定(정)이에요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '행정 절차 문구 이해',
+    hintText: '절차가 마음대로가 아니라 미리 정해져 있다는 뜻이에요.',
+    tags: ['한자어', '공문서', '절차'],
   },
   {
     id: 'q025', type: 'MULTIPLE',
@@ -260,6 +314,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['올해', '다음 해', '작년', '2년 후'],
     explanation: '익년도(翌年度)는 "다음 해"를 뜻합니다. 翌(익)은 "다음"이라는 의미예요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '연도 관련 행정 어휘 이해',
+    hintText: '익일이 다음 날이라면, 익년도는 어느 해를 말할까요?',
+    tags: ['한자어', '연도', '행정'],
   },
   {
     id: 'q026', type: 'OX',
@@ -269,6 +326,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '부의(附議)는 "안건을 회의에 올려서 의논함"을 뜻합니다. 붙일 附(부), 의논할 議(의)예요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '회의 진행 어휘 이해',
+    hintText: '회의에서 먼저 꺼내어 함께 의논하게 만드는 절차예요.',
+    tags: ['한자어', '회의', '절차'],
   },
   {
     id: 'q027', type: 'MULTIPLE',
@@ -279,6 +339,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['오늘', '이번 달', '이번 주', '다음 주'],
     explanation: '금주(今週)는 "이번 주"를 뜻합니다. 이제 今(금), 주 週(주)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '주 단위 날짜 표현 이해',
+    hintText: '今은 지금을 뜻해요. 지금 속해 있는 주를 가리키는 표현입니다.',
+    tags: ['한자어', '날짜', '주간'],
   },
   {
     id: 'q028', type: 'OX',
@@ -288,6 +351,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: false,
     explanation: '여기서 전술(前述)은 "앞에서 말한"이라는 뜻입니다. 앞 前(전), 말할 述(술)이에요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '같은 소리 다른 뜻 한자어 구별하기',
+    hintText: '문장에 군대 이야기가 아니라 문서 설명이 이어지고 있는지 살펴보세요.',
+    tags: ['한자어', '동음이의어', '문서'],
   },
   {
     id: 'q029', type: 'MULTIPLE',
@@ -298,6 +364,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['다음 번', '이번', '지난 번', '매번'],
     explanation: '차기(次期)는 "다음 번" 또는 "다음 기간"을 뜻합니다. 버금 次(차), 기약할 期(기)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '순서를 나타내는 어휘 이해',
+    hintText: '이번이 아니라 이어서 다가오는 차례를 가리키는 말이에요.',
+    tags: ['한자어', '순서', '회의'],
   },
   {
     id: 'q030', type: 'OX',
@@ -307,6 +376,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '명시(明示)는 "분명하게 나타냄"을 뜻합니다. 밝을 明(명), 보일 示(시)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '문서에서 분명히 밝히는 표현 이해',
+    hintText: '숨기지 않고 또렷하게 적어 두는 행동을 떠올려 보세요.',
+    tags: ['한자어', '문서', '표현'],
   },
   {
     id: 'q031', type: 'MULTIPLE',
@@ -317,6 +389,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['동쪽', '다른', '같은 / 해당', '이전'],
     explanation: '여기서 동(同)은 "같은" 또는 "해당"이라는 뜻입니다. 같을 同(동)이에요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '짧은 한자어 약칭 해석하기',
+    hintText: '동 기간은 방향이 아니라 바로 앞에 나온 기간과 같은 기간을 말해요.',
+    tags: ['한자어', '문서', '약칭'],
   },
   {
     id: 'q032', type: 'OX',
@@ -326,6 +401,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '유고(有故)는 "사정이 생김" 또는 "사고가 있음"을 뜻합니다. 있을 有(유), 연고 故(고)예요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '학교 역할 분담 안내문 이해',
+    hintText: '반장이 자리를 비우거나 사정이 생겼을 때를 떠올려 보세요.',
+    tags: ['한자어', '학교', '상황판단'],
   },
   {
     id: 'q033', type: 'MULTIPLE',
@@ -336,6 +414,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['지금까지', '예전에', '가끔', '지금부터 앞으로'],
     explanation: '금후(今後)는 "지금부터 앞으로"를 뜻합니다. 이제 今(금), 뒤 後(후)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '현재 이후를 가리키는 표현 이해',
+    hintText: '과거가 아니라 이 순간 이후를 말하는 표현이에요.',
+    tags: ['한자어', '시간', '생활'],
   },
   {
     id: 'q034', type: 'OX',
@@ -345,6 +426,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '지참(持參)은 "직접 가지고 옴"을 뜻합니다. 가질 持(지), 참여할 參(참)이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '준비물 안내 표현 이해',
+    hintText: '현장에 올 때 손에 들고 오거나 가방에 넣어 오는 것을 말해요.',
+    tags: ['한자어', '준비물', '안내문'],
   },
   {
     id: 'q035', type: 'MULTIPLE',
@@ -355,6 +439,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['교사', '학생 전체', '졸업생', '교장선생님'],
     explanation: '교생(校生)은 "학교에 다니는 학생"을 뜻합니다. 학교 校(교), 날 生(생)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '학교 구성원을 나타내는 어휘 이해',
+    hintText: '교생 실습의 교생과는 달리, 여기서는 학교에 속한 학생들을 뜻해요.',
+    tags: ['한자어', '학교', '구성원'],
   },
   {
     id: 'q036', type: 'OX',
@@ -364,6 +451,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '본교(本校)는 "이 학교" 또는 "우리 학교"를 뜻합니다. 근본 本(본), 학교 校(교)예요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '학교 공지에서 주체를 가리키는 표현 이해',
+    hintText: '귀교가 상대 학교라면, 본교는 글을 쓰는 쪽의 학교예요.',
+    tags: ['한자어', '학교', '공문서'],
   },
   {
     id: 'q037', type: 'MULTIPLE',
@@ -374,6 +464,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['이 기회에', '빨리', '반드시', '천천히'],
     explanation: '차제(此際)는 "이 기회에" 또는 "이런 때에"를 뜻합니다. 이 此(차), 때 際(제)예요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '공식 문장에 쓰인 기회 표현의 뜻을 이해한다.',
+    hintText: '무언가를 할 수 있는 때나 틈을 가리키는 말인지 떠올려 보세요.',
+    tags: ['문해력', '한자어', '기회표현'],
   },
   {
     id: 'q038', type: 'OX',
@@ -383,6 +476,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '잔반(殘飯)은 "먹고 남은 밥"을 뜻합니다. 남을 殘(잔), 밥 飯(반)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '식사 관련 한자어가 나타내는 끼니를 구별한다.',
+    hintText: '아침, 점심, 저녁 중에서 밥을 먹는 때를 생각해 보세요.',
+    tags: ['문해력', '한자어', '식생활'],
   },
   {
     id: 'q039', type: 'MULTIPLE',
@@ -393,6 +489,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['봄철', '여름철', '겨울철', '가을철'],
     explanation: '동절기(冬節期)는 "겨울철"을 뜻합니다. 겨울 冬(동), 마디 節(절), 기간 期(기)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '비슷한 형태의 한자어에서 뜻을 정확히 가려낸다.',
+    hintText: '검사와 관련된 말인지, 이름표와 관련된 말인지 구분해 보세요.',
+    tags: ['문해력', '한자어', '어휘구별'],
   },
   {
     id: 'q040', type: 'OX',
@@ -402,6 +501,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '하절기(夏節期)는 "여름철"을 뜻합니다. 여름 夏(하), 마디 節(절), 기간 期(기)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '의복 관련 한자어와 재료 관련 한자어를 구별한다.',
+    hintText: '옷감을 뜻하는 말인지, 이름표를 뜻하는 말인지 떠올려 보세요.',
+    tags: ['문해력', '한자어', '생활어휘'],
   },
   {
     id: 'q041', type: 'MULTIPLE',
@@ -412,6 +514,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['음료수만', '차와 과자', '밥과 국', '과일만'],
     explanation: '다과(茶菓)는 "차와 과자"를 뜻합니다. 차 茶(다), 과자 菓(과)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '간식 이름이 가리키는 음식 종류를 이해한다.',
+    hintText: '밥 대신 가볍게 먹는 작은 먹거리를 떠올려 보세요.',
+    tags: ['문해력', '식생활', '어휘이해'],
   },
   {
     id: 'q042', type: 'OX',
@@ -421,6 +526,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '재학생(在學生)은 "현재 학교에 다니고 있는 학생"을 뜻합니다. 있을 在(재)예요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '학생을 가리키는 공식 표현의 뜻을 이해한다.',
+    hintText: '학교에 다니고 있는 사람을 뜻하는지 생각해 보세요.',
+    tags: ['문해력', '학교생활', '공식표현'],
   },
   {
     id: 'q043', type: 'MULTIPLE',
@@ -431,6 +539,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['일부', '선생님들', '학부모님들', '여러분 모두'],
     explanation: '제위(諸位)는 "여러분 모두"를 높여 부르는 말입니다. 여러 諸(제), 자리 位(위)예요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '여러 사람을 한꺼번에 높여 부르는 표현을 익힌다.',
+    hintText: '한 사람만이 아니라 모인 사람 전체를 가리키는 말인지 살펴보세요.',
+    tags: ['문해력', '공식표현', '집단호칭'],
   },
   {
     id: 'q044', type: 'OX',
@@ -440,6 +551,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '교내(校內)는 "학교 안"을 뜻합니다. 학교 校(교), 안 內(내)예요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '학교 안과 밖을 나타내는 한자어를 구별한다.',
+    hintText: '교실이나 운동장처럼 학교 울타리 안인지 떠올려 보세요.',
+    tags: ['문해력', '학교생활', '공간표현'],
   },
   {
     id: 'q045', type: 'MULTIPLE',
@@ -450,6 +564,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['학교 안', '학교 밖', '교실 안', '운동장'],
     explanation: '교외(校外)는 "학교 밖"을 뜻합니다. 학교 校(교), 밖 外(외)예요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '학교 안팎을 나타내는 반대말 관계를 이해한다.',
+    hintText: '학교 밖에서 하는 체험인지 생각해 보세요.',
+    tags: ['문해력', '학교생활', '공간표현'],
   },
   {
     id: 'q046', type: 'OX',
@@ -459,6 +576,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '절판(絶版)은 "출판을 중단하여 더 이상 책을 찍지 않는 것"입니다. 끊을 絶(절)이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '출판과 판매 중단을 나타내는 어휘 뜻을 이해한다.',
+    hintText: '더 이상 책을 찍어 내지 않는 상태인지 떠올려 보세요.',
+    tags: ['문해력', '한자어', '책문화'],
   },
   {
     id: 'q047', type: 'MULTIPLE',
@@ -469,6 +589,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['완벽한 준비', '빠른 준비', '대충 준비', '늦은 준비'],
     explanation: '만전(萬全)은 "완벽하게 준비함"을 뜻합니다. 일만 萬(만), 온전할 全(전)이에요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '준비 상태를 강조하는 한자어의 뉘앙스를 이해한다.',
+    hintText: '대충이 아니라 빠짐없이 잘 챙긴 상태인지 생각해 보세요.',
+    tags: ['문해력', '한자어', '상태표현'],
   },
   {
     id: 'q048', type: 'OX',
@@ -478,6 +601,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '익월(翌月)은 "다음 달"을 뜻합니다. 翌(익)은 "다음"이라는 의미예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '다음 달을 가리키는 공문서 표현을 이해한다.',
+    hintText: '이번 달이 아니라 그다음 달을 뜻하는지 떠올려 보세요.',
+    tags: ['문해력', '한자어', '날짜표현'],
   },
   {
     id: 'q049', type: 'MULTIPLE',
@@ -488,6 +614,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['같음', '비슷함', '다름', '틀림'],
     explanation: '상이(相異)는 "서로 다름"을 뜻합니다. 서로 相(상), 다를 異(이)예요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '같음과 다름을 나타내는 한자어를 구별한다.',
+    hintText: '서로 똑같다는 뜻인지, 서로 다르다는 뜻인지 살펴보세요.',
+    tags: ['문해력', '한자어', '비교표현'],
   },
   {
     id: 'q050', type: 'MULTIPLE',
@@ -498,6 +627,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['실행함', '세움 / 만듦', '발표함', '취소함'],
     explanation: '수립(樹立)은 "계획이나 제도를 세움"을 뜻합니다. 세울 樹(수), 설 立(립)이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '계획을 세우는 과정을 나타내는 어휘 뜻을 이해한다.',
+    hintText: '생각만 하는 것이 아니라 계획을 짜는 장면인지 떠올려 보세요.',
+    tags: ['문해력', '학교생활', '계획표현'],
   },
 
   // ─── 난이도 1 추가 (건강·교통·일상) ──────────────────────────
@@ -509,6 +641,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '복용(服用)은 "약을 먹거나 마심"을 뜻합니다. 입을 服(복), 쓸 用(용)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '약을 먹는 상황에서 쓰는 어휘 뜻을 정확히 이해한다.',
+    hintText: '옷을 입는 것이 아니라 약을 먹는 일과 연결해 보세요.',
+    tags: ['문해력', '건강', '생활어휘'],
   },
   {
     id: 'q052', type: 'OX',
@@ -518,6 +653,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '접종(接種)은 "예방 주사를 놓음"을 뜻합니다. 이을 接(접), 심을 種(종)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '건강검진 관련 어휘가 뜻하는 행동을 이해한다.',
+    hintText: '검사를 받기 전에 몸에 놓는 예방 주사를 떠올려 보세요.',
+    tags: ['문해력', '건강', '학교생활'],
   },
   {
     id: 'q053', type: 'OX',
@@ -527,6 +665,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '환승(換乘)은 "다른 교통수단으로 갈아탐"을 뜻합니다. 바꿀 換(환), 탈 乘(승)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '교통수단을 갈아타는 표현의 뜻을 이해한다.',
+    hintText: '한 번에 가는 것이 아니라 다른 차로 바꾸는 상황인지 생각해 보세요.',
+    tags: ['문해력', '교통', '생활어휘'],
   },
   {
     id: 'q054', type: 'OX',
@@ -536,6 +677,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: false,
     explanation: '무료(無料)는 "돈이 없음, 공짜"를 뜻합니다. 없을 無(무), 요금 料(료)예요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '무료와 유료의 뜻 차이를 분명히 구별한다.',
+    hintText: '돈을 내야 하는지, 내지 않아도 되는지에 집중해 보세요.',
+    tags: ['문해력', '경제', '반의어'],
   },
   {
     id: 'q055', type: 'OX',
@@ -545,6 +689,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '유료(有料)는 "요금이 있음"을 뜻합니다. 있을 有(유), 요금 料(료)예요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '요금을 내야 하는 상황에서 쓰는 어휘를 이해한다.',
+    hintText: '공짜가 아니라 비용이 드는 상태인지 떠올려 보세요.',
+    tags: ['문해력', '경제', '생활어휘'],
   },
   {
     id: 'q056', type: 'OX',
@@ -554,6 +701,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: false,
     explanation: '귀가(歸家)는 "집으로 돌아감"을 뜻합니다. 돌아갈 歸(귀), 집 家(가)예요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '귀가와 등교처럼 이동 방향이 다른 표현을 구별한다.',
+    hintText: '학교로 가는지, 집으로 돌아가는지 생각해 보세요.',
+    tags: ['문해력', '학교생활', '이동표현'],
   },
   {
     id: 'q057', type: 'OX',
@@ -563,6 +713,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '외출(外出)은 "밖으로 나감"을 뜻합니다. 밖 外(외), 나갈 出(출)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '안에서 밖으로 나가는 상황을 나타내는 어휘를 이해한다.',
+    hintText: '문을 열고 바깥으로 나가는 장면과 연결해 보세요.',
+    tags: ['문해력', '생활안전', '이동표현'],
   },
   {
     id: 'q058', type: 'OX',
@@ -572,6 +725,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '입장(入場)은 "어떤 장소 안으로 들어감"을 뜻합니다. 들 入(입), 마당 場(장)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '입장이라는 말이 쓰이는 상황과 방향을 이해한다.',
+    hintText: '공연장이나 행사장 안으로 들어가는 모습을 떠올려 보세요.',
+    tags: ['문해력', '행사', '이동표현'],
   },
   {
     id: 'q059', type: 'OX',
@@ -581,6 +737,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '차단(遮斷)은 "통하지 못하게 막음"을 뜻합니다. 가릴 遮(차), 끊을 斷(단)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '소리나 신호를 막는다는 표현의 뜻을 이해한다.',
+    hintText: '지나가지 못하게 가리거나 막는 모습을 떠올려 보세요.',
+    tags: ['문해력', '생활어휘', '상태표현'],
   },
   {
     id: 'q060', type: 'OX',
@@ -590,6 +749,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: false,
     explanation: '일몰(日沒)은 "해가 짐"을 뜻합니다. 날 日(일), 잠길 沒(몰)이에요! 해가 뜨는 건 일출(日出)이에요.',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '해가 뜨고 지는 시간을 나타내는 어휘를 구별한다.',
+    hintText: '해가 올라오는 때인지, 해가 저무는 때인지 구분해 보세요.',
+    tags: ['문해력', '자연', '반의어'],
   },
 
   // ─── 난이도 2 추가 (의료·교통·경제·사계절) ──────────────────
@@ -602,6 +764,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['물건을 교환함', '값을 깎아줌', '돈을 돌려줌', '물건을 더 줌'],
     explanation: '환불(還拂)은 "이미 낸 돈을 돌려줌"을 뜻합니다. 돌아올 還(환), 지불할 拂(불)이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '영수증과 계산 상황에서 쓰는 환급 표현을 이해한다.',
+    hintText: '이미 낸 돈 중 일부를 다시 돌려받는 장면인지 떠올려 보세요.',
+    tags: ['문해력', '경제', '생활어휘'],
   },
   {
     id: 'q062', type: 'MULTIPLE',
@@ -612,6 +777,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['값을 낮춰줌', '값을 올림', '물건을 더 줌', '배달해 줌'],
     explanation: '할인(割引)은 "정해진 가격보다 낮게 팜"을 뜻합니다. 자를 割(할), 끌 引(인)이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '할인이라는 말이 가격에 어떤 변화를 주는지 이해한다.',
+    hintText: '원래 가격보다 적게 내게 되는 상황인지 생각해 보세요.',
+    tags: ['문해력', '경제', '상점어휘'],
   },
   {
     id: 'q063', type: 'MULTIPLE',
@@ -622,6 +790,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['약을 지어줌', '의사가 환자를 살펴 치료함', '주사를 맞음', '입원하는 것'],
     explanation: '진료(診療)는 "의사가 환자를 살피고 치료함"을 뜻합니다. 살필 診(진), 치료할 療(료)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '병원에서 쓰는 진료의 뜻을 정확히 이해한다.',
+    hintText: '의사가 환자를 보고 치료하는 과정과 연결해 보세요.',
+    tags: ['문해력', '건강', '병원어휘'],
   },
   {
     id: 'q064', type: 'MULTIPLE',
@@ -632,6 +803,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['가벼운 식사', '특별한 음식', '빠르게 먹음', '음식을 먹지 않음'],
     explanation: '금식(禁食)은 "음식 먹는 것을 금함"을 뜻합니다. 금할 禁(금), 밥 食(식)이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '금식이 식사와 어떤 관계인지 이해한다.',
+    hintText: '먹지 않는 상태를 말하는지, 특별한 식단을 말하는지 살펴보세요.',
+    tags: ['문해력', '건강', '생활어휘'],
   },
   {
     id: 'q065', type: 'MULTIPLE',
@@ -642,6 +816,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['교통수단이 다님', '차를 고침', '정류장에 서는 것', '길을 막는 것'],
     explanation: '운행(運行)은 "교통수단이 정해진 노선을 따라 다님"을 뜻합니다. 움직일 運(운), 다닐 行(행)이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '교통수단 운행 안내에서 쓰는 핵심 어휘를 이해한다.',
+    hintText: '버스나 지하철이 정해진 길을 따라 다니는 모습을 떠올려 보세요.',
+    tags: ['문해력', '교통', '안내문'],
   },
   {
     id: 'q066', type: 'MULTIPLE',
@@ -652,6 +829,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['돈을 받음', '돈을 빌림', '돈을 냄', '돈을 돌려줌'],
     explanation: '납부(納付)는 "돈이나 물건을 내어 줌"을 뜻합니다. 바칠 納(납), 줄 付(부)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '납부가 돈이나 비용과 어떤 관계인지 이해한다.',
+    hintText: '요금이나 회비를 내는 장면과 연결해 보세요.',
+    tags: ['문해력', '경제', '공식표현'],
   },
   {
     id: 'q067', type: 'MULTIPLE',
@@ -662,6 +842,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['여름', '봄', '가을', '겨울'],
     explanation: '춘(春)은 "봄"이에요! 춘절기=봄철, 춘분=봄의 기준일이 됩니다. 동(冬)=겨울, 하(夏)=여름, 추(秋)=가을이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '계절을 나타내는 한자어의 기본 뜻을 이해한다.',
+    hintText: '춘분, 춘절기처럼 따뜻해지기 시작하는 계절을 떠올려 보세요.',
+    tags: ['문해력', '한자어', '계절'],
   },
   {
     id: 'q068', type: 'MULTIPLE',
@@ -672,6 +855,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['해가 뜸', '해가 짐', '정오', '새벽'],
     explanation: '일출(日出)은 "해가 뜸"을 뜻합니다. 날 日(일), 나올 出(출)이에요! 반대말은 일몰(日沒)이에요.',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '하루 중 해의 움직임을 나타내는 어휘를 구별한다.',
+    hintText: '아침 하늘이 밝아지며 해가 보이기 시작하는 때예요.',
+    tags: ['문해력', '자연', '시간표현'],
   },
   {
     id: 'q069', type: 'MULTIPLE',
@@ -682,6 +868,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['새벽 12시', '오전 6시', '오후 6시', '낮 12시'],
     explanation: '정오(正午)는 "낮 12시"를 뜻합니다. 바를 正(정), 낮 午(오)예요! 자정(子正)은 밤 12시예요.',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '하루 중 정확한 시각을 가리키는 어휘를 이해한다.',
+    hintText: '점심시간이 시작될 무렵의 한가운데 낮 시간을 생각해 보세요.',
+    tags: ['문해력', '시간', '생활어휘'],
   },
   {
     id: 'q070', type: 'MULTIPLE',
@@ -692,6 +881,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['바로 감', '어디를 거쳐 감', '돌아서 감', '빠르게 감'],
     explanation: '경유(經由)는 "어느 곳을 거쳐서 감"을 뜻합니다. 지날 經(경), 말미암을 由(유)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '이동 경로를 설명하는 교통 어휘의 뜻을 이해한다.',
+    hintText: '출발지와 도착지 사이에 다른 도시를 한 번 들르는 상황이에요.',
+    tags: ['문해력', '교통', '이동표현'],
   },
 
   // ─── 난이도 3 추가 (사자성어·고급 한자어) ─────────────────────
@@ -704,6 +896,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['한 번에 하나를 얻음', '두 번 시도함', '돌 하나로 새 두 마리(한 번에 두 가지 이득)', '천천히 해도 됨'],
     explanation: '일석이조(一石二鳥)는 "돌 하나로 새 두 마리"라는 뜻으로, 한 가지 행동으로 두 가지 이득을 얻음이에요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '사자성어가 비유하는 이득의 상황을 이해한다.',
+    hintText: '한 번의 노력으로 좋은 결과가 두 가지 생기는 장면을 떠올려 보세요.',
+    tags: ['문해력', '사자성어', '비유표현'],
   },
   {
     id: 'q072', type: 'MULTIPLE',
@@ -714,6 +909,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['옛것을 익혀 새것을 앎', '새것만 배움', '옛것은 버림', '천천히 배움'],
     explanation: '온고지신(溫故知新)은 "옛것을 익혀 그것을 토대로 새것을 앎"이에요. 익힐 溫(온), 옛 故(고), 알 知(지), 새 新(신)!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '전통과 새 배움을 연결하는 사자성어의 뜻을 익힌다.',
+    hintText: '예전에 배운 것을 다시 살펴보며 새로운 깨달음을 얻는 모습이에요.',
+    tags: ['문해력', '사자성어', '학습태도'],
   },
   {
     id: 'q073', type: 'MULTIPLE',
@@ -724,6 +922,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['천재적 재능', '쉽게 공부함', '포기하지 않음', '어려운 환경에서도 열심히 공부함'],
     explanation: '형설지공(螢雪之功)은 "반딧불과 눈 빛으로 책을 읽을 만큼 어려운 환경에서도 공부함"을 뜻해요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '노력과 끈기를 나타내는 사자성어의 뜻을 이해한다.',
+    hintText: '공부하기 힘든 상황에서도 끝까지 배우려는 마음에 집중해 보세요.',
+    tags: ['문해력', '사자성어', '노력'],
   },
   {
     id: 'q074', type: 'OX',
@@ -733,6 +934,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: false,
     explanation: '백문불여일견(百聞不如一見)은 "백 번 듣는 것이 한 번 직접 보는 것만 못하다"는 뜻이에요. 직접 경험이 중요해요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '직접 경험의 가치를 담은 속뜻을 파악한다.',
+    hintText: '이야기만 듣는 것보다 눈으로 확인하는 일이 더 믿을 만한지 생각해 보세요.',
+    tags: ['문해력', '사자성어', '경험'],
   },
   {
     id: 'q075', type: 'MULTIPLE',
@@ -743,6 +947,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['자주 싸움', '힘든 것도 즐거운 것도 함께함', '같은 반임', '오래 알고 지냄'],
     explanation: '동고동락(同苦同樂)은 "괴로움도 즐거움도 함께함"이에요. 같을 同(동), 쓸 苦(고), 즐거울 樂(락)!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '함께 고생하고 기뻐하는 관계를 나타내는 표현을 이해한다.',
+    hintText: '좋은 일과 힘든 일을 친구들과 같이 겪는 모습을 떠올려 보세요.',
+    tags: ['문해력', '사자성어', '관계'],
   },
   {
     id: 'q076', type: 'MULTIPLE',
@@ -753,6 +960,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['스승이 제자보다 뛰어남', '둘이 비슷함', '제자가 스승보다 더 뛰어남', '공부를 열심히 함'],
     explanation: '청출어람(靑出於藍)은 "쪽빛(靑)이 쪽(藍)에서 나왔지만 더 파랗다"는 뜻으로 제자가 스승을 능가함이에요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '비유가 담긴 사자성어에서 비교 관계를 읽어 낸다.',
+    hintText: '가르침을 받은 사람이 나중에는 더 뛰어나지는 상황이에요.',
+    tags: ['문해력', '사자성어', '비교표현'],
   },
   {
     id: 'q077', type: 'MULTIPLE',
@@ -763,6 +973,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['일이 뜻대로 안 돼 당황하고 어려움을 겪음', '크게 성공함', '일이 쉽게 해결됨', '실수를 고침'],
     explanation: '낭패(狼狽)는 "일이 뜻대로 안 되어 당황하거나 어려움을 겪음"을 뜻합니다!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '실패나 곤란한 상황을 나타내는 어휘의 느낌을 이해한다.',
+    hintText: '준비 없이 나섰다가 계획이 꼬여 곤란해진 장면을 생각해 보세요.',
+    tags: ['문해력', '감정상황', '생활어휘'],
   },
   {
     id: 'q078', type: 'MULTIPLE',
@@ -773,6 +986,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['행사를 끝냄', '행사를 준비함', '행사에 참가함', '행사를 열고 진행함'],
     explanation: '개최(開催)는 "행사나 모임을 열어 진행함"을 뜻합니다. 열 開(개), 재촉할 催(최)예요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '행사를 여는 절차와 관련된 공식 어휘를 이해한다.',
+    hintText: '대회나 모임을 시작해서 실제로 진행하는 쪽의 행동이에요.',
+    tags: ['문해력', '행사', '공식표현'],
   },
   {
     id: 'q079', type: 'OX',
@@ -782,6 +998,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '당초(當初)는 "처음, 맨 처음"을 뜻합니다. 마땅 當(당), 처음 初(초)예요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '계획의 시작 시점을 나타내는 표현을 이해한다.',
+    hintText: '나중에 바뀌기 전, 맨 처음 세웠던 계획을 떠올려 보세요.',
+    tags: ['문해력', '시간', '공식표현'],
   },
   {
     id: 'q080', type: 'MULTIPLE',
@@ -792,6 +1011,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['나중에', '지금', '아까', '내일'],
     explanation: '시방(時方)은 "지금 이 때, 바로 지금"을 뜻하는 순우리말 표현입니다!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '현재 시점을 가리키는 지역어·옛말 표현을 이해한다.',
+    hintText: '바로 이 순간 무엇을 하는지 묻는 말과 이어집니다.',
+    tags: ['문해력', '시간', '어휘이해'],
   },
   {
     id: 'q081', type: 'MULTIPLE',
@@ -802,6 +1024,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['치료를 시작함', '치료 중임', '병이 완전히 나음', '퇴원함'],
     explanation: '완치(完治)는 "병이 완전히 나음"을 뜻합니다. 완전할 完(완), 다스릴 治(치)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '치료 결과를 나타내는 병원 어휘의 뜻을 이해한다.',
+    hintText: '아직 아픈 상태가 아니라 병이 다 나은 결과예요.',
+    tags: ['문해력', '건강', '병원어휘'],
   },
   {
     id: 'q082', type: 'OX',
@@ -811,6 +1036,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: false,
     explanation: '퇴원(退院)은 "병원에서 나감"을 뜻합니다. 물러날 退(퇴), 집 院(원)이에요! 병원에 새로 들어가는 건 입원(入院)이에요.',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '입원과 퇴원처럼 반대되는 병원 어휘를 구별한다.',
+    hintText: '치료를 마치고 병원 문을 나서는 상황을 떠올려 보세요.',
+    tags: ['문해력', '건강', '반의어'],
   },
   {
     id: 'q083', type: 'MULTIPLE',
@@ -821,6 +1049,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['의사가 치료 방법과 약을 정해줌', '약을 직접 만듦', '주사를 맞는 것', '병의 원인을 찾음'],
     explanation: '처방(處方)은 "의사가 환자에게 맞는 약과 치료 방법을 정함"을 뜻합니다!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '진료 과정에서 의사가 하는 역할을 나타내는 어휘를 이해한다.',
+    hintText: '약국에 가져가는 처방전이 어떻게 만들어지는지 생각해 보세요.',
+    tags: ['문해력', '건강', '병원절차'],
   },
   {
     id: 'q084', type: 'OX',
@@ -830,6 +1061,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '강풍(強風)은 "강하게 부는 바람"을 뜻합니다. 강할 強(강), 바람 風(풍)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '날씨 특보에서 쓰는 바람 관련 어휘를 이해한다.',
+    hintText: '산들바람이 아니라 몸이 흔들릴 만큼 세게 부는 바람이에요.',
+    tags: ['문해력', '날씨', '안전'],
   },
   {
     id: 'q085', type: 'MULTIPLE',
@@ -840,6 +1074,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['강한 바람', '많은 비', '심한 눈', '안개'],
     explanation: '호우(豪雨)는 "한꺼번에 많이 내리는 비"를 뜻합니다. 호걸 豪(호), 비 雨(우)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '기상 경보에 나오는 비 관련 어휘를 이해한다.',
+    hintText: '우산이 필요할 정도가 아니라 짧은 시간에 비가 아주 많이 오는 상황이에요.',
+    tags: ['문해력', '날씨', '안전'],
   },
   {
     id: 'q086', type: 'MULTIPLE',
@@ -850,6 +1087,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['따뜻한 바람', '강한 비', '폭설', '갑작스러운 심한 추위'],
     explanation: '한파(寒波)는 "갑자기 심해지는 추위"를 뜻합니다. 찰 寒(한), 물결 波(파)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '추위와 관련된 기상 어휘의 뜻을 정확히 파악한다.',
+    hintText: '비나 눈보다 먼저, 몸이 얼어붙을 만큼 갑자기 추워진 날씨예요.',
+    tags: ['문해력', '날씨', '겨울'],
   },
   {
     id: 'q087', type: 'OX',
@@ -859,6 +1099,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '폭설(暴雪)은 "갑자기 많이 내리는 눈"을 뜻합니다. 사나울 暴(폭), 눈 雪(설)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '눈과 관련된 재난 어휘를 일상 표현과 연결해 이해한다.',
+    hintText: '조금 흩날리는 눈이 아니라 길이 막힐 만큼 많이 내리는 눈이에요.',
+    tags: ['문해력', '날씨', '겨울'],
   },
   {
     id: 'q088', type: 'MULTIPLE',
@@ -869,6 +1112,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['학교에 들어옴을 기념하는 행사', '학교를 졸업하는 행사', '학교 운동 경기', '학교 체험 활동'],
     explanation: '입학식(入學式)은 "학교에 입학함을 기념하는 행사"입니다. 들 入(입), 배울 學(학), 예식 式(식)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '학교의 시작을 알리는 행사 이름을 이해한다.',
+    hintText: '새 학년이나 새 학교에 처음 들어가는 날 열리는 행사예요.',
+    tags: ['문해력', '학교생활', '행사'],
   },
   {
     id: 'q089', type: 'MULTIPLE',
@@ -879,6 +1125,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['공부를 시작함', '시험에 합격함', '정해진 과정을 마침', '상을 받음'],
     explanation: '수료(修了)는 "정해진 교육 과정을 모두 마침"을 뜻합니다. 닦을 修(수), 마칠 了(료)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '교육 과정을 끝냈을 때 쓰는 공식 어휘를 익힌다.',
+    hintText: '졸업보다 더 넓게, 정해진 프로그램을 다 마친 상태를 생각해 보세요.',
+    tags: ['문해력', '학교생활', '공식표현'],
   },
   {
     id: 'q090', type: 'OX',
@@ -888,6 +1137,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '시상식(施賞式)은 "상을 수여하는 행사"입니다. 베풀 施(시), 상 賞(상), 예식 式(식)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '상을 주고받는 공식 행사 이름을 이해한다.',
+    hintText: '대회가 끝난 뒤 상장이나 메달을 주는 자리를 떠올려 보세요.',
+    tags: ['문해력', '행사', '학교생활'],
   },
   {
     id: 'q091', type: 'MULTIPLE',
@@ -898,6 +1150,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['운동 경기 대회', '학생들이 학습 성과를 발표하는 행사', '사생 대회', '독서 퀴즈 대회'],
     explanation: '학예회(學藝會)는 "학생들이 공부한 내용을 노래·연극 등으로 발표하는 행사"예요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '학교 발표 행사와 다른 대회를 구별하는 어휘력을 기른다.',
+    hintText: '친구들이 무대에서 노래, 연극, 합창 같은 발표를 하는 날이에요.',
+    tags: ['문해력', '학교생활', '발표행사'],
   },
   {
     id: 'q092', type: 'MULTIPLE',
@@ -908,6 +1163,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['심신을 단련하며 집단생활을 배우는 캠프', '방학 중 특별 수업', '학부모 참여 행사', '졸업 여행'],
     explanation: '수련회(修鍊會)는 "학생들이 단체로 모여 심신을 단련하는 캠프 활동"이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '학교 밖 단체 활동의 목적을 나타내는 어휘를 이해한다.',
+    hintText: '친구들과 함께 지내며 협동과 생활 습관을 배우는 캠프예요.',
+    tags: ['문해력', '학교생활', '체험활동'],
   },
   {
     id: 'q093', type: 'OX',
@@ -917,6 +1175,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '현장 체험 학습(現場體驗學習)은 "실제 장소에 가서 직접 보고 배우는 활동"입니다!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '교실 밖 배움과 관련된 학교 활동 어휘를 이해한다.',
+    hintText: '책으로만 보지 않고 박물관이나 과학관에 직접 가는 수업이에요.',
+    tags: ['문해력', '학교생활', '체험학습'],
   },
   {
     id: 'q094', type: 'MULTIPLE',
@@ -927,6 +1188,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['학교가 쉼', '학기가 끝남', '방학이 시작됨', '방학이 끝나고 학교가 다시 시작됨'],
     explanation: '개학(開學)은 "방학이나 휴교 후 다시 학교를 시작함"을 뜻합니다. 열 開(개), 배울 學(학)이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '방학 전후 학교 일정 어휘를 구별한다.',
+    hintText: '오랜 쉼이 끝나고 다시 등교를 시작하는 첫날과 연결해 보세요.',
+    tags: ['문해력', '학교생활', '학사일정'],
   },
   {
     id: 'q095', type: 'OX',
@@ -936,6 +1200,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '종업식(終業式)은 "학기가 끝나는 날 하는 마무리 행사"입니다. 끝 終(종), 일 業(업), 예식 式(식)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '학기 마무리 행사 이름과 뜻을 정확히 이해한다.',
+    hintText: '방학을 앞두고 교실을 정리하며 한 학기를 마치는 날이에요.',
+    tags: ['문해력', '학교생활', '학사일정'],
   },
   {
     id: 'q096', type: 'MULTIPLE',
@@ -946,6 +1213,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['지각하는 것', '결석하는 것', '수업 중에 일찍 돌아가는 것', '늦게까지 남아 있는 것'],
     explanation: '조퇴(早退)는 "정해진 시간보다 일찍 나감"을 뜻합니다. 이를 早(조), 물러날 退(퇴)예요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '출결과 관련된 학교생활 어휘를 구별한다.',
+    hintText: '몸이 아프거나 사정이 있어 수업이 끝나기 전에 먼저 집으로 가는 상황이에요.',
+    tags: ['문해력', '학교생활', '출결'],
   },
   {
     id: 'q097', type: 'MULTIPLE',
@@ -956,6 +1226,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['일찍 가는 것', '정해진 시각보다 늦게 도착함', '결석하는 것', '조퇴하는 것'],
     explanation: '지각(遲刻)은 "정해진 시각보다 늦게 도착함"을 뜻합니다. 늦을 遲(지), 새길 刻(각)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '출결과 관련된 학교생활 어휘를 정확한 상황과 연결해 이해한다.',
+    hintText: '수업은 시작됐는데 학생이 아직 교실에 들어오지 못한 상황을 떠올려 보세요.',
+    tags: ['문해력', '학교생활', '출결'],
   },
   {
     id: 'q098', type: 'MULTIPLE',
@@ -966,6 +1239,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['보거나 읽고 느낀 점을 쓴 글', '책 내용을 요약한 글', '책 등장인물 소개글', '책 표지 설명글'],
     explanation: '감상문(感想文)은 "작품을 보거나 읽고 느낀 점을 쓴 글"이에요. 느낄 感(감), 생각 想(상), 글 文(문)!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '읽은 책이나 본 작품에 대한 느낌을 글로 표현하는 어휘를 이해한다.',
+    hintText: '줄거리만 옮기는 글이 아니라, 내가 느낀 점을 적는 숙제예요.',
+    tags: ['문해력', '독서', '글쓰기'],
   },
   {
     id: 'q099', type: 'OX',
@@ -975,6 +1251,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '출석(出席)은 "정해진 자리에 나옴"을 뜻합니다. 나올 出(출), 자리 席(석)이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '학교나 모임에서 자리에 나온 상태를 나타내는 어휘를 이해한다.',
+    hintText: '선생님이 이름을 부를 때 교실에 와 있으면 어떻게 표시될까요?',
+    tags: ['문해력', '학교생활', '출결'],
   },
   {
     id: 'q100', type: 'MULTIPLE',
@@ -985,6 +1264,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['선생님', '학생 형제', '학생의 부모', '졸업생'],
     explanation: '학부모(學父母)는 "학교에 다니는 자녀의 부모"를 뜻합니다. 배울 學(학), 아버지 父(부), 어머니 母(모)예요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '학교 공지에서 자주 쓰이는 가족 관련 어휘를 정확히 구별한다.',
+    hintText: '상담 신청서를 내는 사람은 학생 본인보다 집에서 보호하는 어른에 가까워요.',
+    tags: ['문해력', '학교생활', '가정통신문'],
   },
 
   // ─── 추가 고급 문제 ────────────────────────────────────────
@@ -997,6 +1279,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['팀을 이룸', '서로 이기려고 다툼', '협동함', '순서를 정함'],
     explanation: '각축(角逐)은 "서로 이기려고 다툼"을 뜻합니다. 뿔 角(각), 쫓을 逐(축)이에요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '경쟁 상황에서 쓰는 고급 어휘의 의미를 문맥 속에서 파악한다.',
+    hintText: '1등을 놓고 여러 사람이 물러서지 않고 경쟁하는 장면이에요.',
+    tags: ['문해력', '경쟁', '고급어휘'],
   },
   {
     id: 'q102', type: 'OX',
@@ -1006,6 +1291,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: true,
     explanation: '발군(拔群)은 "여럿 중에서 특별히 뛰어남"을 뜻합니다. 뽑을 拔(발), 무리 群(군)이에요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '비교 대상 가운데 특히 뛰어난 상태를 나타내는 어휘를 이해한다.',
+    hintText: '비슷한 사람들 사이에서 유난히 눈에 띄게 잘하는 모습을 생각해 보세요.',
+    tags: ['문해력', '비교표현', '고급어휘'],
   },
   {
     id: 'q103', type: 'MULTIPLE',
@@ -1016,6 +1304,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['스스로 행동을 삼가고 조심함', '크게 반성함', '사과하는 것', '다시 시작함'],
     explanation: '자숙(自肅)은 "스스로 행동을 삼가고 조심함"을 뜻합니다. 스스로 自(자), 엄숙할 肅(숙)이에요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '잘못 뒤에 스스로 행동을 조심하는 태도를 나타내는 어휘를 이해한다.',
+    hintText: '누가 시켜서가 아니라 자기 스스로 말과 행동을 줄이는 상태예요.',
+    tags: ['문해력', '태도', '고급어휘'],
   },
   {
     id: 'q104', type: 'MULTIPLE',
@@ -1026,6 +1317,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['뒤에서 도움', '함께 참여함', '앞장서서 이끎', '마무리하는 것'],
     explanation: '주도(主導)는 "중심이 되어 앞에서 이끌어 나감"을 뜻합니다. 주인 主(주), 이끌 導(도)예요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '단체 활동에서 중심이 되어 이끄는 역할을 뜻하는 어휘를 익힌다.',
+    hintText: '그냥 따라가는 쪽이 아니라 계획을 이끌고 앞장서는 쪽이에요.',
+    tags: ['문해력', '리더십', '학교활동'],
   },
   {
     id: 'q105', type: 'OX',
@@ -1035,6 +1329,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: false,
     explanation: '산발적(散發的)은 "여기저기 흩어져 드문드문 일어남"을 뜻합니다. 집중적이 아니라 산발적이에요!',
     difficulty: 3, xpReward: 80, coinReward: 12,
+    learningGoal: '흩어져 드문드문 일어나는 상태를 나타내는 어휘를 구별한다.',
+    hintText: '한곳에 몰려 계속 내리는 비가 아니라 여기저기 따로 나타나는 비예요.',
+    tags: ['문해력', '날씨', '상태표현'],
   },
   {
     id: 'q106', type: 'MULTIPLE',
@@ -1045,6 +1342,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['오랫동안 해온 방식', '처음 시도해 보는 것', '모두에게 적용하는 것', '취소하는 것'],
     explanation: '시범(試範)은 "모범이 될 수 있도록 시험적으로 먼저 해 봄"을 뜻합니다!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '새 제도나 활동을 먼저 시험해 보는 상황을 설명하는 어휘를 이해한다.',
+    hintText: '정식으로 완전히 시행하기 전에 일부만 먼저 해 보는 단계예요.',
+    tags: ['문해력', '학교생활', '운영'],
   },
   {
     id: 'q107', type: 'MULTIPLE',
@@ -1055,6 +1355,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['날짜', '장소', '인원', '그런지 아닌지'],
     explanation: '여부(與否)는 "그런지 아닌지, 있는지 없는지"를 뜻합니다. 줄 與(여), 아닐 否(부)예요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '선택이나 사실의 유무를 묻는 표현을 학교 공지 맥락에서 이해한다.',
+    hintText: '참가할지 안 할지처럼 두 가능성 중 어느 쪽인지 답하는 말이에요.',
+    tags: ['문해력', '학교생활', '선택'],
   },
   {
     id: 'q108', type: 'OX',
@@ -1064,6 +1367,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     answer: false,
     explanation: '협조(協助)는 "힘을 합쳐 서로 도움"을 뜻합니다. 혼자가 아니라 함께 돕는 것이에요!',
     difficulty: 1, xpReward: 30, coinReward: 5,
+    learningGoal: '여럿이 힘을 합쳐 돕는 상황을 나타내는 어휘를 이해한다.',
+    hintText: '혼자 끝내는 일이 아니라 여러 사람이 함께 손을 보태는 장면이에요.',
+    tags: ['문해력', '협동', '행사준비'],
   },
   {
     id: 'q109', type: 'MULTIPLE',
@@ -1074,6 +1380,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['열심히 나서서 하는', '억지로 하는', '천천히 하는', '대충 하는'],
     explanation: '적극적(積極的)은 "자신이 나서서 열심히 하는 모습"을 뜻합니다. 쌓을 積(적), 다할 極(극)이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '수업이나 토론에서 스스로 나서는 태도를 나타내는 어휘를 이해한다.',
+    hintText: '가만히 있지 않고 손을 들거나 의견을 내며 먼저 참여하는 모습이에요.',
+    tags: ['문해력', '태도', '수업참여'],
   },
   {
     id: 'q110', type: 'MULTIPLE',
@@ -1084,6 +1393,9 @@ export const INITIAL_QUIZ_DATA: QuizQuestion[] = [
     choices: ['열심히 하는', '빠르게 하는', '나서지 않고 消 뒤에 숨으려는', '자주 하는'],
     explanation: '소극적(消極的)은 "나서지 않고 뒤로 물러나는 태도"를 뜻합니다. 사라질 消(소), 다할 極(극)이에요!',
     difficulty: 2, xpReward: 50, coinReward: 8,
+    learningGoal: '앞에 나서지 않고 물러나는 태도를 설명하는 반대 개념 어휘를 이해한다.',
+    hintText: '의견이 있어도 손을 들지 않고 뒤에서 조용히 있는 모습에 더 가까워요.',
+    tags: ['문해력', '태도', '수업참여'],
   },
 ];
 

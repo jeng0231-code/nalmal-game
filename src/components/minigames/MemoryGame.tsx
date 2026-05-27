@@ -37,7 +37,7 @@ const MemoryGame: FC<MemoryGameProps> = ({ onComplete, level = 1 }) => {
   type Phase = 'ready' | 'playing' | 'done';
   const [phase, setPhase] = useState<Phase>('ready');
   const [cards, setCards] = useState<CardState[]>([]);
-  const [_flippedIds, setFlippedIds] = useState<number[]>([]);
+  const [, setFlippedIds] = useState<number[]>([]);
   const [matchedPairs, setMatchedPairs] = useState(0);
   const [moves, setMoves] = useState(0);
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
@@ -67,23 +67,17 @@ const MemoryGame: FC<MemoryGameProps> = ({ onComplete, level = 1 }) => {
   // Timer
   useEffect(() => {
     if (phase !== 'playing') return;
-    if (timeLeft <= 0) {
-      setPhase('done');
-      return;
-    }
-    const id = setTimeout(() => setTimeLeft(t => t - 1), 1000);
+    const id = setTimeout(() => {
+      setTimeLeft(t => {
+        if (t <= 1) {
+          setPhase('done');
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
     return () => clearTimeout(id);
-  }, [phase, timeLeft]);
-
-  // Check win
-  useEffect(() => {
-    if (phase === 'playing' && matchedPairs === pairCount) {
-      const timeBonus = timeLeft * 3;
-      const moveBonus = Math.max(0, (pairCount * 4 - moves) * 5);
-      setScore(pairCount * 50 + timeBonus + moveBonus);
-      setPhase('done');
-    }
-  }, [matchedPairs, pairCount, phase, timeLeft, moves]);
+  }, [phase]);
 
   const handleCardClick = useCallback((cardId: number) => {
     if (locked || phase !== 'playing') return;
@@ -101,7 +95,8 @@ const MemoryGame: FC<MemoryGameProps> = ({ onComplete, level = 1 }) => {
       const next = [...prev, cardId];
 
       if (next.length === 2) {
-        setMoves(m => m + 1);
+        const nextMoves = moves + 1;
+        setMoves(nextMoves);
         setLocked(true);
 
         const [firstId, secondId] = next;
@@ -114,7 +109,16 @@ const MemoryGame: FC<MemoryGameProps> = ({ onComplete, level = 1 }) => {
             setCards(cs => cs.map(c =>
               c.id === firstId || c.id === secondId ? { ...c, matched: true } : c
             ));
-            setMatchedPairs(p => p + 1);
+            setMatchedPairs(p => {
+              const nextMatchedPairs = p + 1;
+              if (nextMatchedPairs === pairCount) {
+                const timeBonus = timeLeft * 3;
+                const moveBonus = Math.max(0, (pairCount * 4 - nextMoves) * 5);
+                setScore(pairCount * 50 + timeBonus + moveBonus);
+                setPhase('done');
+              }
+              return nextMatchedPairs;
+            });
             setFlippedIds([]);
             setLocked(false);
           }, 400);
@@ -133,7 +137,7 @@ const MemoryGame: FC<MemoryGameProps> = ({ onComplete, level = 1 }) => {
 
       return next;
     });
-  }, [locked, phase, cards]);
+  }, [locked, phase, cards, moves, pairCount, timeLeft]);
 
   const cols = pairCount <= 6 ? 4 : pairCount <= 8 ? 4 : 5;
   const emojiSize = pairCount <= 6 ? 'text-4xl' : pairCount <= 8 ? 'text-3xl' : 'text-2xl';

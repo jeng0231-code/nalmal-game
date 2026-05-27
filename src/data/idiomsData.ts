@@ -77,6 +77,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '충고를 흘려듣는 태도를 나타내는 사자성어 이해',
+    hintText: '말의 귀를 스치는 바람처럼, 들어도 마음에 남지 않는 모습을 떠올려 보세요.',
+    tags: ['사자성어', '태도', '충고'],
     category: 'idioms',
   },
   {
@@ -122,6 +125,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '겉보기 차이보다 본질이 같을 수 있음을 이해',
+    hintText: '50걸음과 100걸음은 차이가 있어 보여도 둘 다 무엇을 했는지 생각해보세요.',
+    tags: ['사자성어', '비교', '본질'],
     category: 'idioms',
   },
   {
@@ -135,6 +141,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 3,
     xpReward: 50,
     coinReward: 10,
+    learningGoal: '부모님의 은혜에 보답하는 효의 의미를 담은 사자성어 이해',
+    hintText: '어릴 때 돌봄을 받은 존재가 자라서 그 은혜를 되돌려 주는 장면을 떠올려 보세요.',
+    tags: ['사자성어', '효', '가족'],
     category: 'idioms',
   },
   {
@@ -148,6 +157,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 1,
     xpReward: 30,
     coinReward: 5,
+    learningGoal: '자신의 행동 결과를 스스로 책임지는 뜻의 사자성어 이해',
+    hintText: '내가 한 일이 결국 누구에게 돌아오는지 생각해보세요.',
+    tags: ['사자성어', '책임', '행동결과'],
     category: 'idioms',
   },
   {
@@ -161,6 +173,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 3,
     xpReward: 50,
     coinReward: 10,
+    learningGoal: '꾸준한 노력과 끈기가 큰일을 이룰 수 있음을 이해',
+    hintText: '처음에는 불가능해 보여도 끝까지 계속하면 달라질 수 있는 일을 떠올려 보세요.',
+    tags: ['사자성어', '끈기', '노력'],
     category: 'idioms',
   },
   {
@@ -174,6 +189,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '비슷한 어려움을 겪는 사람끼리 공감하는 마음을 나타내는 사자성어 이해',
+    hintText: '같은 고민이 있는 친구를 만나면 왜 더 잘 이해하게 되는지 떠올려 보세요.',
+    tags: ['사자성어', '공감', '위로'],
     category: 'idioms',
   },
   {
@@ -187,6 +205,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 3,
     xpReward: 50,
     coinReward: 10,
+    learningGoal: '어려운 환경에서도 배움을 포기하지 않는 자세를 담은 사자성어 이해',
+    hintText: '밝은 등불이 없어도 공부를 이어 간 이유가 무엇인지 생각해보세요.',
+    tags: ['사자성어', '학습', '인내'],
     category: 'idioms',
   },
   {
@@ -200,6 +221,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '무엇이든 지나치면 오히려 좋지 않다는 균형의 의미 이해',
+    hintText: '좋은 것도 너무 많으면 불편해질 수 있다는 경험을 떠올려 보세요.',
+    tags: ['사자성어', '균형', '절제'],
     category: 'idioms',
   },
   {
@@ -213,6 +237,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '지난 배움을 바탕으로 새로운 지식을 얻는 태도를 이해',
+    hintText: '이미 알고 있는 내용을 다시 살피면 무엇을 더 알 수 있을지 생각해보세요.',
+    tags: ['사자성어', '학습', '전통'],
     category: 'idioms',
   },
 
@@ -234,6 +261,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '불리한 일이 오히려 좋은 결과로 바뀔 수 있음을 이해',
+    hintText: '처음에는 속상했지만 나중에 도움이 된 경험을 떠올려 보세요.',
+    tags: ['사자성어', '전환', '희망'],
     category: 'idioms',
   },
   {
@@ -253,6 +283,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 1,
     xpReward: 30,
     coinReward: 5,
+    learningGoal: '결심을 오래 지키지 못하는 상황을 나타내는 사자성어 이해',
+    hintText: '처음 마음먹을 때는 단단했지만 며칠 뒤 흐려지는 모습을 떠올려 보세요.',
+    tags: ['사자성어', '결심', '습관'],
     category: 'idioms',
   },
   {
@@ -272,6 +305,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 1,
     xpReward: 30,
     coinReward: 5,
+    learningGoal: '힘든 과정을 견디면 좋은 결과가 올 수 있음을 이해',
+    hintText: '먼저 힘들고 나중에 달콤해지는 순서를 떠올려 보세요.',
+    tags: ['사자성어', '노력', '보상'],
     category: 'idioms',
   },
   {
@@ -291,6 +327,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '여럿 가운데 유난히 뛰어난 사람을 가리키는 사자성어 이해',
+    hintText: '비슷한 무리 속에서 혼자 눈에 띄는 존재를 떠올려 보세요.',
+    tags: ['사자성어', '재능', '두드러짐'],
     category: 'idioms',
   },
   {
@@ -310,6 +349,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '남의 다툼 사이에서 제3자가 이익을 얻는 상황을 이해',
+    hintText: '서로 싸우느라 힘을 뺀 두 편 옆에서 누가 가장 이익을 볼지 생각해보세요.',
+    tags: ['사자성어', '경쟁', '이익'],
     category: 'idioms',
   },
   {
@@ -329,6 +371,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 1,
     xpReward: 30,
     coinReward: 5,
+    learningGoal: '질문과 맞지 않는 엉뚱한 대답을 나타내는 사자성어 이해',
+    hintText: '묻는 내용과 전혀 다른 말을 하면 대화가 어떻게 되는지 떠올려 보세요.',
+    tags: ['사자성어', '대화', '엉뚱함'],
     category: 'idioms',
   },
   {
@@ -348,6 +393,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 3,
     xpReward: 50,
     coinReward: 10,
+    learningGoal: '상대의 큰 발전을 새롭게 인정하는 뜻의 사자성어 이해',
+    hintText: '예전과 달라져서 다시 보게 되는 친구의 모습을 떠올려 보세요.',
+    tags: ['사자성어', '성장', '발전'],
     category: 'idioms',
   },
   {
@@ -367,6 +415,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '좋은 일이 진행될수록 방해를 조심해야 한다는 교훈 이해',
+    hintText: '기쁜 일이 생겼을 때 오히려 더 꼼꼼히 살펴야 하는 이유를 생각해보세요.',
+    tags: ['사자성어', '주의', '방해'],
     category: 'idioms',
   },
   {
@@ -386,6 +437,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 3,
     xpReward: 50,
     coinReward: 10,
+    learningGoal: '받은 도움을 오래 기억하고 반드시 보답하는 뜻의 사자성어 이해',
+    hintText: '큰 도움을 받은 뒤 시간이 지나도 잊지 않고 갚는 마음을 떠올려 보세요.',
+    tags: ['사자성어', '은혜', '보답'],
     category: 'idioms',
   },
   {
@@ -405,6 +459,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 3,
     xpReward: 50,
     coinReward: 10,
+    learningGoal: '좋은 일과 나쁜 일이 쉽게 바뀔 수 있어 결과를 섣불리 단정하지 않는 태도 이해',
+    hintText: '처음에는 속상했지만 시간이 지나며 도움이 되거나, 반대로 기쁜 일이 걱정으로 바뀐 경험을 떠올려 보세요.',
+    tags: ['사자성어', '변화', '판단'],
     category: 'idioms',
   },
   {
@@ -424,6 +481,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 3,
     xpReward: 50,
     coinReward: 10,
+    learningGoal: '짧은 말이나 글도 핵심을 정확히 짚으면 큰 힘을 가질 수 있음을 이해',
+    hintText: '길지 않아도 꼭 필요한 한마디가 사람들의 마음이나 생각을 크게 움직일 수 있다는 점을 생각해보세요.',
+    tags: ['사자성어', '표현', '핵심'],
     category: 'idioms',
   },
   {
@@ -443,6 +503,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '바쁜 생활 속에서도 시간을 나누어 꾸준히 배우는 성실한 자세 이해',
+    hintText: '해야 할 일이 있어도 틈을 내어 공부를 이어 가는 사람의 하루를 떠올려 보세요.',
+    tags: ['사자성어', '성실', '배움'],
     category: 'idioms',
   },
   {
@@ -462,6 +525,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 2,
     xpReward: 40,
     coinReward: 7,
+    learningGoal: '아주 즐겁고 재미있는 상황을 생생하게 나타내는 사자성어 이해',
+    hintText: '웃음이 너무 커서 가만히 있지 못하고 손뼉까지 치게 되는 장면을 떠올려 보세요.',
+    tags: ['사자성어', '웃음', '감정'],
     category: 'idioms',
   },
   {
@@ -481,6 +547,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 1,
     xpReward: 30,
     coinReward: 5,
+    learningGoal: '미리 대비하면 걱정을 줄이고 어려운 상황에도 침착하게 대응할 수 있음을 이해',
+    hintText: '비가 오기 전에 우산을 챙기면 마음이 훨씬 편해지는 이유를 생각해보세요.',
+    tags: ['사자성어', '준비', '대비'],
     category: 'idioms',
   },
   {
@@ -500,6 +569,9 @@ export const IDIOMS_QUESTIONS: QuizQuestion[] = [
     difficulty: 1,
     xpReward: 30,
     coinReward: 5,
+    learningGoal: '상대방의 처지에서 생각하며 이해와 배려를 실천하는 태도 이해',
+    hintText: '내 입장이 아니라 친구의 자리에서 같은 일을 겪는다면 어떤 기분일지 떠올려 보세요.',
+    tags: ['사자성어', '배려', '공감'],
     category: 'idioms',
   },
 ];

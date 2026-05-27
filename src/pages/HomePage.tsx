@@ -4,7 +4,7 @@ import { useGameStore } from '../store/gameStore';
 import CharacterDisplay from '../components/character/CharacterDisplay';
 import AttendanceModal from '../components/ui/AttendanceModal';
 import DailyMissionCard from '../components/ui/DailyMissionCard';
-import TodayRecommendation from '../components/ui/TodayRecommendation';
+import LearningPathCard from '../components/ui/LearningPathCard';
 import SeasonalBanner from '../components/ui/SeasonalBanner';
 import WeeklyChallenge from '../components/ui/WeeklyChallenge';
 import { getLevelByXP } from '../data/levels';
@@ -36,6 +36,7 @@ export default function HomePage() {
   const {
     player, initPlayer, setCharacterConfig,
     checkDailyLogin, checkAndRegenHearts,
+    syncTodayStudyActivity,
     showAttendance,
     loginStreak, dailyMissions, lastHeartRegenTime,
     wrongAnswers, streakProtected, dailyBonus, buyStreakProtection,
@@ -96,9 +97,10 @@ export default function HomePage() {
   // 앱 시작 시: 하트 회복 체크 + 출석 체크
   useEffect(() => {
     if (!player.name) return;
+    syncTodayStudyActivity();
     checkAndRegenHearts();
     checkDailyLogin();
-  }, [player.name]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [player.name, syncTodayStudyActivity]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 하트 자동 회복 타이머 (1분마다 체크)
   useEffect(() => {
@@ -375,8 +377,8 @@ export default function HomePage() {
         {/* 🗓️ 이달의 시즌 이벤트 */}
         <SeasonalBanner />
 
-        {/* 🎯 오늘의 추천 학습 (최우선 CTA) */}
-        <TodayRecommendation />
+        {/* 🎯 오늘 학습 → 주간 목표 → 복습 흐름 */}
+        <LearningPathCard />
 
         {/* 🎲 오늘의 보너스 이벤트 */}
         {dailyBonus.type && (
@@ -404,7 +406,11 @@ export default function HomePage() {
               }`}>
                 {dailyBonus.type === 'double_xp' && '오늘 모든 정답에 XP 2배 적용! ✨'}
                 {dailyBonus.type === 'double_coins' && '오늘 모든 정답에 코인 2배 적용! 💰'}
-                {dailyBonus.type === 'free_heart' && '오늘 첫 로그인 보너스: 하트 +1! 💖'}
+                {dailyBonus.type === 'free_heart' && (
+                  dailyBonus.grantedHearts > 0
+                    ? `오늘 첫 로그인 보너스로 하트 ${dailyBonus.grantedHearts}개를 바로 채웠어요! 💖`
+                    : '오늘은 하트가 이미 가득 차 있어요. 여유 있게 도전해요! 💖'
+                )}
               </p>
             </div>
           </div>

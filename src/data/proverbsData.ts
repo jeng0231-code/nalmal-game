@@ -46,6 +46,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '원인과 결과의 관계를 설명하는 속담 이해',
+    hintText: '무엇을 심었는지에 따라 어떤 열매가 나는지 떠올려 보세요.',
+    tags: ['속담', '원인과결과', '교훈'],
   },
   {
     id: 'prov_004',
@@ -59,6 +62,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '뛰어난 사람도 실수할 수 있다는 속담의 뜻 이해',
+    hintText: '나무를 잘 타는 동물도 가끔 실수할 수 있다는 점을 생각해 보세요.',
+    tags: ['속담', '실수', '격려'],
   },
   {
     id: 'prov_005',
@@ -88,6 +94,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '말하던 대상이 우연히 나타나는 상황을 표현하는 속담 이해',
+    hintText: '누군가를 이야기하는 순간 그 사람이 나타난 경험을 떠올려 보세요.',
+    tags: ['속담', '상황표현', '우연'],
   },
   {
     id: 'prov_007',
@@ -101,6 +110,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '어릴 때의 습관이 오래 간다는 속담의 교훈 이해',
+    hintText: '처음 몸에 밴 버릇이 시간이 지나면 어떻게 되는지 생각해 보세요.',
+    tags: ['속담', '습관', '생활태도'],
   },
   {
     id: 'prov_008',
@@ -114,6 +126,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '작은 노력이 모여 큰 결과가 된다는 속담 이해',
+    hintText: '아주 작은 것도 계속 쌓이면 얼마나 커질 수 있는지 떠올려 보세요.',
+    tags: ['속담', '꾸준함', '노력'],
   },
   {
     id: 'prov_009',
@@ -143,6 +158,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'proverbs',
+    learningGoal: '남을 해치려는 행동이 자신에게 돌아온다는 속담 이해',
+    hintText: '위로 뱉은 침이 결국 어디로 떨어질지 상상해 보세요.',
+    tags: ['속담', '행동결과', '교훈'],
   },
   {
     id: 'prov_011',
@@ -156,6 +174,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '어려움을 이겨낸 뒤 보람이 온다는 속담의 의미 이해',
+    hintText: '힘든 시간을 참고 지나가면 무엇을 만날 수 있는지 생각해 보세요.',
+    tags: ['속담', '인내', '희망'],
   },
   {
     id: 'prov_012',
@@ -169,6 +190,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '말을 조심해야 하는 이유를 알려 주는 속담 이해',
+    hintText: '비밀 이야기가 다른 사람에게 전해질 수 있다는 점을 떠올려 보세요.',
+    tags: ['속담', '말조심', '생활지혜'],
   },
   {
     id: 'prov_013',
@@ -182,6 +206,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '신중하게 확인하는 태도의 중요성을 담은 속담 이해',
+    hintText: '안전해 보여도 다시 한번 살피는 행동이 왜 필요한지 생각해 보세요.',
+    tags: ['속담', '신중함', '안전'],
   },
   {
     id: 'prov_014',
@@ -195,6 +222,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'proverbs',
+    learningGoal: '기본적인 준비가 먼저라는 속담의 의미 이해',
+    hintText: '아무리 좋은 구경도 배가 고프면 집중하기 어려운 이유를 떠올려 보세요.',
+    tags: ['속담', '우선순위', '생활지혜'],
   },
   {
     id: 'prov_015',
@@ -208,6 +238,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '어려운 상황에서도 희망을 찾는 속담의 뜻 이해',
+    hintText: '막막해 보여도 빠져나갈 길이 있을 수 있다는 점을 생각해 보세요.',
+    tags: ['속담', '희망', '문제해결'],
   },
 
   // ─── 4지선다 문제 15개 ──────────────────────────────────────────────────────
@@ -229,6 +262,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '함께 협력하면 일이 더 쉬워진다는 속담 이해',
+    hintText: '아주 가벼운 물건도 여럿이 하면 왜 더 수월한지 떠올려 보세요.',
+    tags: ['속담', '협력', '공동체'],
   },
   {
     id: 'prov_017',
@@ -248,6 +284,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '일이 벌어진 뒤 뒤늦게 대처하는 상황을 나타내는 속담 이해',
+    hintText: '문제가 생기기 전에 준비하는 것과 후에 준비하는 것의 차이를 생각해 보세요.',
+    tags: ['속담', '대비', '후회'],
   },
   {
     id: 'prov_018',
@@ -267,6 +306,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '꾸준한 노력이 오래가는 힘이 된다는 속담 이해',
+    hintText: '정성을 들여 만든 결과는 왜 쉽게 흔들리지 않는지 생각해 보세요.',
+    tags: ['속담', '노력', '성취'],
   },
   {
     id: 'prov_019',
@@ -286,6 +328,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'proverbs',
+    learningGoal: '같은 조건에서는 더 나은 선택을 하려는 마음을 이해',
+    hintText: '가격이 같다면 사람들은 보통 어떤 물건을 고르려 하는지 떠올려 보세요.',
+    tags: ['속담', '선택', '판단'],
   },
   {
     id: 'prov_020',
@@ -305,6 +350,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '따뜻하고 바른 말의 힘을 알려 주는 속담 이해',
+    hintText: '짧은 말 한마디가 관계를 풀어 주는 경험을 떠올려 보세요.',
+    tags: ['속담', '말하기', '배려'],
   },
   {
     id: 'prov_021',
@@ -324,6 +372,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '윗사람의 모범이 중요하다는 속담의 교훈 이해',
+    hintText: '위에 있는 사람이 바르게 행동하면 아래 사람들은 어떻게 될지 생각해 보세요.',
+    tags: ['속담', '모범', '리더십'],
   },
   {
     id: 'prov_022',
@@ -343,6 +394,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'proverbs',
+    learningGoal: '주된 것보다 부수적인 것이 더 커진 상황을 이해',
+    hintText: '본래 중심이 아닌 것이 더 커지면 어떤 느낌이 드는지 떠올려 보세요.',
+    tags: ['속담', '비교', '생활지혜'],
   },
   {
     id: 'prov_023',
@@ -362,6 +416,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'proverbs',
+    learningGoal: '가까운 것을 오히려 놓치기 쉬운 상황을 설명하는 속담 이해',
+    hintText: '찾는 것이 너무 가까이에 있어서 못 본 경험을 떠올려 보세요.',
+    tags: ['속담', '관찰', '생활지혜'],
   },
   {
     id: 'prov_024',
@@ -381,6 +438,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '겉모습만으로 능력을 판단하면 안 된다는 속담 이해',
+    hintText: '작아 보여도 실력이 뛰어난 사람이나 사물을 떠올려 보세요.',
+    tags: ['속담', '능력', '편견'],
   },
   {
     id: 'prov_025',
@@ -400,6 +460,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'proverbs',
+    learningGoal: '좋은 환경이 배움에 영향을 준다는 속담 이해',
+    hintText: '오랫동안 좋은 환경에 있으면 자연스럽게 배우게 되는 점을 생각해 보세요.',
+    tags: ['속담', '환경', '배움'],
   },
   {
     id: 'prov_026',
@@ -419,6 +482,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'proverbs',
+    learningGoal: '갈등 상황에서 더 너그럽게 행동하는 태도의 의미 이해',
+    hintText: '사이가 좋지 않을수록 더 차분하고 따뜻하게 대하는 이유를 생각해 보세요.',
+    tags: ['속담', '관계회복', '배려'],
   },
   {
     id: 'prov_027',
@@ -438,6 +504,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'proverbs',
+    learningGoal: '원인이 있어야 결과가 생긴다는 속담의 뜻 이해',
+    hintText: '연기가 나려면 먼저 무엇이 있어야 하는지 떠올려 보세요.',
+    tags: ['속담', '원인과결과', '판단'],
   },
   {
     id: 'prov_028',
@@ -457,6 +526,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'proverbs',
+    learningGoal: '과거의 놀란 경험이 이후 반응에 영향을 준다는 속담 이해',
+    hintText: '한번 크게 놀라면 비슷한 모습만 봐도 긴장하게 되는 이유를 생각해 보세요.',
+    tags: ['속담', '경험', '감정'],
   },
   {
     id: 'prov_029',
@@ -476,6 +548,9 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'proverbs',
+    learningGoal: '좋은 재능이나 재료도 활용해야 가치가 생긴다는 속담 이해',
+    hintText: '구슬이 많아도 그냥 두면 왜 보배로 쓰기 어려운지 떠올려 보세요.',
+    tags: ['속담', '활용', '가치'],
   },
   {
     id: 'prov_030',
@@ -495,5 +570,8 @@ export const PROVERBS_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'proverbs',
+    learningGoal: '남의 것을 더 좋아 보이게 느끼는 마음을 표현하는 속담 이해',
+    hintText: '내 것보다 남의 것이 더 커 보이는 마음이 왜 생기는지 생각해 보세요.',
+    tags: ['속담', '마음가짐', '비교'],
   },
 ];

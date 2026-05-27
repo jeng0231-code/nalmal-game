@@ -46,6 +46,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'history',
+    learningGoal: '이순신 장군의 활약과 임진왜란의 대표 해전 이해',
+    hintText: '거북선과 한산도 대첩으로 떠오르는 조선의 장군이 누구인지 생각해 보세요.',
+    tags: ['역사', '조선', '이순신'],
   },
   {
     id: 'hist_004',
@@ -59,6 +62,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'history',
+    learningGoal: '광개토대왕이 고구려의 영토를 넓힌 왕임을 이해',
+    hintText: '영토를 크게 넓힌 대왕은 신라가 아니라 어느 나라의 왕이었는지 떠올려 보세요.',
+    tags: ['역사', '고구려', '광개토대왕'],
   },
   {
     id: 'hist_005',
@@ -72,6 +78,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'history',
+    learningGoal: '임진왜란의 시작 연도와 전쟁의 성격 이해',
+    hintText: '1592년에 시작된 조선과 일본의 전쟁 이름을 떠올려 보세요.',
+    tags: ['역사', '조선', '임진왜란'],
   },
   {
     id: 'hist_006',
@@ -85,6 +94,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'history',
+    learningGoal: '3.1운동의 날짜와 독립운동의 의미 이해',
+    hintText: '3월 1일에 전국에서 울려 퍼진 외침이 무엇이었는지 떠올려 보세요.',
+    tags: ['역사', '독립운동', '3.1운동'],
   },
   {
     id: 'hist_007',
@@ -98,6 +110,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'history',
+    learningGoal: '고려의 건국자 왕건과 건국 연도 이해',
+    hintText: '후삼국을 통일한 왕건이 세운 나라 이름을 생각해 보세요.',
+    tags: ['역사', '고려', '왕건'],
   },
   {
     id: 'hist_008',
@@ -111,6 +126,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'history',
+    learningGoal: '조선의 건국자와 건국 연도 이해',
+    hintText: '1392년에 새 왕조를 세운 인물이 누구인지 떠올려 보세요.',
+    tags: ['역사', '조선', '건국'],
   },
   {
     id: 'hist_009',
@@ -156,6 +174,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'history',
+    learningGoal: '광복절 날짜와 해방의 의미 이해',
+    hintText: '8월 15일에 되찾은 것은 나라의 어떤 권리였는지 생각해 보세요.',
+    tags: ['역사', '광복절', '해방'],
   },
   {
     id: 'hist_012',
@@ -169,6 +190,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'history',
+    learningGoal: '팔만대장경의 제작 시기와 보관 장소 이해',
+    hintText: '8만 장이 넘는 목판 경전은 신라가 아니라 어느 시대 유산인지 떠올려 보세요.',
+    tags: ['역사', '고려', '문화유산'],
   },
   {
     id: 'hist_013',
@@ -182,6 +206,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'history',
+    learningGoal: '안중근 의사의 의거와 독립운동 의미 이해',
+    hintText: '하얼빈에서 이토 히로부미를 저격한 독립운동가가 누구인지 떠올려 보세요.',
+    tags: ['역사', '독립운동', '안중근'],
   },
   {
     id: 'hist_014',
@@ -195,6 +222,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'history',
+    learningGoal: '거북선의 특징과 임진왜란에서의 역할 이해',
+    hintText: '등이 덮여 있어 적의 공격을 막던 조선의 전함 이름을 생각해 보세요.',
+    tags: ['역사', '조선', '거북선'],
   },
   {
     id: 'hist_015',
@@ -208,6 +238,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'history',
+    learningGoal: '신사임당의 예술 활동과 현대 기념 방식 이해',
+    hintText: '현재 우리 돈 5만원권에 있는 조선 시대 인물을 떠올려 보세요.',
+    tags: ['역사', '조선', '신사임당'],
   },
 
   // ─── 4지선다 문제 15개 ──────────────────────────────────────────────────────
@@ -224,6 +257,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'history',
+    learningGoal: '삼국의 건국 시기를 비교해 순서를 판단하는 방법 이해',
+    hintText: '기원전은 숫자가 작을수록 더 나중이라는 점을 떠올려 보세요.',
+    tags: ['역사', '삼국시대', '건국순서'],
   },
   {
     id: 'hist_017',
@@ -243,6 +279,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'history',
+    learningGoal: '훈민정음 창제 목적과 백성을 위한 정신 이해',
+    hintText: '세종대왕이 글을 모르는 백성들에게 가장 필요하다고 본 것을 떠올려 보세요.',
+    tags: ['역사', '세종대왕', '훈민정음'],
   },
   {
     id: 'hist_018',
@@ -257,6 +296,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'history',
+    learningGoal: '이순신 장군의 마지막 해전과 순국 장면 이해',
+    hintText: '마지막 승리였지만 장군이 돌아오지 못한 해전 이름을 떠올려 보세요.',
+    tags: ['역사', '이순신', '노량해전'],
   },
   {
     id: 'hist_019',
@@ -271,6 +313,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'history',
+    learningGoal: '경국대전이 조선의 기본 법전임을 이해',
+    hintText: '나라를 운영하는 법과 제도를 한데 모은 책 이름을 생각해 보세요.',
+    tags: ['역사', '조선', '경국대전'],
   },
   {
     id: 'hist_020',
@@ -285,6 +330,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'history',
+    learningGoal: '고구려와 백제의 주요 인물을 구분하는 방법 이해',
+    hintText: '근초고왕은 고구려가 아니라 어느 나라의 왕이었는지 떠올려 보세요.',
+    tags: ['역사', '고구려', '인물구분'],
   },
   {
     id: 'hist_021',
@@ -299,6 +347,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 30,
     coinReward: 5,
     category: 'history',
+    learningGoal: '동의보감의 저자와 역사적 가치 이해',
+    hintText: '허준이 남긴 대표적인 의학 책 이름을 떠올려 보세요.',
+    tags: ['역사', '조선', '동의보감'],
   },
   {
     id: 'hist_022',
@@ -313,6 +364,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'history',
+    learningGoal: '대한민국 임시 정부의 설립 장소와 역할 이해',
+    hintText: '3.1운동 뒤 독립운동가들이 모여 정부를 세운 중국 도시를 떠올려 보세요.',
+    tags: ['역사', '독립운동', '임시정부'],
   },
   {
     id: 'hist_023',
@@ -344,6 +398,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'history',
+    learningGoal: '신문고 제도가 백성의 억울함을 풀기 위한 장치였음을 이해',
+    hintText: '임금에게 직접 사정을 알리기 위해 두드리던 물건이 무엇인지 생각해 보세요.',
+    tags: ['역사', '조선', '신문고'],
   },
   {
     id: 'hist_025',
@@ -358,6 +415,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'history',
+    learningGoal: '화랑도의 성격과 신라 교육 제도로서의 의미 이해',
+    hintText: '신라 청소년들이 함께 수련하며 나라의 인재로 자란 집단 이름을 떠올려 보세요.',
+    tags: ['역사', '신라', '화랑도'],
   },
   {
     id: 'hist_026',
@@ -389,6 +449,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 50,
     coinReward: 10,
     category: 'history',
+    learningGoal: '백제 수도 이동과 문주왕의 역할 이해',
+    hintText: '한성이 함락된 뒤 웅진으로 수도를 옮긴 백제 왕이 누구인지 생각해 보세요.',
+    tags: ['역사', '백제', '문주왕'],
   },
   {
     id: 'hist_028',
@@ -408,6 +471,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'history',
+    learningGoal: '팔만대장경 제작 목적과 고려인의 바람 이해',
+    hintText: '몽골의 침입을 막고자 고려가 의지한 힘이 무엇이었는지 떠올려 보세요.',
+    tags: ['역사', '고려', '팔만대장경'],
   },
   {
     id: 'hist_029',
@@ -422,6 +488,9 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'history',
+    learningGoal: '유관순 열사의 아우내 장터 만세 운동 이해',
+    hintText: '3.1운동과 관련해 유관순 열사가 외친 구호가 울려 퍼진 장소를 떠올려 보세요.',
+    tags: ['역사', '독립운동', '유관순'],
   },
   {
     id: 'hist_030',
@@ -436,5 +505,8 @@ export const HISTORY_QUESTIONS: QuizQuestion[] = [
     xpReward: 40,
     coinReward: 7,
     category: 'history',
+    learningGoal: '조선 과거 시험 가운데 문과의 의미와 특징 이해',
+    hintText: '관리로 나아가기 위해 유교 경전과 글쓰기를 가장 엄격하게 보던 시험을 떠올려 보세요.',
+    tags: ['역사', '조선', '과거시험'],
   },
 ];

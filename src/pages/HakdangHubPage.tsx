@@ -4,6 +4,8 @@ import { useGameStore } from '../store/gameStore';
 import { getLevelByXP } from '../data/levels';
 import type { QuizCategory, CategoryStats } from '../types/hakdang';
 import { HAKDANGS } from '../types/hakdang';
+import { getCurrentWeekKey } from '../utils/date';
+import { getRecommendation, WEEKLY_STAGE_GOAL } from '../components/ui/todayRecommendationLogic';
 
 // ─── 유틸 ─────────────────────────────────────────────────────
 function getAccuracyRate(stat: { played: number; correct: number }): number {
@@ -165,11 +167,12 @@ function HakdangCard({
 export default function HakdangHubPage() {
   const navigate = useNavigate();
 
-  const { player, categoryStats } = useGameStore();
+  const { player, categoryStats, wrongAnswers, weeklyStageProgress } = useGameStore();
 
   const currentLevel = getLevelByXP(player.xp);
   const leastPlayed = useMemo(() => getLeastPlayed(categoryStats), [categoryStats]);
   const mostPlayed = useMemo(() => getMostPlayed(categoryStats), [categoryStats]);
+  const recommendation = useMemo(() => getRecommendation(categoryStats), [categoryStats]);
 
   // 특정 카테고리 편중 감지 (가장 많이 한 게 전체의 60% 이상)
   const totalPlayed = useMemo(
@@ -181,7 +184,12 @@ export default function HakdangHubPage() {
     return categoryStats[mostPlayed].played / totalPlayed >= 0.6;
   }, [categoryStats, mostPlayed, totalPlayed]);
 
-  const recommendedHakdang = HAKDANGS.find((h) => h.id === leastPlayed)!;
+  const currentWeekKey = getCurrentWeekKey();
+  const focusedStages = weeklyStageProgress.weekKey === currentWeekKey
+    ? weeklyStageProgress.byCategory[recommendation.hakdang.id]
+    : 0;
+  const weeklyGoalReached = focusedStages >= WEEKLY_STAGE_GOAL;
+  const remainingStages = Math.max(0, WEEKLY_STAGE_GOAL - focusedStages);
 
   const handleCategoryClick = (category: QuizCategory) => {
     navigate(`/quiz?category=${category}`);
@@ -189,6 +197,20 @@ export default function HakdangHubPage() {
 
   const handleRandomAll = () => {
     navigate('/quiz?category=random');
+  };
+
+  const handleRecommendedAction = () => {
+    if (weeklyGoalReached && wrongAnswers.length > 0) {
+      navigate('/quiz?mode=review');
+      return;
+    }
+
+    if (weeklyGoalReached) {
+      navigate('/quiz?category=random');
+      return;
+    }
+
+    navigate(`/quiz?category=${recommendation.hakdang.id}`);
   };
 
   return (
@@ -266,21 +288,56 @@ export default function HakdangHubPage() {
         )}
 
         {/* ── 오늘의 추천 ── */}
-        <div className="bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-2xl px-4 py-3 mb-6">
-          <p className="text-xs font-bold text-rose-600 uppercase tracking-widest mb-2">오늘의 추천</p>
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">{recommendedHakdang.emoji}</span>
-            <div className="flex-1">
-              <p className="font-bold text-rose-900 text-sm">
-                {recommendedHakdang.name} — {recommendedHakdang.koreanName}
+        <div className="bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-2xl px-4 py-4 mb-6">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-rose-600 uppercase tracking-widest">오늘의 추천</p>
+              <p className="font-bold text-rose-900 text-sm mt-2">
+                {recommendation.hakdang.emoji} {recommendation.hakdang.name} — {recommendation.hakdang.koreanName}
               </p>
-              <p className="text-xs text-rose-600">{recommendedHakdang.description}</p>
+              <p className="text-xs text-rose-700 mt-1 leading-relaxed">{recommendation.reason}</p>
             </div>
+            <div className="shrink-0 rounded-full border border-rose-200 bg-white/90 px-2.5 py-1 text-[11px] font-bold text-rose-700">
+              {Math.min(focusedStages, WEEKLY_STAGE_GOAL)}/{WEEKLY_STAGE_GOAL} 단계
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-rose-100 bg-white/80 px-3 py-3">
+            <p className="text-[11px] font-black text-rose-700">지금 할 일</p>
+            <p className="text-sm font-black text-amber-900 mt-1">
+              {weeklyGoalReached
+                ? wrongAnswers.length > 0
+                  ? `오답 ${wrongAnswers.length}개 복습하며 이번 주 마무리`
+                  : '이번 주 목표 완료, 다른 학당으로 넓혀 보기'
+                : `${recommendation.hakdang.koreanName}에서 이번 주 ${WEEKLY_STAGE_GOAL}스테이지 채우기`}
+            </p>
+            <p className="text-xs text-rose-700 mt-1 leading-relaxed">
+              {weeklyGoalReached
+                ? wrongAnswers.length > 0
+                  ? '추천 학습은 충분히 진행했어요. 틀린 문제를 다시 풀며 배운 내용을 굳혀 보세요.'
+                  : '추천 학습 목표를 채웠어요. 이제 다른 학당으로 넓혀 보며 학습 균형을 맞춰요.'
+                : focusedStages > 0
+                  ? `이번 주 실제 완료 ${focusedStages}스테이지. 앞으로 ${remainingStages}스테이지만 더 채우면 권장 목표예요.`
+                  : recommendation.goal}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
             <button
-              onClick={() => handleCategoryClick(leastPlayed)}
-              className="bg-rose-500 hover:bg-rose-600 active:scale-95 text-white text-xs font-bold rounded-xl px-3 py-2 transition-all"
+              onClick={handleRecommendedAction}
+              className="bg-rose-500 hover:bg-rose-600 active:scale-95 text-white text-sm font-bold rounded-xl px-3 py-3 transition-all"
             >
-              바로 시작
+              {weeklyGoalReached
+                ? wrongAnswers.length > 0
+                  ? `오답 ${wrongAnswers.length}개 복습`
+                  : '다른 학당 이어서 보기'
+                : `${recommendation.hakdang.koreanName} 바로 시작`}
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="rounded-xl border border-rose-200 bg-white/90 px-3 py-3 text-sm font-bold text-rose-800 transition-all hover:bg-white active:scale-95"
+            >
+              홈 학습 흐름으로 돌아가기
             </button>
           </div>
         </div>
@@ -299,7 +356,7 @@ export default function HakdangHubPage() {
               accentColor={h.accentColor}
               played={categoryStats[h.id].played}
               correct={categoryStats[h.id].correct}
-              isRecommended={h.id === leastPlayed && categoryStats[h.id].played === 0}
+              isRecommended={h.id === recommendation.hakdang.id}
               isMostPlayed={h.id === mostPlayed}
               onClick={() => handleCategoryClick(h.id)}
             />

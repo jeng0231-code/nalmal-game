@@ -1,115 +1,62 @@
 # Claude Code 현재 작업 지시
 
-> **2026-05-27 일일 루프 업데이트**: 린트·빌드·콘텐츠 갭 모두 통과. etiquetteData 23문제로 확충 완료.
-> **남은 하드 블로커**: Capacitor android/ 패키징 (아래 참조)
+> **2026-05-27 Codex 갱신**
+> 홈, 프로필, 학당 허브의 추천 학습 흐름은 연결되었고 `npm run lint`, `npm run build`, `npm run test:e2e`, `npm run check:release-readiness`가 모두 다시 통과했다.
+> 다음 우선순위는 새 기능 추가보다 정책 안정성과 출시용 폴백 UX 마감이다.
 
 ---
 
-## 🚨 최우선: Capacitor Android 패키징
+## 최우선 목표: AI 기능 비활성화 상태를 출시 가능한 UX로 마감
 
-Google Play 출시의 마지막 하드 블로커. 린트·빌드·아이콘·스크린샷·개인정보처리방침은 모두 완료 상태이므로 이것만 완료하면 AAB 서명 → Play Console 제출 가능.
+현재 배포 기본값은 `VITE_ENABLE_CLAUDE_FEATURES=false`이며, 퀴즈 AI 뱅크와 사진 기반 AI 캐릭터 변환은 기본 비활성화다. 하지만 실제 화면에서는 기능이 숨겨지는 방식, 안내 문구 톤, 대체 행동 유도, 로딩/실패 메시지가 아직 출시 관점에서 완전히 정리되지 않았을 수 있다.
 
-### 작업 단계
+어린이·가족 대상 가능성을 고려하면 "작동하지 않는 AI 기능이 보인다" 또는 "브라우저에서 직접 AI를 쓰는 것처럼 보인다"는 인상을 줄이면 안 된다. 이번 작업은 기능 확장이 아니라 출시용 기본 모드 정리다.
 
-```bash
-# 1. Capacitor 설치
-npm install @capacitor/core @capacitor/cli @capacitor/android
+### 이번 작업 목표
 
-# 2. 초기화 (appId는 도메인 역순)
-npx cap init "K학당" "kr.khakdang.app"
+1. `VITE_ENABLE_CLAUDE_FEATURES=false`일 때 AI 관련 진입점, 버튼, 설명, 로딩 문구를 화면 단위로 점검한다.
+2. 비활성화 상태라면
+   - 기능을 숨기거나
+   - 준비 중 안내로 낮추고
+   - 사용자가 바로 할 수 있는 안전한 대체 행동으로 연결한다.
+3. AI 미연결 환경에서도 콘솔 경고 외 사용자 경험상 어색한 문구나 막다른 길이 남지 않게 정리한다.
+4. 출시 문서와 실제 제품 동작이 서로 어긋나지 않게 유지한다.
 
-# 3. 웹 빌드
-npm run build
+## 우선 점검 대상
 
-# 4. Android 플랫폼 추가
-npx cap add android
+- `src/components/character/AvatarCreator.tsx`
+- `src/pages/QuizPage.tsx`
+- `src/services/claudeApi.ts`
+- `src/services/avatarAiService.ts`
+- 필요 시 `src/pages/HomePage.tsx`, `src/pages/CharacterCreatorPage.tsx`
 
-# 5. 웹 자산 동기화
-npx cap sync android
-```
+## 구현 가이드
 
-### capacitor.config.ts 기준값
-```typescript
-{
-  appId: 'kr.khakdang.app',
-  appName: 'K학당',
-  webDir: 'dist',
-  server: { androidScheme: 'https' }
-}
-```
-
-### 완료 기준
-- `android/` 폴더가 저장소에 존재
-- `npx cap sync android` 에러 없이 통과
-- `package.json`에 `android:sync`·`android:open` 스크립트 추가
-
----
-
-## 다음 목표 (Android 완료 후)
-
-K-학당의 교육 메타데이터는 이번 Codex 검증으로 `220/220` 마감됐다. 다음 출시 우선순위는 지속성이다. 이번 작업에서는 이미 있는 추천 학습, 주간 도전, 학습 기록을 끊기지 않는 재방문 흐름으로 연결한다.
-
-1. 홈 또는 학당 허브 기준으로 `7일 학습 코스` 진입 지점을 1곳 이상 만든다.
-2. 이번 주 약점 학당을 기준으로 `주간 도전 3스테이지` 목표와 현재 진행도를 사용자에게 분명하게 보여 준다.
-3. 오늘의 추천 학습, 주간 도전, 복습 재진입 중 최소 2개가 서로 이어지는 흐름을 만든다.
-4. 어린이 대상 기준에서 과한 경쟁 문구, 과금 유도, 공격적 표현 없이 학습 중심 톤을 유지한다.
-
-## Codex 재검증 기준
-
-2026-05-27 기준 Codex 재검증 결과:
-
-- `npm run report:quiz-metadata`: 통과
-- 현재 완전 적용 220/220
-- 문해력 110/110
-- 속담 30/30
-- 역사 30/30
-- 생활예절 20/20
-- 사자성어 30/30
-- `npm run lint`: 통과
-- `npm run build`: 통과
-- `npm run test:e2e`: 직전 통과 21개, 실패 0개, 경고 1개 유지
-- `npm run check:release-readiness`: 통과, 필수 누락 0건 / Android 경고 1건
-
-이제 최우선 제품 공백은 교육 메타데이터가 아니라 지속성이다. `docs/product-strategy-audit.md`의 7일 학습 코스, 주간 도전, 복습함 방향과 현재 구현 상태를 연결하는 쪽으로 집중한다.
-
-## 참고 자료
-
-- `docs/product-strategy-audit.md`
-- `docs/product-backlog.md`
-- `docs/release-readiness.md`
-- `src/components/ui/TodayRecommendation.tsx`
-- `src/components/ui/todayRecommendationLogic.ts`
-- `src/components/ui/WeeklyChallenge.tsx`
-- `src/store/gameStore.ts`
-- `src/pages/HomePage.tsx`
-- `src/pages/ProfilePage.tsx`
-
-## 작업 범위
-
-### 1. 지속성 흐름 구현
-
-- 사용자가 앱을 열었을 때 바로 이해할 수 있는 `오늘 학습 -> 주간 목표 -> 다음 추천` 흐름을 만든다.
-- 7일 학습 코스는 새 데이터 구조를 크게 늘리기보다 기존 학당/학습 기록/추천 로직을 재사용하는 방향을 우선 검토한다.
-- 주간 도전은 "이번 주 약점 학당 3스테이지 완료"처럼 측정 가능한 문구와 진행 수치를 보여 준다.
-- 복습 재진입이 이미 구현돼 있다면 진입 버튼/문구를 드러내고, 없다면 과한 범위 확장 없이 최소 진입점만 만든다.
-
-### 2. UI 원칙
-
-- 모바일 첫 화면에서 핵심 행동이 늘어나지 않게 유지한다.
-- 보상보다 학습 목적이 먼저 읽히도록 문구를 정리한다.
-- 작은 화면에서도 카드 높이, 버튼 길이, 설명 줄 수가 무너지지 않게 맞춘다.
-
-### 3. 검증과 보고
-
-- 가능하면 관련 화면 흐름을 직접 확인할 수 있는 테스트나 수동 검증 근거를 남긴다.
-- 작업 후 아래 내용을 한국어로 정리한다.
-  - 수정한 파일 목록
-  - 실행한 명령
-  - 사용자가 보게 되는 새 지속성 흐름
-  - 남은 공백 또는 Codex가 이어서 검증할 포인트
+- AI 기능이 꺼져 있을 때는 "지금 할 수 있는 학습/꾸미기 행동"이 더 앞에 보이게 정리한다.
+- "준비 중", "나중에 제공", "기본 모드로 계속 진행" 같은 문구는 짧고 명확하게 쓴다.
+- 어린이 대상 톤에 맞지 않는 과장 문구, 실패 강조, 기술 내부 사정 노출은 피한다.
+- 브라우저에서 직접 키를 요구하거나 외부 연결이 필요한 것처럼 보이는 문구는 제거한다.
+- 가능하면 공용 플래그와 공용 안내 문구를 재사용해 중복을 줄인다.
 
 ## 완료 기준
 
-- 홈 또는 학당 허브에서 7일 학습 코스/주간 도전 중 무엇을 해야 하는지 바로 이해된다.
-- 오늘의 추천 학습과 주간 목표가 분리된 위젯이 아니라 이어진 학습 흐름으로 보인다.
-- 기존 빌드와 린트에 새 오류를 만들지 않는다.
+- AI 기능이 꺼진 기본 배포 모드에서 사용자 동선이 막히지 않는다.
+- 캐릭터 생성과 퀴즈 진입에서 AI 기능 비활성화 문구가 자연스럽고 짧다.
+- 홈/퀴즈/캐릭터 관련 핵심 화면에서 "작동 안 하는 기능"처럼 보이는 요소가 줄어든다.
+- 기존 검증 기준을 유지한다.
+
+## Codex 재검증 기준
+
+- `npm run lint`
+- `npm run build`
+- `npm run test:e2e`
+- `npm run check:release-readiness`
+
+## 보고 형식
+
+작업 후 아래를 한국어로 정리한다.
+
+- 수정한 파일 목록
+- 비활성화된 AI 기능이 사용자에게 어떻게 보이도록 바뀌었는지
+- 실행한 명령과 결과
+- 남은 정책 또는 서버 전환 이슈

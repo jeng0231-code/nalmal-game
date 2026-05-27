@@ -7,7 +7,7 @@
 - 프로덕션 빌드: 2026-05-27 재검증 통과
 - 앱 메타데이터: `index.html`, `public/manifest.json` 한글 깨짐 수정 완료
 - 린트: 2026-05-27 재검증 통과. 에러 0개, 경고 0개
-- E2E 브라우저 검증: 최신 재실행(2026-05-26) 통과 21개, 실패 0개, 경고 1개
+- E2E 브라우저 검증: 최신 재실행(2026-05-27) 통과 21개, 실패 0개, 경고 1개
 - 초기 엔트리 번들: `dist/assets/index-CtOayi58.js` 약 185 kB, 라우트/미니게임/모달 분리 완료
 - 잔여 대형 청크: `quizData` 약 45 kB, `sdk` 약 80.5 kB, `QuizPage` 약 43.8 kB. 이번 세션에서 SDK 정적 import 제거 및 AI 뱅크 백그라운드 로딩으로 초기 진입 경로 분리 적용
 - Playwright 자동화: Windows 로컬에서 번들 Chromium이 없어도 `msedge` 채널 폴백으로 실행 가능
@@ -15,20 +15,215 @@
 - 제품 전략 분석: `docs/product-strategy-audit.md` 추가 완료
 - 교육 적합성: 신분제 중심 표현 일부를 성장 단계 표현으로 수정 완료
 - 퀴즈 메타데이터 리포트: `npm run report:quiz-metadata`로 적용 현황 확인 가능
-- 퀴즈 메타데이터 회귀 검증: `npm run check:quiz-metadata`로 완전 적용 92문제 기준 유지 확인 가능
+- 퀴즈 메타데이터 회귀 검증: `npm run check:quiz-metadata`로 완전 적용 223문제 기준 유지 확인 가능
 - 정책 초안: `docs/privacy-data-safety-draft.md`에 개인정보·데이터 안전·가족 대상 보수 기준 초안 추가
 - 배포용 개인정보처리방침 초안: `public/privacy-policy.html` 추가
 - Play Console 데이터 안전 입력 초안: `docs/google-play-data-safety.md` 추가
 - AI 출시 기본값: `VITE_ENABLE_CLAUDE_FEATURES=false` 기준으로 퀴즈 AI 뱅크와 사진 AI 변환이 기본 비활성화되도록 연결 완료
+- 출시 준비 자동 점검: 2026-05-27 재검증 기준 개인정보처리방침 문의 경로 미기재와 초안 문구 때문에 필수 누락 2건이 남는다. 실제 문의 이메일 또는 게시 URL과 최종 정책 문구를 확정하기 전까지는 초록 상태로 간주하지 않는다.
 
 ## 현재 블로커
 
-- 2026-05-27 현재 우선순위 재정렬: 교육 메타데이터는 `220/220`으로 마감됐다. 이제 제품 우선순위의 다음 축은 지속성으로, `오늘의 추천 학습`과 `주간 도전`을 실제 재방문 이유가 되도록 연결하는 작업이 가장 시급하다.
-- 교육 메타데이터 실제 상태: `npm run report:quiz-metadata` 기준 전체 220문제가 완전 적용 상태다. 문해력 110/110, 사자성어 30/30, 속담 30/30, 역사 30/30, 생활예절 20/20으로 교육 신뢰도 기준선은 현 버전에서 충족했다.
-- 지속성 공백: 홈/학당 허브/주간 보상 흐름은 존재하지만, `7일 학습 코스`, `약점 학당 3스테이지 주간 도전`, `복습 재진입`이 한 줄로 연결된 제품 경험은 아직 약하다.
+- 2026-05-27 현재 우선순위 재정렬: 교육 메타데이터는 `223/223`으로 마감됐다. 이제 제품 우선순위의 다음 축은 지속성으로, `오늘의 추천 학습`과 `주간 도전`을 실제 재방문 이유가 되도록 연결하는 작업이 가장 시급하다.
+- 교육 메타데이터 실제 상태: `npm run report:quiz-metadata` 기준 전체 223문제가 완전 적용 상태다. 문해력 110/110, 사자성어 30/30, 속담 30/30, 역사 30/30, 생활예절 23/23으로 교육 신뢰도 기준선은 현 버전에서 충족했다.
+- 지속성 진행 상태: 홈 상단에 `7일 학습 코스` 연결 카드가 추가되어 `오늘의 추천 학습 → 약점 학당 3스테이지 → 오답 복습` 흐름을 한 번에 안내한다. 2026-05-27 후속 보강으로 주간 목표의 스테이지 진척도는 추정치가 아니라 실제 스테이지 완료 이력 기준으로 저장되도록 바뀌었다.
+- 학습 동선 연결 상태: 2026-05-27 후속 보강으로 학당 허브도 홈/프로필과 같은 추천 로직과 주간 목표 CTA를 사용한다. 이제 홈, 프로필, 학당 허브 어디서 들어가도 같은 추천 학당과 다음 행동이 보인다.
 - 정책 영향: 브라우저에서 Claude API를 직접 호출하는 경로(`src/services/claudeApi.ts`, `src/services/avatarAiService.ts`)는 기본 비활성화가 완료됐지만, 정식 출시 전에 "계속 비활성화 유지" 또는 "서버 경유 전환" 중 하나를 최종 결정해야 한다.
-- 정책 문서: `public/privacy-policy.html`는 출시 준비용 초안이므로, 정식 출시 전 운영 문의 연락처와 실제 SDK 기준 최종 문구 확정이 필요하다.
-- Android 패키징: 현재 저장소에 Capacitor 패키지 선언, 설정 파일, `android/` 프로젝트가 없고, 이번 Codex 실행 환경에서는 `npm install @capacitor/...`가 진행되지 않아 직접 생성까지 완료하지 못했다.
+- 정책 문서: `public/privacy-policy.html`는 출시 준비용 초안이므로, 정식 출시 전 운영 문의 연락처와 실제 SDK 기준 최종 문구 확정이 필요하다. 이번 루프부터 `npm run check:release-readiness`는 초안 문구뿐 아니라 실제 문의 경로 부재도 필수 누락으로 잡아낸다. 운영값이 정해지면 `.env`에 `PRIVACY_CONTACT_EMAIL` 또는 `PRIVACY_CONTACT_URL`, `PRIVACY_POLICY_URL`, `PRIVACY_POLICY_MODE=release`를 넣고 `npm run prepare:privacy-policy`로 정책 페이지를 재생성한다.
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, 개인정보처리방침 재생성 자동화)
+
+- `scripts/privacy-policy-utils.cjs`
+  - 정책 초안 판정, 문의 경로 판정, `.env` 기반 정책 설정 로딩을 공용 유틸로 분리
+- `scripts/generate-privacy-policy.cjs`
+  - `PRIVACY_CONTACT_EMAIL`, `PRIVACY_CONTACT_URL`, `PRIVACY_POLICY_URL`, `PRIVACY_POLICY_MODE` 설정값으로 `public/privacy-policy.html`을 재생성하는 스크립트 추가
+- `package.json`
+  - `npm run prepare:privacy-policy` 명령 추가
+- `.env.example`
+  - 개인정보처리방침 최종화에 필요한 환경변수 예시 추가
+- `scripts/release-readiness-check.cjs`, `scripts/daily-report.cjs`
+  - 정책 문의 경로와 초안 상태를 같은 공용 기준으로 판정하도록 정리
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, 개인정보 문의 경로 검증 보강)
+
+- `scripts/release-readiness-check.cjs`
+  - 기존의 `문의`, `연락처` 같은 일반 단어 포함 여부 대신 `mailto:`, 실제 이메일 주소, 게시된 `http/https` 문의 URL만 문의 경로로 인정하도록 수정
+  - 이제 개인정보처리방침에 실제 문의 수단이 없으면 초안 문구 제거와 별도로 필수 누락으로 실패하도록 보강
+- `docs/release-readiness.md`
+  - 자동 점검 기준을 "초안 문구 제거"와 "실제 문의 경로 기재" 2개 블로커로 분리해 현재 상태를 명확히 반영
+- 검증
+  - `npm.cmd run check:release-readiness`
+  - `npm.cmd run lint`
+- Android 패키징: `@capacitor/*` 패키지, `capacitor.config.ts`, `android/` 프로젝트가 모두 저장소에 반영됐고 `npm run check:release-readiness` 기준 경고 없이 통과한다. 이번 루프에서 `android/key.properties.example`, `npm run android:bundle:release`, `android/app/build.gradle` 릴리즈 서명 구성을 추가해 저장소 기준 AAB 생성 경로를 고정했다. 남은 일은 실제 업로드 키 생성, `android/key.properties` 작성, Play Console 제출이다.
+- Android 로컬 환경: `npm run check:android-preflight` 기준 필수 누락은 없지만 Java, Android SDK, adb, 실제 `android/key.properties`는 작업자 로컬에서 채워야 한다. 이제 스크립트가 누락 항목별 다음 조치를 바로 출력하므로 AAB 업로드 전 마지막 환경 준비 체크에 사용한다.
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, 정책 초안과 AI 폴백 문구 정리)
+
+- `src/components/character/AvatarCreator.tsx`
+  - AI 변환 실패 문구를 기술 오류 강조 대신 `원본 사진으로 바로 시작` 대체 행동 중심으로 정리
+  - AI 비활성화 안내 문구를 상수로 묶어 미리보기 화면 톤을 일관되게 유지
+- `public/privacy-policy.html`
+  - 최종 수정일을 2026-05-27로 갱신
+  - 정식 출시 전 반드시 채워야 할 항목으로 운영 문의 연락처, 실제 SDK 목록, 게시 URL 반영 필요성을 명시
+- `docs/privacy-data-safety-draft.md`
+  - 현재 출시 기본값 요약 섹션을 추가해 `VITE_ENABLE_CLAUDE_FEATURES=false`와 무SDK 기본 상태를 문서 첫머리에서 바로 확인 가능하게 정리
+  - 브라우저 직접 AI 호출 설명을 내부 테스트 기준으로 한정
+- 검증
+  - `npm.cmd run lint`
+  - `npm.cmd run build`
+  - `npm.cmd run check:release-readiness`
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, Android 사전 점검 안내 강화)
+
+- `scripts/android-preflight-check.cjs`
+  - `android/gradlew.bat`와 `scripts/android-release-build.ps1` 존재 여부를 필수 점검에 포함
+  - Android SDK를 환경변수뿐 아니라 `android/local.properties`의 `sdk.dir`에서도 읽도록 보강
+  - `android/key.properties`가 있을 때 필수 키 누락과 실제 keystore 파일 경로까지 확인하도록 확장
+  - 경고만 보여 주던 출력 뒤에 Java, SDK, adb, 서명 설정별 `다음 조치`를 바로 제시하도록 정리
+- 검증
+  - `npm.cmd run check:android-preflight`
+  - `npm.cmd run check:release-readiness`
+  - `npm.cmd run lint`
+  - `npm.cmd run build`
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, 오늘의 보너스 하트 지급 정합성 수정)
+
+- `src/store/gameStore.ts`
+  - `free_heart` 오늘의 보너스가 표시만 되고 실제 하트를 채우지 않던 결함을 수정
+  - 첫 로그인 시 하트 여유가 있으면 즉시 1개를 회복하고, 저장 상태에 실제 지급 수량을 함께 기록하도록 보강
+- `src/pages/HomePage.tsx`
+  - 오늘의 보너스 문구가 실제 결과와 일치하도록 수정
+  - 하트를 실제로 받았을 때는 즉시 회복 안내를, 이미 가득 찼을 때는 여유 있게 도전하라는 안내를 보여 주도록 정리
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, AI 비활성화 사진 시작 UX 정리)
+
+- `src/components/character/AvatarCreator.tsx`
+  - AI 비활성화 상태에서 안내 문구를 `자동 꾸미기는 출시 준비 중` 중심으로 정리해 "작동 안 하는 AI 기능" 인상을 줄임
+  - AI가 꺼져 있을 때 `사진 그대로 사용` 버튼을 `이 사진으로 시작` 기본 CTA로 승격
+  - AI 변환 실패 문구에서 `API 키` 같은 내부 표현을 제거하고 바로 사용할 수 있는 대체 행동 중심으로 수정
+- 검증
+  - `npm.cmd run lint`
+  - `npm.cmd run build`
+  - `npm.cmd run check:release-readiness`
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, 학당 허브 추천 흐름 정렬)
+
+- `src/pages/HakdangHubPage.tsx`
+  - 홈/프로필과 분리돼 있던 허브 전용 추천 규칙을 제거하고 `todayRecommendationLogic`의 공용 추천 로직을 사용하도록 정리
+  - 추천 카드에 이번 주 스테이지 진행도, 목표 달성 전/후 CTA, 오답 복습 분기를 추가해 허브에서도 같은 학습 흐름이 이어지도록 수정
+  - 추천 배지도 "미시작 학당만 추천"이 아니라 현재 공용 추천 학당을 기준으로 표시되도록 통일
+- `.claude/current-task.md`
+  - 다음 Claude Code 작업을 "AI 기능 비활성화 상태의 출시용 UX 마감"으로 갱신
+- 검증
+  - `npm run lint`
+  - `npm run build`
+  - `npm run check:release-readiness`
+  - `npm run test:e2e`
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, Android 릴리즈 서명 자동화)
+
+- `android/app/build.gradle`
+  - `android/key.properties`가 있으면 릴리즈 signingConfig를 읽어 `bundleRelease`가 서명된 AAB를 만들 수 있도록 연결
+- `android/key.properties.example`
+  - 업로드 키 경로, alias, 비밀번호 형식을 바로 채울 수 있는 템플릿 추가
+- `scripts/android-release-build.ps1`
+  - `npm run build` → `npx cap sync android` → `android/gradlew.bat bundleRelease`를 순차 실행하는 릴리즈 빌드 래퍼 추가
+- `package.json`
+  - `npm run android:bundle:release` 스크립트 추가
+- `scripts/android-preflight-check.cjs`
+  - 서명 템플릿 존재 여부와 실제 `android/key.properties` 준비 여부를 경고로 확인하도록 보강
+- 검증
+  - `npm.cmd run lint`
+  - `npm.cmd run build`
+  - `npm.cmd run check:android-preflight`
+  - `npm.cmd run check:release-readiness`
+  - `npm.cmd run test:e2e`
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, 출시 자동 점검 기준 상향)
+
+- `scripts/quiz-metadata-report.cjs`
+  - `--require-all-complete` 옵션을 추가해 전체 문제 수 기준 완전 적용 여부를 직접 검증하도록 보강
+- `scripts/release-readiness-check.cjs`
+  - 교육 메타데이터 점검을 기존 `42문제 기준선`에서 `전체 문제 완전 적용 유지`로 상향
+- `docs/release-readiness.md`
+  - 현재 상태를 `223/223`, 생활예절 `23/23`, Android 경고 0건 기준으로 갱신
+- 검증
+  - `npm run report:quiz-metadata`: 통과, 전체 223/223
+  - `npm run check:release-readiness`: 통과, 필수 누락 0건 / 경고 0건
+  - `npm run lint`: 통과
+  - `npm run build`: 통과
+  - `npm run test:e2e`: 통과 21개, 실패 0개, 경고 1개
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, 완료 퀴즈 통계 중복 집계 수정)
+
+- `src/store/gameStore.ts`
+  - `nextQuestion`가 문제 배열 종료 시 `quizzesCompleted`를 한 번 더 올리던 경로를 제거
+  - 이제 완료 퀴즈 수는 실제 스테이지 완료 시점의 `recordStageCleared`만 집계해 프로필 통계와 업적 진행이 과대 누적되지 않음
+- 검증
+  - `npm run lint`
+  - `npm run build`
+  - `npm run check:release-readiness`
+  - `npm run test:e2e`
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, 홈 학습 경로 연결)
+
+- `src/components/ui/LearningPathCard.tsx`
+  - 홈 첫 화면에 `7일 학습 코스` 카드를 추가해 오늘 학습 시작, 이번 주 약점 학당 3스테이지 목표, 오답 복습 재진입을 한 카드에서 연결
+- `src/components/ui/todayRecommendationLogic.ts`
+  - 추천 학습 로직에서 재사용할 정답률 계산, 스테이지 환산 기준(10문제 1스테이지), 주간 목표 상수를 공용 유틸로 노출
+- `src/pages/HomePage.tsx`
+  - 기존 단일 추천 카드 대신 연결형 학습 카드로 교체해 홈 최상단 CTA를 학습 흐름 중심으로 정리
+- 검증
+  - `npm.cmd run lint`: 통과
+  - `npm.cmd run build`: 통과
+  - `npm.cmd run check:release-readiness`: 통과, 필수 누락 0건 / Android 경고 1건
+  - `npm.cmd run test:e2e`: 통과 21개, 실패 0개, 경고 1개
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, 주간 스테이지 진척 실측 전환)
+
+- `src/store/gameStore.ts`
+  - 주간 스테이지 완료 수를 주차별·학당별로 저장하는 `weeklyStageProgress` 상태를 추가
+  - `recordStageCleared`가 실제 스테이지 완료 시 현재 주차와 학당 기준으로 진척을 누적하도록 수정
+- `src/pages/QuizPage.tsx`
+  - 스테이지 완료 기록 시 현재 학당 정보를 함께 전달하도록 연결
+- `src/components/ui/LearningPathCard.tsx`
+  - `이번 주 약점 학당 3스테이지` 진행률을 추정 풀이 수 대신 실제 완료 스테이지 수로 표시
+  - 안내 문구도 남은 스테이지 수 중심으로 정리
+- 검증
+  - `npm run lint`
+  - `npm run build`
+  - `npm run check:release-readiness`
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, 프로필 재진입 동선 보강)
+
+- `src/pages/ProfilePage.tsx`
+  - 프로필 상단에 `이번 주 이어서 할 학습` 요약 카드를 추가해 홈의 추천 학습 흐름이 프로필에서도 끊기지 않도록 연결
+  - 주간 목표 진행 전/후와 오답 보유 여부에 따라 CTA를 `추천 학당 이어서 풀기`, `오답 복습하기`, `새 학당 이어서 둘러보기`로 분기
+- `src/components/ui/WeeklyChallenge.tsx`
+  - 주간 목표 달성 후 버튼이 같은 학당 반복 대신 `오답 복습` 또는 `다른 학당으로 넓혀 보기`로 바뀌도록 조정
+  - 목표 달성 후 안내 문구도 다음 행동 중심으로 정리
+- 검증
+  - `npm run lint`
+  - `npm run build`
+  - `npm run test:e2e`
+  - `npm run check:release-readiness`
+
+## 이번 루프 변경 (2026-05-27 Codex 세션, 날짜 경계 안정화)
+
+- `src/utils/date.ts`
+  - 로컬 날짜 문자열, 상대 날짜, 주간 시작일, 주간 키 계산을 공용 유틸로 분리
+- `src/store/gameStore.ts`
+  - 출석, 일일 미션, 주간 보상 계산에서 UTC 문자열 대신 로컬 날짜 유틸을 사용하도록 정리
+- `src/components/ui/WeeklyChallenge.tsx`
+  - 오늘 날짜를 자동 학습 완료처럼 집계하던 표시를 제거하고, 실제 학습한 날만 체크되도록 수정
+- `src/pages/ProfilePage.tsx`
+  - 학습 달력의 오늘 표시를 로컬 날짜 기준으로 맞춤
+- `src/services/claudeApi.ts`
+  - AI 문제 뱅크의 "오늘 생성" 판정도 동일한 로컬 날짜 기준으로 통일
+- 검증
+  - `npm run lint`: 통과
+  - `npm run build`: 통과
+  - `npm run test:e2e`: 통과 21개, 실패 0개, 경고 1개
 
 ## 이번 루프 변경 (2026-05-27 Claude Code 일일 루프)
 
@@ -43,8 +238,23 @@
 | 피처 그래픽 1024×500 | ✅ | `public/feature-graphic.png` |
 | 스크린샷 2장 이상 | ✅ | 4장 (`public/screenshots/`) |
 | 개인정보처리방침 | ✅ | `public/privacy-policy.html` |
-| Capacitor android/ | ❌ | 미생성 — 최우선 블로커 |
-| 서명된 AAB | ❌ | android/ 완료 후 생성 가능 |
+| Capacitor android/ | ✅ | `android/` 프로젝트 존재, 자동 점검 통과 |
+| 서명된 AAB | ❌ | 서명 키 구성 후 생성 필요 |
+
+## 이번 루프 변경 (2026-05-27 Codex 세션 — Android 패키징 선행 준비 보강)
+
+- `capacitor.config.ts`
+  - `appId: kr.khakdang.app`, `appName: K학당`, `webDir: dist`, `androidScheme: https` 기준값을 저장소에 고정
+- `package.json`
+  - `android:bootstrap`, `android:sync`, `android:open` 스크립트 추가
+- `scripts/capacitor-bootstrap.ps1`
+  - 패키지 설치 가능 환경에서 `npm install` → `npm run build` → `npx cap add android` → `npx cap sync android`를 한 번에 실행하도록 자동화
+- `.claude/current-task.md`
+  - 다음 Claude Code 작업을 실제 Android 생성 단계에 맞게 갱신
+- 검증
+  - `npm run lint`: 통과
+  - `npm run build`: 통과
+  - `npm run check:release-readiness`: 통과, 필수 누락 0건 / Android 경고 1건 유지
 | E2E 21개 통과 | ✅ | 직전 통과 유지 (2026-05-26) |
 
 ### 콘텐츠 갭 분석
@@ -530,3 +740,14 @@ Android 패키징(`Capacitor`)이 남은 유일한 하드 블로커. 린트·빌
   - `npm run lint`: 통과
   - `npm run build`: 통과
   - `npm run check:release-readiness`: 통과, 필수 누락 0건 / Android 경고 1건
+## 이번 루프 변경 (2026-05-27 Codex 세션, 정책 초안 거짓 통과 차단)
+
+- `scripts/release-readiness-check.cjs`
+  - 개인정보처리방침 파일에 `개인정보처리방침 초안`, `운영 문의 연락처가 아직 확정되지 않았습니다` 같은 초안/미확정 문구가 남아 있으면 필수 누락으로 실패하도록 보강
+  - 단순히 `문의`라는 단어가 있는지만 보던 기존 검사 대신, 초안 문구 제거 여부를 별도 필수 항목으로 확인
+- `docs/release-readiness.md`
+  - 자동 점검이 더 이상 정책 초안을 초록 상태로 통과시키지 않는다는 현재 기준을 반영
+- 검증
+  - `npm.cmd run check:release-readiness` → 필수 누락 1건(개인정보처리방침 초안 문구 제거)
+  - `npm.cmd run lint`
+  - `npm.cmd run build`

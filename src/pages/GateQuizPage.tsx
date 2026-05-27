@@ -3,21 +3,7 @@ import { useGameStore } from '../store/gameStore';
 import { HAKDANGS } from '../types/hakdang';
 import type { QuizCategory } from '../types/hakdang';
 import type { QuizQuestion } from '../types';
-
-import { INITIAL_QUIZ_DATA } from '../data/quizData';
-import { PROVERBS_QUESTIONS } from '../data/proverbsData';
-import { IDIOMS_QUESTIONS } from '../data/idiomsData';
-import { HISTORY_QUESTIONS } from '../data/historyData';
-import { ETIQUETTE_QUESTIONS } from '../data/etiquetteData';
-
-// 카테고리별 문제 풀
-const CATEGORY_QUESTIONS: Record<QuizCategory, QuizQuestion[]> = {
-  literacy:  INITIAL_QUIZ_DATA,
-  proverbs:  PROVERBS_QUESTIONS,
-  idioms:    IDIOMS_QUESTIONS,
-  history:   HISTORY_QUESTIONS,
-  etiquette: ETIQUETTE_QUESTIONS,
-};
+import { loadCategoryQuestions } from '../services/quizDataLoader';
 
 const GATE_QUESTION_COUNT = 3;
 const PASS_THRESHOLD = 2; // 3문제 중 2개 이상 정답
@@ -46,8 +32,8 @@ function pickRandomCategories(n: number): QuizCategory[] {
   return shuffle(cats).slice(0, n);
 }
 
-function pickQuestions(category: QuizCategory, count: number): QuizQuestion[] {
-  const pool = CATEGORY_QUESTIONS[category] ?? INITIAL_QUIZ_DATA;
+async function pickQuestions(category: QuizCategory, count: number): Promise<QuizQuestion[]> {
+  const pool = await loadCategoryQuestions(category);
   return shuffle(pool).slice(0, count);
 }
 
@@ -97,6 +83,7 @@ export default function GateQuizPage({ fromLevel, toLevel, onPass, onFail }: Gat
 
   // 타이머 ref
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const handleAnswerRef = useRef<(answer: boolean | number | null) => void>(() => {});
 
   // ── 타이머 초기화 ──
   const startTimer = useCallback(() => {
@@ -122,9 +109,9 @@ export default function GateQuizPage({ fromLevel, toLevel, onPass, onFail }: Gat
   // 타임아웃 처리
   useEffect(() => {
     if (timedOut && phase === 'quiz' && !showFeedback) {
-      handleAnswer(null); // null = 시간 초과 (오답 처리)
+      handleAnswerRef.current(null); // null = 시간 초과 (오답 처리)
     }
-  }, [timedOut]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [timedOut, phase, showFeedback]);
 
   // 언마운트 시 타이머 클리어
   useEffect(() => {
@@ -138,9 +125,9 @@ export default function GateQuizPage({ fromLevel, toLevel, onPass, onFail }: Gat
     setPhase('select');
   };
 
-  const handleCategorySelect = (cat: QuizCategory) => {
+  const handleCategorySelect = async (cat: QuizCategory) => {
     setSelectedCategory(cat);
-    const qs = pickQuestions(cat, GATE_QUESTION_COUNT);
+    const qs = await pickQuestions(cat, GATE_QUESTION_COUNT);
     setQuestions(qs);
     setQuestionIndex(0);
     setCorrectCount(0);
@@ -150,7 +137,7 @@ export default function GateQuizPage({ fromLevel, toLevel, onPass, onFail }: Gat
   };
 
   // ── 답변 처리 ──
-  const handleAnswer = (answer: boolean | number | null) => {
+  const handleAnswer = useCallback((answer: boolean | number | null) => {
     stopTimer();
     const q = questions[questionIndex];
     const isCorrect = answer !== null && answer === q.answer;
@@ -162,7 +149,11 @@ export default function GateQuizPage({ fromLevel, toLevel, onPass, onFail }: Gat
     } else {
       setWrongCount((w) => w + 1);
     }
-  };
+  }, [stopTimer, questions, questionIndex]);
+
+  useEffect(() => {
+    handleAnswerRef.current = handleAnswer;
+  }, [handleAnswer]);
 
   // ── 다음 문제 또는 결과 ──
   const handleNext = () => {
