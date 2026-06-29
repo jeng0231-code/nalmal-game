@@ -164,15 +164,17 @@ export function buildStatus(ds, mapping, nowMs) {
           const onv = v && v.lv != null ? Number(v.lv) : null
           if (onv == null || onv < vMin || onv > vMax) continue // 미설정/미설치 출력 제외
           const grp = (st.groups || []).find((g) => idx >= g.indexFrom && idx <= g.indexTo)
-          if (!grp) continue
+          if (!grp) continue // 범위 밖(정체불명 출력)은 제외
           const num = idx - grp.base
           const off = offMap && offMap.get(idx)
           const stv = stMap && stMap.get(idx)
           const running = !!(stv && stv.lv != null && Number(stv.lv) !== 0)
-          if (running && grp.isFan) house.fansRunning++
+          if (running && grp.countAsFan) house.fansRunning++
+          const order = grp.type === 'tunnel' ? 0 : grp.type === 'stir' ? 1 : 2
           collected.push({
-            sort: (grp.isFan ? 0 : 1) * 1000 + num,
+            sort: order * 1000 + num,
             name: `${grp.name} ${num}`,
+            type: grp.type,
             on: round(onv * sc, dc),
             off: off && off.lv != null ? round(Number(off.lv) * sc, dc) : null,
             running,

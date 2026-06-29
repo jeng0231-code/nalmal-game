@@ -74,7 +74,7 @@ function houseCard(h) {
   const infoHtml = h.info && h.info.length ? infoSection(h.info) : ''
   const dayBadge = h.day != null ? `<span class="day-badge">일령 ${h.day}일</span>` : ''
   const fanBadge = h.fansRunning != null
-    ? `<span class="fan-badge">🌀 가동 ${h.fansRunning}대</span>`
+    ? `<span class="fan-badge">🌀 터널팬 ${h.fansRunning}대 가동</span>`
     : ''
 
   const freshCls = h.stale ? 'fresh stale-text' : 'fresh'

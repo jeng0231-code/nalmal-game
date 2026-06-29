@@ -59,8 +59,9 @@
     "validMin": 1,
     "validMax": 6000,
     "groups": [
-      { "name": "터널팬", "indexFrom": 18,  "indexTo": 99,  "base": 17,  "isFan": true },
-      { "name": "히터존", "indexFrom": 128, "indexTo": 199, "base": 127, "isFan": false }
+      { "name": "터널팬", "indexFrom": 18,  "indexTo": 49,  "base": 17,  "type": "tunnel", "countAsFan": true },
+      { "name": "순환팬", "indexFrom": 50,  "indexTo": 99,  "base": 67,  "type": "stir",   "countAsFan": false },
+      { "name": "열풍기", "indexFrom": 128, "indexTo": 150, "base": 127, "type": "heater",  "countAsFan": false }
     ]
   }
 }

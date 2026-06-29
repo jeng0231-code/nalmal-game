@@ -18,6 +18,9 @@ const raw = [
   [3, 18, 18, 3200], [3, 18, 19, 2750], [3, 18, 20, 2600], [3, 18, 21, 2480], [3, 18, 22, 2490], [3, 18, 23, 2500], [3, 18, 24, 2900], [3, 18, 25, 3350], [3, 18, 128, 2250], [3, 18, 129, 2340], [3, 18, 130, 2300],
   // 현재 가동 상태(descfk 28): 터널팬4(idx21)만 가동
   [3, 28, 18, 0], [3, 28, 19, 0], [3, 28, 20, 0], [3, 28, 21, 3], [3, 28, 22, 0], [3, 28, 23, 0], [3, 28, 24, 0], [3, 28, 25, 0],
+  // 순환팬(stir, idx68, On40.2) 가동중 + 정체불명 출력(idx168) — 제외되어야 함
+  [3, 17, 68, 4020], [3, 18, 68, 2340], [3, 28, 68, 5],
+  [3, 17, 168, 4330], [3, 18, 168, 2210],
   // 설비 설정: 최소환기 가동20/정지180, 정압 상한30(i8)/하한25(i4), 인렛16, 윈드7
   [3, 2, 1, 20], [3, 3, 1, 180], [3, 41, 8, 30], [3, 41, 4, 25], [3, 344, 1, 16], [3, 343, 1, 7],
   // 2동 = cu2
@@ -67,17 +70,22 @@ check('1동 POWER FAILURE는 활성 알람', st.alarms.active.some((a) => a.hous
 // 설정·일령·단계
 check('1동 설정온도 23.5°C', h1.metrics.find((m) => m.kind === 'settemp')?.value === 23.5)
 check('1동 일령 33', h1.day === 33)
-check('1동 환기단계 11개', h1.stages.length === 11)
+check('1동 환기단계 12개 (터널8+순환1+열풍기3)', h1.stages.length === 12)
+check('순환팬 1 분류됨 (On 40.2)', h1.stages.some((s) => s.name === '순환팬 1' && s.type === 'stir' && s.on === 40.2))
+check('터널팬 8개', h1.stages.filter((s) => s.type === 'tunnel').length === 8)
+check('열풍기 3개', h1.stages.filter((s) => s.type === 'heater').length === 3)
+check('정체불명 출력(idx168) 제외됨', !h1.stages.some((s) => s.on === 43.3))
 const fan1 = h1.stages.find((s) => s.name === '터널팬 1')
 check('터널팬1 On 32.5 / Off 32.0', fan1.on === 32.5 && fan1.off === 32.0)
 const fan8 = h1.stages.find((s) => s.name === '터널팬 8')
 check('터널팬8 On 34.0 / Off 33.5', fan8.on === 34.0 && fan8.off === 33.5)
-const hz1 = h1.stages.find((s) => s.name === '히터존 1')
-check('히터존1 On 21.0 / Off 22.5', hz1.on === 21.0 && hz1.off === 22.5)
+const hz1 = h1.stages.find((s) => s.name === '열풍기 1')
+check('열풍기1 On 21.0 / Off 22.5', hz1.on === 21.0 && hz1.off === 22.5)
 
-// 가동 상태
-check('1동 가동 팬 1대', h1.fansRunning === 1)
+// 가동 상태 — 터널팬만 카운트(순환팬은 가동중이어도 제외)
+check('1동 가동 터널팬 1대(순환팬 제외)', h1.fansRunning === 1)
 check('터널팬4 가동중', h1.stages.find((s) => s.name === '터널팬 4').running === true)
+check('순환팬1 가동중이지만 팬수에 미포함', h1.stages.find((s) => s.name === '순환팬 1').running === true)
 check('터널팬1 정지', h1.stages.find((s) => s.name === '터널팬 1').running === false)
 
 // 설비 설정
