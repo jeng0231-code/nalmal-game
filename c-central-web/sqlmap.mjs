@@ -140,25 +140,38 @@ export function buildStatus(ds, mapping, nowMs) {
     house.stages = []
     house.fansRunning = 0
     if (mapping.stages) {
-      const onMap = byDesc.get(mapping.stages.onDescriptorfk)
-      const offMap = byDesc.get(mapping.stages.offDescriptorfk)
-      const stMap = byDesc.get(mapping.stages.statusDescriptorfk)
-      const sc = mapping.stages.scale ?? 0.01
-      const dc = mapping.stages.decimals ?? 1
-      for (const o of mapping.stages.outputs) {
-        const on = onMap && onMap.get(o.index)
-        const off = offMap && offMap.get(o.index)
-        if (!on && !off) continue
-        const stv = stMap && stMap.get(o.index)
-        const running = !!(stv && stv.lv != null && Number(stv.lv) !== 0)
-        if (running && /팬|fan/i.test(o.name)) house.fansRunning++
-        house.stages.push({
-          name: o.name,
-          on: on && on.lv != null ? round(Number(on.lv) * sc, dc) : null,
-          off: off && off.lv != null ? round(Number(off.lv) * sc, dc) : null,
-          running,
-        })
+      const st = mapping.stages
+      const onMap = byDesc.get(st.onDescriptorfk)
+      const offMap = byDesc.get(st.offDescriptorfk)
+      const stMap = byDesc.get(st.statusDescriptorfk)
+      const sc = st.scale ?? 0.01
+      const dc = st.decimals ?? 1
+      const vMin = st.validMin ?? 1
+      const vMax = st.validMax ?? 6000
+      // On 설정온도가 유효한 출력만 동별로 자동 인식 (동마다 팬/열풍기 수가 다름)
+      const collected = []
+      if (onMap) {
+        for (const [idx, v] of onMap) {
+          const onv = v && v.lv != null ? Number(v.lv) : null
+          if (onv == null || onv < vMin || onv > vMax) continue // 미설정/미설치 출력 제외
+          const grp = (st.groups || []).find((g) => idx >= g.indexFrom && idx <= g.indexTo)
+          if (!grp) continue
+          const num = idx - grp.base
+          const off = offMap && offMap.get(idx)
+          const stv = stMap && stMap.get(idx)
+          const running = !!(stv && stv.lv != null && Number(stv.lv) !== 0)
+          if (running && grp.isFan) house.fansRunning++
+          collected.push({
+            sort: (grp.isFan ? 0 : 1) * 1000 + num,
+            name: `${grp.name} ${num}`,
+            on: round(onv * sc, dc),
+            off: off && off.lv != null ? round(Number(off.lv) * sc, dc) : null,
+            running,
+          })
+        }
       }
+      collected.sort((a, b) => a.sort - b.sort)
+      house.stages = collected.map(({ sort, ...rest }) => rest)
     }
 
     // 알람 + 갱신시각
