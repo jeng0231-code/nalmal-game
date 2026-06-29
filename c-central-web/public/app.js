@@ -85,7 +85,10 @@ function renderAlarms(alarms) {
   const banner = el('alarm-banner')
   if (alarms && alarms.active && alarms.active.length) {
     const items = alarms.active
-      .map((a) => `<li><b>${a.house ? a.house + '동' : a.device}</b> — ${a.message} <span style="color:#fecaca">(${a.datetime})</span></li>`)
+      .map((a) => {
+        const label = a.house ? (/^\d+$/.test(String(a.house)) ? a.house + '동' : a.house) : a.device
+        return `<li><b>${label}</b> — ${a.message} <span style="color:#fecaca">(${a.datetime})</span></li>`
+      })
       .join('')
     banner.innerHTML = `<h2>🚨 진행 중인 알람 ${alarms.active.length}건</h2><ul>${items}</ul>`
     banner.classList.remove('hidden')

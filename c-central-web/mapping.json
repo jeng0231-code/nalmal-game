@@ -1,0 +1,34 @@
+{
+  "_설명": "C-Central FCentral DB의 데이터 코드 → 화면 항목 번역표. 새 항목을 찾으면 여기에 추가합니다.",
+
+  "instance": "localhost\\FCENTRAL_EXPRESS",
+  "database": "FCentral",
+
+  "_동_설명": "controlunit 번호는 화면 동번호와 반대(3=1동). DB에서 이름(nameCode)도 읽어 검증합니다.",
+  "houses": [
+    { "controlunit": 3, "name": "1동" },
+    { "controlunit": 2, "name": "2동" },
+    { "controlunit": 1, "name": "3동" }
+  ],
+  "nameCode": 35,
+
+  "_측정값_설명": "descriptorfk = DataPlaceholder.datadescriptorfk, value = longValue*scale",
+  "measurements": [
+    { "key": "avgTemp",  "label": "평균온도",   "descriptorfk": 603, "scale": 0.01, "unit": "°C", "kind": "temp",     "decimals": 1 },
+    { "key": "humidity", "label": "습도",       "descriptorfk": 542, "scale": 1,    "unit": "%",  "kind": "humidity", "decimals": 0 },
+    { "key": "pressure", "label": "정압",       "descriptorfk": 538, "scale": 1,    "unit": "Pa", "kind": "pressure", "decimals": 0 },
+    { "key": "water",    "label": "음수량",     "descriptorfk": 610, "scale": 0.01, "unit": "",   "kind": "water",    "decimals": 0 },
+    { "key": "water15",  "label": "15분음수량", "descriptorfk": 311, "scale": 1,    "unit": "",   "kind": "water",    "decimals": 0 }
+  ],
+
+  "sensors": {
+    "label": "온도센서", "descriptorfk": 535, "scale": 0.01, "unit": "°C", "decimals": 1,
+    "errorBelow": -9000
+  },
+
+  "_알람_설명": "ControlUnit.alarmText 가 아래 inactiveTexts 가 아니면 진행중 알람으로 표시",
+  "alarmInactiveTexts": ["", "ALARMS DISABLED", "NO ALARM", "NO ALARMS", "ALARM DISABLED"],
+
+  "_설정_설명": "여기에 설정온도/일령/팬 On·Off/최소환기/정압 상하한/팬상태를 추가 예정",
+  "settings": []
+}
