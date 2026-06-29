@@ -71,6 +71,7 @@ function houseCard(h) {
     : ''
 
   const stagesHtml = h.stages && h.stages.length ? stagesSection(h.stages) : ''
+  const infoHtml = h.info && h.info.length ? infoSection(h.info) : ''
   const dayBadge = h.day != null ? `<span class="day-badge">일령 ${h.day}일</span>` : ''
   const fanBadge = h.fansRunning != null
     ? `<span class="fan-badge">🌀 가동 ${h.fansRunning}대</span>`
@@ -89,9 +90,17 @@ function houseCard(h) {
     </div>
     <div class="metrics">${metricsHtml}</div>
     ${sensorsHtml}
+    ${infoHtml}
     ${stagesHtml}
     ${daily}
   </section>`
+}
+
+function infoSection(info) {
+  const rows = info
+    .map((r) => `<div class="info-row"><span class="info-label">${r.label}</span><span class="info-val">${r.value}${r.unit || ''}</span></div>`)
+    .join('')
+  return `<div class="info-box">${rows}</div>`
 }
 
 function stagesSection(stages) {

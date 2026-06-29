@@ -118,6 +118,14 @@ main { padding: 16px; max-width: 760px; margin: 0 auto; }
   vertical-align: middle;
 }
 
+.info-box {
+  margin-top: 12px; background: var(--card2); border-radius: 12px; padding: 6px 14px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px;
+}
+.info-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; font-size: 14px; }
+.info-label { color: var(--muted); }
+.info-val { font-weight: 600; font-variant-numeric: tabular-nums; }
+
 .stages { margin-top: 12px; background: var(--card2); border-radius: 12px; padding: 0 14px; }
 .stages summary {
   cursor: pointer; padding: 12px 0; font-size: 14px; color: var(--text); font-weight: 600;

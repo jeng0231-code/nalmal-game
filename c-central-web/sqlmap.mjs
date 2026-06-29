@@ -10,6 +10,7 @@ export function buildSql(mapping) {
     ...mapping.measurements.map((m) => m.descriptorfk),
     mapping.sensors.descriptorfk,
     ...(mapping.settings || []).map((s) => s.descriptorfk).filter(Boolean),
+    ...(mapping.infoRows || []).map((r) => r.descriptorfk).filter(Boolean),
     mapping.dayField?.descriptorfk,
     mapping.stages?.onDescriptorfk,
     mapping.stages?.offDescriptorfk,
@@ -128,6 +129,14 @@ export function buildStatus(ds, mapping, nowMs) {
       let value = null
       if (v && v.lv != null) value = round(Number(v.lv) * (st.scale ?? 1), st.decimals ?? 0)
       house.metrics.push({ label: st.label, short: st.label, kind: st.kind || 'other', unit: st.unit || '', value, error: false })
+    }
+
+    // 설비 설정 (최소환기·정압설정 등)
+    house.info = []
+    for (const r of mapping.infoRows || []) {
+      const v = pick(r.descriptorfk, r.index ?? 1)
+      if (!v || v.lv == null) continue
+      house.info.push({ label: r.label, value: round(Number(v.lv) * (r.scale ?? 1), r.decimals ?? 0), unit: r.unit || '' })
     }
 
     // 일령
