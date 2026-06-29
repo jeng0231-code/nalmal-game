@@ -1,6 +1,7 @@
 {
   "_설명": "C-Central FCentral DB의 데이터 코드 → 화면 항목 번역표. 새 항목을 찾으면 여기에 추가합니다.",
 
+  "port": 8088,
   "instance": "localhost\\FCENTRAL_EXPRESS",
   "database": "FCentral",
 

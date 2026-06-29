@@ -7,6 +7,7 @@ import { spawn } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import os from 'node:os'
 import { tmpdir } from 'node:os'
 import { buildSql, buildStatus } from './sqlmap.mjs'
 
@@ -65,15 +66,42 @@ app.get('/api/status', async (req, res) => {
 
 app.get('/api/health', (req, res) => res.json({ ok: true, mode: 'sql', instance: mapping.instance }))
 
-app.listen(PORT, () => {
-  console.log('\n  C-Central 모바일 대시보드 (SQL 직접 읽기)')
-  console.log('  ─────────────────────────────────────────')
-  console.log(`  주소     : http://localhost:${PORT}`)
-  console.log(`  같은 WiFi: http://192.168.2.3:${PORT}`)
-  console.log(`  DB       : ${mapping.instance} / ${mapping.database}`)
-  console.log('\n  종료: Ctrl + C\n')
-  // 시작 시 1회 점검
-  getStatus()
-    .then((s) => console.log(`  ✓ DB 연결 OK — ${s.houses.length}개 동, 활성 알람 ${s.alarms.active.length}건`))
-    .catch((e) => console.log(`  ⚠ DB 조회 실패: ${e.message}\n    (mapping.json의 instance 확인, 또는 SQL Server 실행 여부 확인)`))
-})
+function lanIp() {
+  const ifs = os.networkInterfaces()
+  for (const name of Object.keys(ifs)) {
+    for (const i of ifs[name] || []) {
+      if (i.family === 'IPv4' && !i.internal) return i.address
+    }
+  }
+  return 'localhost'
+}
+
+// 빈 포트를 자동으로 찾아 listen (8080이 점유돼 있으면 다음 포트 시도)
+function startListening(port, attemptsLeft) {
+  const server = app.listen(port)
+  server.on('listening', () => {
+    const ip = lanIp()
+    console.log('\n  ===========================================')
+    console.log('   축사 모니터 서버가 켜졌습니다')
+    console.log('  ===========================================')
+    console.log(`   이 PC에서   : http://localhost:${port}`)
+    console.log(`   휴대폰에서  : http://${ip}:${port}   (같은 WiFi)`)
+    console.log(`   DB          : ${mapping.instance} / ${mapping.database}`)
+    console.log('   끄기        : 이 창에서 Ctrl + C')
+    console.log('  ===========================================\n')
+    getStatus()
+      .then((s) => console.log(`   [OK] DB 연결 성공 — ${s.houses.length}개 동, 활성 알람 ${s.alarms.active.length}건\n`))
+      .catch((e) => console.log(`   [!] DB 조회 실패: ${e.message}\n       (SQL Server 실행 여부 / mapping.json instance 확인)\n`))
+  })
+  server.on('error', (e) => {
+    if (e.code === 'EADDRINUSE' && attemptsLeft > 0) {
+      console.log(`   포트 ${port} 사용 중 → ${port + 1} 시도...`)
+      startListening(port + 1, attemptsLeft - 1)
+    } else {
+      console.error(`   서버 시작 실패: ${e.message}`)
+      process.exit(1)
+    }
+  })
+}
+
+startListening(PORT, 12)
