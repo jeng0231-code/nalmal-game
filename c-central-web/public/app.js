@@ -1,5 +1,5 @@
 // 축사 모니터 — 모바일 대시보드 (읽기 전용)
-const REFRESH_MS = 30000
+const REFRESH_MS = 15000
 
 const el = (id) => document.getElementById(id)
 const connDot = el('conn-dot')
@@ -156,13 +156,13 @@ async function load() {
     el('houses').innerHTML = data.houses.map(houseCard).join('') || '<p>표시할 동이 없습니다. config.json 경로를 확인하세요.</p>'
 
     const now = new Date()
-    const hh = String(now.getHours()).padStart(2, '0')
-    const mm = String(now.getMinutes()).padStart(2, '0')
-    setConn(true, `갱신 ${hh}:${mm}`)
+    const p = (n) => String(n).padStart(2, '0')
+    const clock = `${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`
+    setConn(true, `갱신 ${clock}`)
 
     el('footer-note').innerHTML =
       (data.demo ? '<div class="demo-badge">데모 데이터</div><br>' : '') +
-      'C-Central 데이터를 30초마다 자동 갱신합니다 · 읽기 전용'
+      `마지막 갱신 ${clock} · 15초마다 자동 갱신 · 읽기 전용`
   } catch (e) {
     setConn(false, '연결 끊김')
     el('footer-note').textContent = '서버에 연결할 수 없습니다: ' + (e.message || e)

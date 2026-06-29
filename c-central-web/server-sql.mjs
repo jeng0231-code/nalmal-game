@@ -14,7 +14,8 @@ import { buildSql, buildStatus } from './sqlmap.mjs'
 const here = dirname(fileURLToPath(import.meta.url))
 const mapping = JSON.parse(readFileSync(join(here, 'mapping.json'), 'utf8'))
 const PORT = process.env.PORT || mapping.port || 8080
-const CACHE_MS = 15000
+const CACHE_MS = 7000
+const QUERY_TIMEOUT_MS = 25000
 
 const sqlPath = join(tmpdir(), 'cc_query.sql')
 writeFileSync(sqlPath, buildSql(mapping), 'utf8')
@@ -28,17 +29,23 @@ function runQuery() {
       '-Instance', mapping.instance,
     ], { windowsHide: true })
 
-    let out = '', err = ''
+    let out = '', err = '', done = false
+    const finish = (fn, arg) => { if (done) return; done = true; clearTimeout(timer); fn(arg) }
+    const timer = setTimeout(() => {
+      try { ps.kill() } catch { /* ignore */ }
+      finish(reject, new Error('DB 조회 시간 초과(25초)'))
+    }, QUERY_TIMEOUT_MS)
+
     ps.stdout.on('data', (d) => (out += d))
     ps.stderr.on('data', (d) => (err += d))
-    ps.on('error', reject)
+    ps.on('error', (e) => finish(reject, e))
     ps.on('close', () => {
       try {
         const json = JSON.parse(out.trim())
-        if (json && json.error) return reject(new Error(json.error))
-        resolve(json)
+        if (json && json.error) return finish(reject, new Error(json.error))
+        finish(resolve, json)
       } catch {
-        reject(new Error('DB 조회 결과 해석 실패: ' + (err || out).slice(0, 300)))
+        finish(reject, new Error('DB 조회 결과 해석 실패: ' + (err || out).slice(0, 300)))
       }
     })
   })

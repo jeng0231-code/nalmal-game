@@ -196,20 +196,17 @@ export function buildStatus(ds, mapping, nowMs) {
       house.stages = collected.map(({ sort, ...rest }) => rest)
     }
 
-    // 알람 + 갱신시각
+    // 갱신시각 = 서버가 DB를 읽은 시각 (ControlUnit.lastUpdated는 갱신이 안 되는 필드라 사용하지 않음)
+    house.updatedAt = formatKoreanTime(now)
+    house.ageSeconds = 0
+    house.stale = false
+
+    // 알람
     const a = alarmByCu.get(cu)
     if (a) {
-      if (a.lastUpdated) {
-        const ts = new Date(a.lastUpdated).getTime()
-        if (!Number.isNaN(ts)) {
-          house.updatedAt = formatKoreanTime(a.lastUpdated)
-          house.ageSeconds = Math.max(0, Math.round((now - ts) / 1000))
-          house.stale = house.ageSeconds > (mapping.staleSeconds || 600)
-        }
-      }
       const txt = cleanText(a.alarmText)
       if (txt && !inactive.includes(txt.toUpperCase())) {
-        activeAlarms.push({ house: house.name, device: house.name, message: txt, datetime: house.updatedAt || '' })
+        activeAlarms.push({ house: house.name, device: house.name, message: txt, datetime: house.updatedAt })
       }
     }
 
