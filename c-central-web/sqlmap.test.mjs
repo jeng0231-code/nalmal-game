@@ -88,6 +88,12 @@ check('터널팬4 가동중', h1.stages.find((s) => s.name === '터널팬 4').ru
 check('순환팬1 가동중이지만 팬수에 미포함', h1.stages.find((s) => s.name === '순환팬 1').running === true)
 check('터널팬1 정지', h1.stages.find((s) => s.name === '터널팬 1').running === false)
 
+// Timer 상태 + 최소환기 갯수
+check('터널팬4 상태=최소환기(code3)', h1.stages.find((s) => s.name === '터널팬 4').status === '최소환기')
+check('순환팬1 상태=순환(code5)', h1.stages.find((s) => s.name === '순환팬 1').status === '순환')
+check('터널팬1 상태=정지', h1.stages.find((s) => s.name === '터널팬 1').status === '정지')
+check('1동 최소환기 팬 1개', h1.minVentFans === 1)
+
 // 설비 설정
 const info = Object.fromEntries(h1.info.map((r) => [r.label, r.value]))
 check('최소환기 가동 20초', info['최소환기 가동'] === 20)

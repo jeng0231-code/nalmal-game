@@ -58,6 +58,9 @@
     "decimals": 1,
     "validMin": 1,
     "validMax": 6000,
+    "_상태_설명": "descfk28 Timer 상태값 → 글자. 0=정지, 3=최소환기(MIN VENT), 5=순환(STIR ON)",
+    "statusText": { "0": "정지", "3": "최소환기", "5": "순환" },
+    "minVentCode": 3,
     "groups": [
       { "name": "터널팬", "indexFrom": 18,  "indexTo": 49,  "base": 17,  "type": "tunnel", "countAsFan": true },
       { "name": "순환팬", "indexFrom": 50,  "indexTo": 99,  "base": 67,  "type": "stir",   "countAsFan": false },

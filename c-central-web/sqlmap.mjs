@@ -148,6 +148,7 @@ export function buildStatus(ds, mapping, nowMs) {
     // 환기 단계 설정온도 표 (출력별 On/Off)
     house.stages = []
     house.fansRunning = 0
+    house.minVentFans = 0
     if (mapping.stages) {
       const st = mapping.stages
       const onMap = byDesc.get(st.onDescriptorfk)
@@ -168,8 +169,12 @@ export function buildStatus(ds, mapping, nowMs) {
           const num = idx - grp.base
           const off = offMap && offMap.get(idx)
           const stv = stMap && stMap.get(idx)
-          const running = !!(stv && stv.lv != null && Number(stv.lv) !== 0)
+          const code = stv && stv.lv != null ? Number(stv.lv) : 0
+          const running = code !== 0
+          const isMinVent = code === (st.minVentCode ?? 3)
+          const statusLabel = (st.statusText && st.statusText[String(code)]) || (running ? '가동' : '정지')
           if (running && grp.countAsFan) house.fansRunning++
+          if (isMinVent && grp.countAsFan) house.minVentFans++
           const order = grp.type === 'tunnel' ? 0 : grp.type === 'stir' ? 1 : 2
           collected.push({
             sort: order * 1000 + num,
@@ -178,6 +183,8 @@ export function buildStatus(ds, mapping, nowMs) {
             on: round(onv * sc, dc),
             off: off && off.lv != null ? round(Number(off.lv) * sc, dc) : null,
             running,
+            status: statusLabel,
+            statusCode: code,
           })
         }
       }
