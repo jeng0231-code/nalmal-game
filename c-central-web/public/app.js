@@ -53,7 +53,7 @@ function houseCard(h) {
       <div class="house-error">⚠ ${h.error || '데이터 없음'}</div></section>`
   }
   // 주요 지표 순서: 평균온도(크게) → 설정온도 → 습도, 정압, 음수량 …
-  const order = ['temp', 'settemp', 'humidity', 'pressure', 'water', 'other']
+  const order = ['temp', 'settemp', 'out', 'humidity', 'pressure', 'water', 'other']
   const sorted = [...h.metrics].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind))
   const temp = sorted.find((m) => m.kind === 'temp')
   const rest = sorted.filter((m) => m !== temp)

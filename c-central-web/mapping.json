@@ -18,6 +18,7 @@
     { "key": "avgTemp",  "label": "평균온도",   "descriptorfk": 603, "scale": 0.01, "unit": "°C", "kind": "temp",     "decimals": 1 },
     { "key": "humidity", "label": "습도",       "descriptorfk": 542, "scale": 1,    "unit": "%",  "kind": "humidity", "decimals": 0 },
     { "key": "pressure", "label": "정압",       "descriptorfk": 538, "scale": 0.1,  "unit": "Pa", "kind": "pressure", "decimals": 0 },
+    { "key": "outTemp",  "label": "외부온도",   "descriptorfk": 546, "scale": 0.01, "unit": "°C", "kind": "out",      "decimals": 1 },
     { "key": "water",    "label": "음수량",     "descriptorfk": 610, "scale": 0.01, "unit": "",   "kind": "water",    "decimals": 0 },
     { "key": "water15",  "label": "15분음수량", "descriptorfk": 311, "scale": 1,    "unit": "",   "kind": "water",    "decimals": 0 }
   ],
