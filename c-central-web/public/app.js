@@ -74,7 +74,7 @@ function houseCard(h) {
   const infoHtml = h.info && h.info.length ? infoSection(h.info) : ''
   const dayBadge = h.day != null ? `<span class="day-badge">일령 ${h.day}일</span>` : ''
   const fanBadge = h.fansRunning
-    ? `<span class="fan-badge">🌀 가동 ${h.fansRunning}대</span>`
+    ? `<span class="fan-badge">🌀 실가동 ${h.fansRunning}대</span>`
     : ''
   const mvBadge = h.minVentFans
     ? `<span class="mv-badge">💨 최소환기 ${h.minVentFans}개</span>`
@@ -106,20 +106,18 @@ function infoSection(info) {
   return `<div class="info-box">${rows}</div>`
 }
 
-function statusClass(s) {
-  if (s.statusCode === 3) return 'st-minvent'
-  if (s.statusCode === 5) return 'st-stir'
-  if (s.running) return 'st-on'
-  return 'st-off'
-}
-
 function stagesSection(stages) {
   const rows = stages
     .map((s) => {
       const on = s.on != null ? `${s.on}°` : '—'
       const off = s.off != null ? `${s.off}°` : '—'
-      const chip = `<span class="st-chip ${statusClass(s)}">${s.status || (s.running ? '가동' : '정지')}</span>`
-      return `<div class="stage-row ${s.running ? 'is-on' : ''}"><span class="stage-name">${s.name} ${chip}</span><span class="stage-vals"><b>On ${on}</b> / Off ${off}</span></div>`
+      const runChip = s.running
+        ? '<span class="st-chip st-on">가동</span>'
+        : '<span class="st-chip st-off">정지</span>'
+      const tag = s.modeTag
+        ? `<span class="st-chip ${s.modeTag === '최소환기' ? 'st-minvent' : 'st-stir'}">${s.modeTag}</span>`
+        : ''
+      return `<div class="stage-row ${s.running ? 'is-on' : ''}"><span class="stage-name">${s.name} ${runChip}${tag}</span><span class="stage-vals"><b>On ${on}</b> / Off ${off}</span></div>`
     })
     .join('')
   return `<details class="stages"><summary>환기 단계 설정·상태 (${stages.length})</summary><div class="stage-list">${rows}</div></details>`

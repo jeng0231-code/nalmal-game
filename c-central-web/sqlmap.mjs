@@ -15,6 +15,7 @@ export function buildSql(mapping) {
     mapping.stages?.onDescriptorfk,
     mapping.stages?.offDescriptorfk,
     mapping.stages?.statusDescriptorfk,
+    mapping.stages?.relayDescriptorfk,
   ].filter((x) => x != null)
   const descList = [...new Set(descfks)].join(',')
 
@@ -154,6 +155,8 @@ export function buildStatus(ds, mapping, nowMs) {
       const onMap = byDesc.get(st.onDescriptorfk)
       const offMap = byDesc.get(st.offDescriptorfk)
       const stMap = byDesc.get(st.statusDescriptorfk)
+      const relayMap = byDesc.get(st.relayDescriptorfk)
+      const relayOnVal = st.relayOnValue ?? 1
       const sc = st.scale ?? 0.01
       const dc = st.decimals ?? 1
       const vMin = st.validMin ?? 1
@@ -170,9 +173,11 @@ export function buildStatus(ds, mapping, nowMs) {
           const off = offMap && offMap.get(idx)
           const stv = stMap && stMap.get(idx)
           const code = stv && stv.lv != null ? Number(stv.lv) : 0
-          const running = code !== 0
+          const rv = relayMap && relayMap.get(idx)
+          // 실제 가동(릴레이 ON). 순환팬(STIR ON, code5)은 상시 가동으로 간주
+          const running = (rv && rv.lv != null && Number(rv.lv) === relayOnVal) || code === 5
           const isMinVent = code === (st.minVentCode ?? 3)
-          const statusLabel = (st.statusText && st.statusText[String(code)]) || (running ? '가동' : '정지')
+          const modeTag = isMinVent ? '최소환기' : code === 5 ? '순환' : null
           if (running && grp.countAsFan) house.fansRunning++
           if (isMinVent && grp.countAsFan) house.minVentFans++
           const order = grp.type === 'tunnel' ? 0 : grp.type === 'stir' ? 1 : 2
@@ -183,8 +188,7 @@ export function buildStatus(ds, mapping, nowMs) {
             on: round(onv * sc, dc),
             off: off && off.lv != null ? round(Number(off.lv) * sc, dc) : null,
             running,
-            status: statusLabel,
-            statusCode: code,
+            modeTag,
           })
         }
       }

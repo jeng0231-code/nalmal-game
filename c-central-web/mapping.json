@@ -54,6 +54,8 @@
     "onDescriptorfk": 17,
     "offDescriptorfk": 18,
     "statusDescriptorfk": 28,
+    "relayDescriptorfk": 35,
+    "relayOnValue": 1,
     "scale": 0.01,
     "decimals": 1,
     "validMin": 1,
