@@ -10,7 +10,10 @@ export function buildSql(mapping) {
     ...mapping.measurements.map((m) => m.descriptorfk),
     mapping.sensors.descriptorfk,
     ...(mapping.settings || []).map((s) => s.descriptorfk).filter(Boolean),
-  ]
+    mapping.dayField?.descriptorfk,
+    mapping.stages?.onDescriptorfk,
+    mapping.stages?.offDescriptorfk,
+  ].filter((x) => x != null)
   const descList = [...new Set(descfks)].join(',')
 
   return `
@@ -118,12 +121,37 @@ export function buildStatus(ds, mapping, nowMs) {
       }
     }
 
-    // 설정값 (확장 예정)
+    // 설정값
     for (const st of mapping.settings || []) {
       const v = pick(st.descriptorfk, st.index ?? 1)
       let value = null
       if (v && v.lv != null) value = round(Number(v.lv) * (st.scale ?? 1), st.decimals ?? 0)
       house.metrics.push({ label: st.label, short: st.label, kind: st.kind || 'other', unit: st.unit || '', value, error: false })
+    }
+
+    // 일령
+    if (mapping.dayField) {
+      const v = pick(mapping.dayField.descriptorfk, mapping.dayField.index ?? 1)
+      house.day = v && v.lv != null ? round(Number(v.lv) * (mapping.dayField.scale ?? 1), 0) : null
+    }
+
+    // 환기 단계 설정온도 표 (출력별 On/Off)
+    house.stages = []
+    if (mapping.stages) {
+      const onMap = byDesc.get(mapping.stages.onDescriptorfk)
+      const offMap = byDesc.get(mapping.stages.offDescriptorfk)
+      const sc = mapping.stages.scale ?? 0.01
+      const dc = mapping.stages.decimals ?? 1
+      for (const o of mapping.stages.outputs) {
+        const on = onMap && onMap.get(o.index)
+        const off = offMap && offMap.get(o.index)
+        if (!on && !off) continue
+        house.stages.push({
+          name: o.name,
+          on: on && on.lv != null ? round(Number(on.lv) * sc, dc) : null,
+          off: off && off.lv != null ? round(Number(off.lv) * sc, dc) : null,
+        })
+      }
     }
 
     // 알람 + 갱신시각

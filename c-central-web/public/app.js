@@ -21,10 +21,16 @@ function fmtNum(v) {
 
 function metricCard(m, primary) {
   const cls = primary ? 'metric primary' : 'metric'
-  if (m.error || m.value == null) {
+  if (m.error) {
     return `<div class="${cls}">
       <div class="label">${m.label}</div>
       <div class="value err">⚠ 센서 오류</div>
+    </div>`
+  }
+  if (m.value == null) {
+    return `<div class="${cls}">
+      <div class="label">${m.label}</div>
+      <div class="value" style="color:var(--muted)">—</div>
     </div>`
   }
   const unit = m.unit ? `<span class="unit">${m.unit}</span>` : ''
@@ -46,8 +52,8 @@ function houseCard(h) {
     return `<section class="house"><div class="house-head"><div class="house-name">${h.name}</div></div>
       <div class="house-error">⚠ ${h.error || '데이터 없음'}</div></section>`
   }
-  // 주요 지표 순서: 평균온도(크게) → 습도, 정압, 음수량, 15분음수량
-  const order = ['temp', 'humidity', 'pressure', 'water', 'other']
+  // 주요 지표 순서: 평균온도(크게) → 설정온도 → 습도, 정압, 음수량 …
+  const order = ['temp', 'settemp', 'humidity', 'pressure', 'water', 'other']
   const sorted = [...h.metrics].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind))
   const temp = sorted.find((m) => m.kind === 'temp')
   const rest = sorted.filter((m) => m !== temp)
@@ -64,12 +70,15 @@ function houseCard(h) {
     ? `<div class="daily">전일 ${h.dailyWater.label.replace(/\[.*\]/, '')}: <b>${fmtNum(h.dailyWater.latest.value)}</b></div>`
     : ''
 
+  const stagesHtml = h.stages && h.stages.length ? stagesSection(h.stages) : ''
+  const dayBadge = h.day != null ? `<span class="day-badge">일령 ${h.day}일</span>` : ''
+
   const freshCls = h.stale ? 'fresh stale-text' : 'fresh'
   const staleCard = h.stale ? 'house stale' : 'house'
 
   return `<section class="${staleCard}">
     <div class="house-head">
-      <div class="house-name">${h.stale ? '🔴' : '🟢'} ${h.name}</div>
+      <div class="house-name">${h.stale ? '🔴' : '🟢'} ${h.name} ${dayBadge}</div>
       <div class="${freshCls}">
         <span class="age">${fmtAge(h.ageSeconds)}${h.stale ? ' · 끊김?' : ''}</span>
         <span>${h.updatedAt || ''}</span>
@@ -77,8 +86,20 @@ function houseCard(h) {
     </div>
     <div class="metrics">${metricsHtml}</div>
     ${sensorsHtml}
+    ${stagesHtml}
     ${daily}
   </section>`
+}
+
+function stagesSection(stages) {
+  const rows = stages
+    .map((s) => {
+      const on = s.on != null ? `${s.on}°` : '—'
+      const off = s.off != null ? `${s.off}°` : '—'
+      return `<div class="stage-row"><span class="stage-name">${s.name}</span><span class="stage-vals"><b>On ${on}</b> / Off ${off}</span></div>`
+    })
+    .join('')
+  return `<details class="stages"><summary>환기 단계 설정온도 (${stages.length})</summary><div class="stage-list">${rows}</div></details>`
 }
 
 function renderAlarms(alarms) {
