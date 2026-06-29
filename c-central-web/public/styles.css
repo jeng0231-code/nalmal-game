@@ -1,0 +1,119 @@
+:root {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --card2: #273449;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --ok: #22c55e;
+  --warn: #f59e0b;
+  --bad: #ef4444;
+  --accent: #38bdf8;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding-bottom: env(safe-area-inset-bottom);
+  font-size: 16px;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  padding-top: calc(14px + env(safe-area-inset-top));
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #334155;
+}
+.title { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 18px; }
+.logo { font-size: 22px; }
+.status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+.dot.ok { background: var(--ok); }
+.dot.bad { background: var(--bad); }
+
+.refresh {
+  min-width: 44px; min-height: 44px;
+  border: none; border-radius: 12px;
+  background: var(--card2); color: var(--text);
+  font-size: 20px; cursor: pointer; margin-left: 4px;
+}
+.refresh:active { background: #334155; }
+.refresh.spin { animation: spin 0.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+main { padding: 16px; max-width: 760px; margin: 0 auto; }
+
+.alarm-banner {
+  background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+  border: 1px solid #ef4444;
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.alarm-banner h2 { margin: 0 0 8px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+.alarm-banner ul { margin: 0; padding-left: 18px; }
+.alarm-banner li { margin: 4px 0; font-size: 14px; }
+.hidden { display: none; }
+
+.houses { display: flex; flex-direction: column; gap: 16px; }
+
+.house {
+  background: var(--card);
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 16px;
+}
+.house.stale { border-color: var(--bad); }
+.house-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.house-name { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.fresh { font-size: 12px; color: var(--muted); text-align: right; line-height: 1.4; }
+.fresh .age { display: block; font-weight: 600; }
+.fresh.stale-text { color: var(--bad); }
+
+.metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.metric {
+  background: var(--card2);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.metric.primary { grid-column: span 2; background: #0c4a6e22; border: 1px solid #0ea5e955; }
+.metric .label { font-size: 13px; color: var(--muted); }
+.metric .value { font-size: 26px; font-weight: 700; margin-top: 2px; }
+.metric.primary .value { font-size: 40px; }
+.metric .unit { font-size: 15px; color: var(--muted); font-weight: 500; margin-left: 2px; }
+.metric .value.err { color: var(--bad); font-size: 18px; }
+
+.sensors { margin-top: 12px; }
+.sensors .cap { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  background: var(--card2); border-radius: 999px;
+  padding: 6px 12px; font-size: 14px; min-height: 32px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.chip .k { color: var(--muted); font-size: 12px; }
+.chip.err { background: #7f1d1d; color: #fecaca; }
+
+.daily { margin-top: 12px; font-size: 14px; color: var(--muted); }
+.daily b { color: var(--text); }
+
+.house-error { color: var(--bad); font-size: 14px; }
+
+.footer-note { text-align: center; color: var(--muted); font-size: 12px; margin-top: 20px; }
+.demo-badge {
+  display: inline-block; background: var(--warn); color: #1a1a1a;
+  border-radius: 6px; padding: 2px 8px; font-weight: 700; font-size: 12px; margin-bottom: 8px;
+}

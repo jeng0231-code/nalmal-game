@@ -1,0 +1,27 @@
+{
+  "_설명": "축사 PC에 맞게 이 값들만 수정하세요. 경로는 PowerShell로 확인한 실제 위치입니다.",
+
+  "port": 8080,
+
+  "dataDir": "C:\\Data\\Choretronics\\C-Central\\Sample",
+  "alarmFile": "C:\\Data\\Choretronics\\C-Central\\Alarm\\AlarmLog.csv",
+
+  "encoding": "cp949",
+
+  "_파일패턴_설명": "실시간/일별 CSV 파일 이름 규칙. (\\d+) 자리가 동 번호로 인식됩니다.",
+  "realtimePattern": "^G_data_WebLinkBox_.*_(\\d+)_1\\.csv$",
+  "dailyPattern": "^G_data12_WebLinkBox_.*_(\\d+)_1\\.csv$",
+
+  "_동이름_설명": "동 번호 → 화면에 보여줄 이름. 없으면 'N동'으로 표시됩니다.",
+  "houseNames": {
+    "1": "1동",
+    "2": "2동",
+    "3": "3동"
+  },
+
+  "_신선도_설명": "마지막 갱신이 이 시간(초)을 넘으면 '데이터 끊김'으로 경고합니다.",
+  "staleSeconds": 600,
+
+  "_추세_설명": "그래프/추세에 보낼 최근 데이터 포인트 수",
+  "trendPoints": 120
+}
