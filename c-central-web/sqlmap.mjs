@@ -13,6 +13,7 @@ export function buildSql(mapping) {
     mapping.dayField?.descriptorfk,
     mapping.stages?.onDescriptorfk,
     mapping.stages?.offDescriptorfk,
+    mapping.stages?.statusDescriptorfk,
   ].filter((x) => x != null)
   const descList = [...new Set(descfks)].join(',')
 
@@ -137,19 +138,25 @@ export function buildStatus(ds, mapping, nowMs) {
 
     // 환기 단계 설정온도 표 (출력별 On/Off)
     house.stages = []
+    house.fansRunning = 0
     if (mapping.stages) {
       const onMap = byDesc.get(mapping.stages.onDescriptorfk)
       const offMap = byDesc.get(mapping.stages.offDescriptorfk)
+      const stMap = byDesc.get(mapping.stages.statusDescriptorfk)
       const sc = mapping.stages.scale ?? 0.01
       const dc = mapping.stages.decimals ?? 1
       for (const o of mapping.stages.outputs) {
         const on = onMap && onMap.get(o.index)
         const off = offMap && offMap.get(o.index)
         if (!on && !off) continue
+        const stv = stMap && stMap.get(o.index)
+        const running = !!(stv && stv.lv != null && Number(stv.lv) !== 0)
+        if (running && /팬|fan/i.test(o.name)) house.fansRunning++
         house.stages.push({
           name: o.name,
           on: on && on.lv != null ? round(Number(on.lv) * sc, dc) : null,
           off: off && off.lv != null ? round(Number(off.lv) * sc, dc) : null,
+          running,
         })
       }
     }

@@ -72,13 +72,16 @@ function houseCard(h) {
 
   const stagesHtml = h.stages && h.stages.length ? stagesSection(h.stages) : ''
   const dayBadge = h.day != null ? `<span class="day-badge">일령 ${h.day}일</span>` : ''
+  const fanBadge = h.fansRunning != null
+    ? `<span class="fan-badge">🌀 가동 ${h.fansRunning}대</span>`
+    : ''
 
   const freshCls = h.stale ? 'fresh stale-text' : 'fresh'
   const staleCard = h.stale ? 'house stale' : 'house'
 
   return `<section class="${staleCard}">
     <div class="house-head">
-      <div class="house-name">${h.stale ? '🔴' : '🟢'} ${h.name} ${dayBadge}</div>
+      <div class="house-name"><span class="hname">${h.stale ? '🔴' : '🟢'} ${h.name}</span> ${dayBadge} ${fanBadge}</div>
       <div class="${freshCls}">
         <span class="age">${fmtAge(h.ageSeconds)}${h.stale ? ' · 끊김?' : ''}</span>
         <span>${h.updatedAt || ''}</span>
@@ -96,7 +99,8 @@ function stagesSection(stages) {
     .map((s) => {
       const on = s.on != null ? `${s.on}°` : '—'
       const off = s.off != null ? `${s.off}°` : '—'
-      return `<div class="stage-row"><span class="stage-name">${s.name}</span><span class="stage-vals"><b>On ${on}</b> / Off ${off}</span></div>`
+      const dot = s.running ? '<span class="run on">🟢 가동</span>' : '<span class="run off">○</span>'
+      return `<div class="stage-row ${s.running ? 'is-on' : ''}"><span class="stage-name">${dot} ${s.name}</span><span class="stage-vals"><b>On ${on}</b> / Off ${off}</span></div>`
     })
     .join('')
   return `<details class="stages"><summary>환기 단계 설정온도 (${stages.length})</summary><div class="stage-list">${rows}</div></details>`

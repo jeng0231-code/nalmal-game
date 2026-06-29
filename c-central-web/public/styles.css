@@ -78,7 +78,9 @@ main { padding: 16px; max-width: 760px; margin: 0 auto; }
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 14px;
 }
-.house-name { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.house-name { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.hname { white-space: nowrap; }
+.house-head { gap: 8px; }
 .fresh { font-size: 12px; color: var(--muted); text-align: right; line-height: 1.4; }
 .fresh .age { display: block; font-weight: 600; }
 .fresh.stale-text { color: var(--bad); }
@@ -132,6 +134,15 @@ main { padding: 16px; max-width: 760px; margin: 0 auto; }
 .stage-name { color: var(--muted); }
 .stage-vals { font-variant-numeric: tabular-nums; }
 .stage-vals b { color: var(--accent); }
+.stage-row.is-on .stage-name { color: var(--ok); font-weight: 600; }
+.run.on { font-size: 12px; }
+.run.off { color: #475569; }
+
+.fan-badge {
+  font-size: 13px; font-weight: 600; color: #064e3b;
+  background: var(--ok); border-radius: 999px; padding: 2px 10px; margin-left: 6px;
+  vertical-align: middle;
+}
 
 .house-error { color: var(--bad); font-size: 14px; }
 
