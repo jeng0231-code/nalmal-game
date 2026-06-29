@@ -17,7 +17,7 @@
   "measurements": [
     { "key": "avgTemp",  "label": "평균온도",   "descriptorfk": 603, "scale": 0.01, "unit": "°C", "kind": "temp",     "decimals": 1 },
     { "key": "humidity", "label": "습도",       "descriptorfk": 542, "scale": 1,    "unit": "%",  "kind": "humidity", "decimals": 0 },
-    { "key": "pressure", "label": "정압",       "descriptorfk": 538, "scale": 1,    "unit": "Pa", "kind": "pressure", "decimals": 0 },
+    { "key": "pressure", "label": "정압",       "descriptorfk": 538, "scale": 0.1,  "unit": "Pa", "kind": "pressure", "decimals": 0 },
     { "key": "water",    "label": "음수량",     "descriptorfk": 610, "scale": 0.01, "unit": "",   "kind": "water",    "decimals": 0 },
     { "key": "water15",  "label": "15분음수량", "descriptorfk": 311, "scale": 1,    "unit": "",   "kind": "water",    "decimals": 0 }
   ],
@@ -33,7 +33,7 @@
   "_설정_설명": "화면 값과 대조해 확정한 설정 항목 (descriptorfk/index/scale)",
   "settings": [
     { "key": "setTemp",  "label": "설정온도",      "descriptorfk": 1,  "index": 1, "scale": 0.01, "unit": "°C", "kind": "settemp", "decimals": 1 },
-    { "key": "tunnelOn", "label": "터널 진입온도", "descriptorfk": 21, "index": 1, "scale": 0.01, "unit": "°C", "kind": "other",   "decimals": 1 }
+    { "key": "tunnelOn", "label": "터널전환온도", "descriptorfk": 21, "index": 1, "scale": 0.01, "unit": "°C", "kind": "other",   "decimals": 1 }
   ],
 
   "dayField": { "label": "일령", "descriptorfk": 266, "index": 1, "scale": 1 },
