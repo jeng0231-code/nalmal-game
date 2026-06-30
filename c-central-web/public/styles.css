@@ -51,7 +51,7 @@ body {
 .refresh.spin { animation: spin 0.6s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-main { padding: 16px; max-width: 760px; margin: 0 auto; }
+main { padding: 16px; max-width: 1500px; margin: 0 auto; }
 
 .alarm-banner {
   background: linear-gradient(135deg, #7f1d1d, #b91c1c);
@@ -65,7 +65,13 @@ main { padding: 16px; max-width: 760px; margin: 0 auto; }
 .alarm-banner li { margin: 4px 0; font-size: 14px; }
 .hidden { display: none; }
 
-.houses { display: flex; flex-direction: column; gap: 16px; }
+/* 넓은 화면: 동을 가로로 나란히(자동 3열), 좁은 폰: 자동 1열 */
+.houses {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
 
 .house {
   background: var(--card);
