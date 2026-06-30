@@ -103,7 +103,6 @@ check('1동 최소환기 팬 1개', h1.minVentFans === 1)
 const info = Object.fromEntries(h1.info.map((r) => [r.label, r.value]))
 check('최소환기 가동 20초', info['최소환기 가동'] === 20)
 check('최소환기 정지 180초', info['최소환기 정지'] === 180)
-check('정압 상한 30 / 하한 25', info['정압 상한'] === 30 && info['정압 하한'] === 25)
 check('인렛 16 / 윈드 7', info['인렛 예측'] === 16 && info['윈드 딜레이'] === 7)
 
 if (failed) { console.error(`\n${failed}개 실패`); process.exit(1) } else { console.log('\n전체 통과 ✅') }

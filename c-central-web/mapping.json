@@ -43,8 +43,6 @@
   "infoRows": [
     { "label": "최소환기 가동", "descriptorfk": 2,   "index": 1, "scale": 1, "unit": "초" },
     { "label": "최소환기 정지", "descriptorfk": 3,   "index": 1, "scale": 1, "unit": "초" },
-    { "label": "정압 상한",    "descriptorfk": 41,  "index": 8, "scale": 1, "unit": "Pa" },
-    { "label": "정압 하한",    "descriptorfk": 41,  "index": 4, "scale": 1, "unit": "Pa" },
     { "label": "인렛 예측",    "descriptorfk": 344, "index": 1, "scale": 1, "unit": "초" },
     { "label": "윈드 딜레이",  "descriptorfk": 343, "index": 1, "scale": 1, "unit": "초" }
   ],

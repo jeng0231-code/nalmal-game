@@ -150,13 +150,12 @@ export function buildStatus(ds, mapping, nowMs) {
     house.stages = []
     house.fansRunning = 0
     house.minVentFans = 0
+    house.stirOn = false
     if (mapping.stages) {
       const st = mapping.stages
       const onMap = byDesc.get(st.onDescriptorfk)
       const offMap = byDesc.get(st.offDescriptorfk)
       const stMap = byDesc.get(st.statusDescriptorfk)
-      const relayMap = byDesc.get(st.relayDescriptorfk)
-      const relayOnVal = st.relayOnValue ?? 1
       const sc = st.scale ?? 0.01
       const dc = st.decimals ?? 1
       const vMin = st.validMin ?? 1
@@ -172,14 +171,15 @@ export function buildStatus(ds, mapping, nowMs) {
           const num = idx - grp.base
           const off = offMap && offMap.get(idx)
           const stv = stMap && stMap.get(idx)
+          // descfk28 = C-Central "Timer" 상태. 0=정지, 3=최소환기(MIN VENT), 5=순환(STIR ON)
           const code = stv && stv.lv != null ? Number(stv.lv) : 0
-          const rv = relayMap && relayMap.get(idx)
-          // 실제 가동(릴레이 ON). 순환팬(STIR ON, code5)은 상시 가동으로 간주
-          const running = (rv && rv.lv != null && Number(rv.lv) === relayOnVal) || code === 5
           const isMinVent = code === (st.minVentCode ?? 3)
-          const modeTag = isMinVent ? '최소환기' : code === 5 ? '순환' : null
+          const isStir = code === 5
+          const running = code !== 0
+          const status = isStir ? '순환' : isMinVent ? '최소환기' : running ? '가동' : '정지'
           if (running && grp.countAsFan) house.fansRunning++
           if (isMinVent && grp.countAsFan) house.minVentFans++
+          if (isStir) house.stirOn = true
           const order = grp.type === 'tunnel' ? 0 : grp.type === 'stir' ? 1 : 2
           collected.push({
             sort: order * 1000 + num,
@@ -188,7 +188,8 @@ export function buildStatus(ds, mapping, nowMs) {
             on: round(onv * sc, dc),
             off: off && off.lv != null ? round(Number(off.lv) * sc, dc) : null,
             running,
-            modeTag,
+            status,
+            modeTag: isMinVent ? '최소환기' : isStir ? '순환' : null,
           })
         }
       }
