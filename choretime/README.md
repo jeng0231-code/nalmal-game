@@ -1,6 +1,6 @@
-# 축사 모니터 (C-Central 모바일 웹) — 1단계: 보기 전용
+# choretime — 축사 모니터 (C-Central 모바일/웹) — 1단계: 보기 전용
 
-Chore-Time **C-Central** 데이터를 읽어 **휴대폰 브라우저에서 온도·습도·정압·음수량·센서·알람을 보는** 작은 웹 서버입니다.
+Chore-Time **C-Central** 데이터를 읽어 **휴대폰·웹 브라우저에서 온도·습도·정압·음수량·센서·알람·환기상태를 보는** 작은 웹 서버입니다.
 
 > **안전합니다.** C-Central 데이터를 **읽기(SELECT)만** 합니다. 컨트롤러나 DB에 아무것도 쓰지 않으므로 축사 운전에 영향이 없습니다. (제어 기능은 안정화 후 2단계에서 추가 예정)
 
@@ -27,7 +27,7 @@ SQL 모드 흐름:
 ## 1. 준비 (최초 1회)
 
 1. **Node.js 설치** — https://nodejs.org 에서 LTS 버전 다운로드 후 설치 (그냥 "다음" 계속 누르면 됨)
-2. 이 `c-central-web` 폴더를 **C-Central이 돌아가는 그 PC**에 복사
+2. 이 `choretime` 폴더를 **C-Central이 돌아가는 그 PC**에 복사
 3. 폴더 안에서 명령 프롬프트(또는 PowerShell)를 열고:
 
    ```powershell
@@ -84,20 +84,20 @@ npm start
 
 > Windows 방화벽이 막으면, 최초 실행 시 뜨는 "액세스 허용" 창에서 허용을 눌러주세요.
 
-### B. 밖에서(인터넷으로) 접속할 때 — Cloudflare Tunnel (무료, 추천)
+### B. 밖에서(인터넷으로) 접속할 때 — `웹공개.bat` 더블클릭 (Cloudflare Tunnel, 무료)
 
 집/축사 공유기 설정을 건드리지 않고 안전하게 외부 접속을 여는 방법입니다.
 
-1. https://github.com/cloudflare/cloudflared/releases 에서 `cloudflared-windows-amd64.exe` 다운로드
-2. 서버(`npm start`)를 켜둔 상태에서, 받은 파일을 명령 프롬프트로 실행:
+1. 먼저 **`시작.bat`** 으로 서버를 켭니다 (localhost:8088).
+2. **`웹공개.bat`** 를 더블클릭합니다.
+   - 최초 1회 `cloudflared`(약 50MB)를 자동으로 내려받습니다.
+   - 잠시 뒤 창에 **`https://....trycloudflare.com`** 주소가 나옵니다.
+3. 그 주소를 **휴대폰/외부 어디서든** 브라우저로 열면 됩니다. (서버 창과 웹공개 창을 둘 다 켜 두세요.)
 
-   ```powershell
-   cloudflared.exe tunnel --url http://localhost:8080
-   ```
+> ⚠️ 이 주소는 **재시작할 때마다 바뀌고**, 주소를 아는 사람은 누구나 볼 수 있습니다(읽기 전용). 
+> **고정 주소 + 로그인 보호**가 필요하면 Cloudflare 무료 계정으로 named tunnel + Access를 설정하면 됩니다 — 원하시면 도와드립니다.
 
-3. 화면에 나오는 `https://....trycloudflare.com` 주소를 휴대폰에서 열면 어디서든 접속됩니다.
-
-> 고정 주소나 로그인 보호가 필요하면 Cloudflare 계정을 만들어 named tunnel + Access로 보호할 수 있습니다. 필요하면 그 설정도 도와드립니다.
+> 서버가 8088이 아닌 다른 포트로 떴다면(시작.bat 창에 표시됨), `웹공개.bat`의 `8088`을 그 번호로 바꿔주세요.
 
 ---
 
