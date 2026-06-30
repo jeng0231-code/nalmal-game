@@ -15,7 +15,6 @@ export function buildSql(mapping) {
     mapping.stages?.onDescriptorfk,
     mapping.stages?.offDescriptorfk,
     mapping.stages?.statusDescriptorfk,
-    mapping.stages?.runDescriptorfk,
   ].filter((x) => x != null)
   const descList = [...new Set(descfks)].join(',')
 
@@ -156,8 +155,6 @@ export function buildStatus(ds, mapping, nowMs) {
       const onMap = byDesc.get(st.onDescriptorfk)
       const offMap = byDesc.get(st.offDescriptorfk)
       const stMap = byDesc.get(st.statusDescriptorfk)
-      const runMap = byDesc.get(st.runDescriptorfk)
-      const runOn = st.runOnValues || [4]
       const sc = st.scale ?? 0.01
       const dc = st.decimals ?? 1
       const vMin = st.validMin ?? 1
@@ -173,17 +170,15 @@ export function buildStatus(ds, mapping, nowMs) {
           const num = idx - grp.base
           const off = offMap && offMap.get(idx)
           const stv = stMap && stMap.get(idx)
-          // descfk28 = C-Central "Timer" 모드(최소환기/순환), descfk574 = 실제 가동(릴레이 ON)
+          // descfk28 = C-Central "Outputs" Timer 상태(개요 화면과 일치). 0=정지, 3=최소환기, 5=순환
           const code = stv && stv.lv != null ? Number(stv.lv) : 0
-          const rv = runMap && runMap.get(idx)
-          const running = !!(rv && rv.lv != null && runOn.includes(Number(rv.lv)))
           const isMinVent = code === (st.minVentCode ?? 3)
-          const isStir = grp.type === 'stir'
-          // 상태: 실제 가동 중이면 역할에 따라(순환/최소환기/가동), 아니면 정지
+          const isStir = code === 5
+          const running = code !== 0
           const status = !running ? '정지' : isStir ? '순환' : isMinVent ? '최소환기' : '가동'
           if (running && grp.countAsFan) house.fansRunning++
           if (isMinVent && grp.countAsFan) house.minVentFans++
-          if (isStir && running) house.stirOn = true
+          if (isStir) house.stirOn = true
           const order = grp.type === 'tunnel' ? 0 : grp.type === 'stir' ? 1 : 2
           collected.push({
             sort: order * 1000 + num,
