@@ -101,6 +101,26 @@ npm start
 
 ---
 
+## 4-1. 클라우드(Railway)로 자동 전송 — push
+
+`npm start`(SQL 모드)로 켜면 `/api/status` 와 **같은 데이터를 30초마다 Railway 서버로 POST** 합니다.
+(읽은 값을 밖으로 보내기만 하며, 컨트롤러/DB에는 여전히 아무것도 쓰지 않습니다.)
+
+- 보내는 곳: `POST {url}` · body `{ "token": "...", "data": {상태} }`
+- 동작 확인: 서버 켠 PC에서 `http://localhost:8080/api/push-status`
+- 환경변수로 조정 (없으면 기본값 사용):
+
+| 변수 | 기본값 | 설명 |
+|------|--------|------|
+| `PUSH_ENABLED` | `true` | `false`/`0` 이면 전송 끔 |
+| `PUSH_URL` | Railway `/api/ct2-push` | 받는 주소 |
+| `PUSH_TOKEN` | (내장) | 인증 토큰 |
+| `PUSH_INTERVAL_MS` | `30000` | 전송 주기(ms) |
+
+> 끄려면 (Windows cmd) `set PUSH_ENABLED=false` 후 `npm start` — PowerShell은 `$env:PUSH_ENABLED="false"`.
+
+---
+
 ## 5. PC 켤 때 자동 실행 (선택)
 
 매번 명령어 치기 번거로우면, 아래 내용을 `start.bat`로 저장해 시작프로그램에 등록하세요:
