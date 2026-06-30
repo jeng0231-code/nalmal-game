@@ -173,13 +173,15 @@ export function buildStatus(ds, mapping, nowMs) {
           const num = idx - grp.base
           const off = offMap && offMap.get(idx)
           const stv = stMap && stMap.get(idx)
-          // descfk574 = 실제 가동(릴레이). 4=팬 가동, 3=순환 가동, 1·2=정지. (사장님 개요 확인)
-          // descfk28 = 역할(최소환기/순환).
+          // 가동 판정: 순환팬은 descfk28==5(STIR ON), 터널팬·열풍기는 descfk574(=4).
+          // (순환팬의 574값이 동마다 달라 신뢰 불가 → 모드값으로 판정)
           const code = stv && stv.lv != null ? Number(stv.lv) : 0
           const rv = runMap && runMap.get(idx)
-          const running = !!(rv && rv.lv != null && runOn.includes(Number(rv.lv)))
           const isMinVent = code === (st.minVentCode ?? 3)
           const isStir = grp.type === 'stir'
+          const running = isStir
+            ? code === 5
+            : !!(rv && rv.lv != null && runOn.includes(Number(rv.lv)))
           const status = !running ? '정지' : isStir ? '순환' : isMinVent ? '최소환기' : '가동'
           if (running && grp.countAsFan) house.fansRunning++
           if (isMinVent && grp.countAsFan) house.minVentFans++
