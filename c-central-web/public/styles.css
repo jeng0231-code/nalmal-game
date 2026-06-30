@@ -118,6 +118,23 @@ main { padding: 16px; max-width: 760px; margin: 0 auto; }
   vertical-align: middle;
 }
 
+.run-summary {
+  margin-top: 12px; background: #0c4a6e22; border: 1px solid #0ea5e955;
+  border-radius: 12px; padding: 12px 14px;
+}
+.run-summary.off { color: var(--muted); text-align: center; border-color: #334155; background: var(--card2); }
+.run-summary-title { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.run-items { display: flex; flex-wrap: wrap; gap: 8px; }
+.run-item {
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: 999px; padding: 5px 12px; font-size: 14px; font-weight: 600;
+  background: var(--card2); min-height: 34px;
+}
+.run-item .run-mode { font-size: 11px; opacity: 0.85; font-weight: 700; }
+.run-item.st-on { background: #14532d; color: #dcfce7; }
+.run-item.st-minvent { background: #166534; color: #f0fdf4; }
+.run-item.st-stir { background: #1e3a8a; color: #eff6ff; }
+
 .info-box {
   margin-top: 12px; background: var(--card2); border-radius: 12px; padding: 6px 14px;
   display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px;

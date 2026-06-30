@@ -72,6 +72,7 @@ function houseCard(h) {
 
   const stagesHtml = h.stages && h.stages.length ? stagesSection(h.stages) : ''
   const infoHtml = h.info && h.info.length ? infoSection(h.info) : ''
+  const runningHtml = h.stages && h.stages.length ? runningSummary(h.stages) : ''
   const dayBadge = h.day != null ? `<span class="day-badge">일령 ${h.day}일</span>` : ''
   const fanBadge = h.stirOn ? `<span class="fan-badge">🌀 순환팬 가동</span>` : ''
   const mvBadge = h.minVentFans
@@ -91,6 +92,7 @@ function houseCard(h) {
     </div>
     <div class="metrics">${metricsHtml}</div>
     ${sensorsHtml}
+    ${runningHtml}
     ${infoHtml}
     ${stagesHtml}
     ${daily}
@@ -102,6 +104,20 @@ function infoSection(info) {
     .map((r) => `<div class="info-row"><span class="info-label">${r.label}</span><span class="info-val">${r.value}${r.unit || ''}</span></div>`)
     .join('')
   return `<div class="info-box">${rows}</div>`
+}
+
+function runningSummary(stages) {
+  const on = stages.filter((s) => s.running)
+  if (!on.length) {
+    return `<div class="run-summary off">⚪ 현재 가동 팬 없음 (모두 정지)</div>`
+  }
+  const items = on
+    .map((s) => {
+      const cls = s.status === '순환' ? 'st-stir' : s.status === '최소환기' ? 'st-minvent' : 'st-on'
+      return `<span class="run-item ${cls}">${s.name}<span class="run-mode">${s.status}</span></span>`
+    })
+    .join('')
+  return `<div class="run-summary"><div class="run-summary-title">🟢 현재 가동 (${on.length})</div><div class="run-items">${items}</div></div>`
 }
 
 function stageChipClass(s) {
