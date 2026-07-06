@@ -234,3 +234,52 @@ function formatKoreanTime(dt) {
   const p = (n) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
 }
+
+/** 진단용: 출력별 원시값(On/Off 설정온도·상태28·실가동574)과 가동 판정 근거를 그대로 노출.
+ *  "정지인데 가동중" 같은 오판정의 원인을 눈으로 확인하려고 /api/debug 가 사용한다. */
+export function buildStageDebug(ds, mapping) {
+  const st = mapping.stages
+  if (!st) return { error: 'stages 매핑 없음' }
+  const byCu = new Map()
+  for (const r of ds.t0 || []) {
+    const cu = Number(r.cu)
+    if (!byCu.has(cu)) byCu.set(cu, new Map())
+    const bd = byCu.get(cu)
+    if (!bd.has(r.descfk)) bd.set(r.descfk, new Map())
+    bd.get(r.descfk).set(Number(r.idx), r.lv)
+  }
+  const runOn = st.runOnValues || [4]
+  const houses = mapping.houses.map((h) => {
+    const bd = byCu.get(h.controlunit) || new Map()
+    const onMap = bd.get(st.onDescriptorfk) || new Map()
+    const offMap = bd.get(st.offDescriptorfk) || new Map()
+    const stMap = bd.get(st.statusDescriptorfk) || new Map()
+    const runMap = bd.get(st.runDescriptorfk) || new Map()
+    const outputs = []
+    for (const [idx, onv] of onMap) {
+      const grp = (st.groups || []).find((g) => idx >= g.indexFrom && idx <= g.indexTo)
+      const on = onv != null ? Number(onv) : null
+      const valid = on != null && on >= (st.validMin ?? 1) && on <= (st.validMax ?? 6000)
+      const code28 = stMap.has(idx) ? Number(stMap.get(idx)) : null
+      const run574 = runMap.has(idx) ? Number(runMap.get(idx)) : null
+      const isStir = grp?.type === 'stir'
+      const running = !grp || !valid ? false : (isStir ? code28 === 5 : runOn.includes(run574))
+      outputs.push({
+        idx,
+        group: grp ? grp.name : '(범위밖)',
+        type: grp?.type ?? null,
+        num: grp ? idx - grp.base : null,
+        on, off: offMap.has(idx) ? Number(offMap.get(idx)) : null,
+        code28, run574,
+        valid, running,
+      })
+    }
+    outputs.sort((a, b) => a.idx - b.idx)
+    return { house: h.name, cu: h.controlunit, shown: outputs.filter((o) => o.valid && o.group !== '(범위밖)'), allRaw: outputs }
+  })
+  return {
+    runOnValues: runOn, minVentCode: st.minVentCode,
+    descriptors: { on: st.onDescriptorfk, off: st.offDescriptorfk, status28: st.statusDescriptorfk, run574: st.runDescriptorfk },
+    houses,
+  }
+}

@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import os from 'node:os'
 import { tmpdir } from 'node:os'
-import { buildSql, buildStatus } from './sqlmap.mjs'
+import { buildSql, buildStatus, buildStageDebug } from './sqlmap.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const mapping = JSON.parse(readFileSync(join(here, 'mapping.json'), 'utf8'))
@@ -60,7 +60,7 @@ let refreshing = null
 function refreshNow() {
   if (refreshing) return refreshing // 직전 조회가 안 끝났으면 중복 조회 방지
   refreshing = runQuery()
-    .then((ds) => { cache = { at: Date.now(), data: buildStatus(ds, mapping, Date.now()), error: null } })
+    .then((ds) => { cache = { at: Date.now(), data: buildStatus(ds, mapping, Date.now()), ds, error: null } })
     .catch((e) => { cache = { ...cache, error: String(e.message || e) } }) // 실패해도 직전 값 유지
     .finally(() => { refreshing = null })
   return refreshing
@@ -135,6 +135,14 @@ app.get('/api/status', async (req, res) => {
 })
 
 app.get('/api/health', (req, res) => res.json({ ok: true, mode: 'sql', instance: mapping.instance }))
+
+// 진단: 출력별 원시값(On/Off·상태28·실가동574)과 가동 판정 근거. 오판정 원인 확인용.
+app.get('/api/debug', async (req, res) => {
+  await getStatus()
+  if (!cache.ds) return res.status(503).json({ error: cache.error || 'DB 조회 준비 중' })
+  const age = cache.at ? Math.round((Date.now() - cache.at) / 1000) : null
+  res.json({ ageSeconds: age, at: new Date(cache.at).toISOString(), ...buildStageDebug(cache.ds, mapping) })
+})
 
 app.get('/api/push-status', (req, res) => res.json({
   enabled: PUSH.enabled, url: PUSH.url, intervalMs: PUSH.intervalMs,
