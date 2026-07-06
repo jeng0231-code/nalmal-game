@@ -115,7 +115,8 @@ npm start
 | `PUSH_ENABLED` | `true` | `false`/`0` 이면 전송 끔 |
 | `PUSH_URL` | Railway `/api/ct2-push` | 받는 주소 |
 | `PUSH_TOKEN` | (내장) | 인증 토큰 |
-| `PUSH_INTERVAL_MS` | `30000` | 전송 주기(ms) |
+| `PUSH_INTERVAL_MS` | `15000` | 전송 주기(ms) |
+| `REFRESH_MS` | `5000` | 서버가 DB를 다시 읽는 주기(ms). 화면 지연의 상한 |
 
 > 끄려면 (Windows cmd) `set PUSH_ENABLED=false` 후 `npm start` — PowerShell은 `$env:PUSH_ENABLED="false"`.
 

@@ -14,7 +14,7 @@ import { buildSql, buildStatus } from './sqlmap.mjs'
 const here = dirname(fileURLToPath(import.meta.url))
 const mapping = JSON.parse(readFileSync(join(here, 'mapping.json'), 'utf8'))
 const PORT = process.env.PORT || mapping.port || 8080
-const CACHE_MS = 7000
+const REFRESH_MS = Number(process.env.REFRESH_MS || 5000) // 백그라운드 DB 갱신 주기
 const QUERY_TIMEOUT_MS = 25000
 
 const sqlPath = join(tmpdir(), 'cc_query.sql')
@@ -51,13 +51,28 @@ function runQuery() {
   })
 }
 
-let cache = { at: 0, data: null }
+// 백그라운드로 주기 갱신 → 브라우저/푸시는 캐시를 즉시 읽는다(요청마다 DB 조회하지 않음).
+// DB 부하는 REFRESH_MS 당 1회로 묶이고, 화면 지연은 최대 REFRESH_MS 로 제한된다.
+let cache = { at: 0, data: null, error: null }
+let refreshing = null
+function refreshNow() {
+  if (refreshing) return refreshing // 직전 조회가 안 끝났으면 중복 조회 방지
+  refreshing = runQuery()
+    .then((ds) => { cache = { at: Date.now(), data: buildStatus(ds, mapping, Date.now()), error: null } })
+    .catch((e) => { cache = { ...cache, error: String(e.message || e) } }) // 실패해도 직전 값 유지
+    .finally(() => { refreshing = null })
+  return refreshing
+}
 async function getStatus() {
-  if (cache.data && Date.now() - cache.at < CACHE_MS) return cache.data
-  const ds = await runQuery()
-  const status = buildStatus(ds, mapping, Date.now())
-  cache = { at: Date.now(), data: status }
-  return status
+  if (!cache.data) await refreshNow() // 최초 1회만 대기, 이후엔 백그라운드 캐시
+  return cache.data
+}
+function startRefreshLoop() {
+  refreshNow().then(() => {
+    if (cache.data) console.log(`   [OK] DB 연결 성공 — ${cache.data.houses.length}개 동, 활성 알람 ${cache.data.alarms.active.length}건 (갱신 ${REFRESH_MS / 1000}초마다)\n`)
+    else console.log(`   [!] DB 조회 실패: ${cache.error}\n       (SQL Server 실행 여부 / mapping.json instance 확인)\n`)
+  })
+  setInterval(refreshNow, REFRESH_MS)
 }
 
 // ---- Railway 푸시 (선택) : /api/status 와 동일한 데이터를 클라우드로 주기 전송 ----
@@ -66,7 +81,7 @@ const PUSH = {
   enabled: (process.env.PUSH_ENABLED ?? mapping.push?.enabled ?? 'true') !== 'false' && process.env.PUSH_ENABLED !== '0',
   url: process.env.PUSH_URL || mapping.push?.url || 'https://web-production-8ecc.up.railway.app/api/ct2-push',
   token: process.env.PUSH_TOKEN || mapping.push?.token || 'broiler_push_2026',
-  intervalMs: Number(process.env.PUSH_INTERVAL_MS || mapping.push?.intervalMs || 30000),
+  intervalMs: Number(process.env.PUSH_INTERVAL_MS || mapping.push?.intervalMs || 15000),
 }
 
 let pushState = { ok: null, lastAt: 0, fails: 0 }
@@ -103,11 +118,9 @@ const app = express()
 app.use(express.static(join(here, 'public')))
 
 app.get('/api/status', async (req, res) => {
-  try {
-    res.json(await getStatus())
-  } catch (e) {
-    res.status(500).json({ error: String(e.message || e) })
-  }
+  const data = await getStatus()
+  if (data) return res.json(data)
+  res.status(503).json({ error: cache.error || 'DB 조회 준비 중' })
 })
 
 app.get('/api/health', (req, res) => res.json({ ok: true, mode: 'sql', instance: mapping.instance }))
@@ -140,9 +153,7 @@ function startListening(port, attemptsLeft) {
     console.log(`   DB          : ${mapping.instance} / ${mapping.database}`)
     console.log('   끄기        : 이 창에서 Ctrl + C')
     console.log('  ===========================================\n')
-    getStatus()
-      .then((s) => console.log(`   [OK] DB 연결 성공 — ${s.houses.length}개 동, 활성 알람 ${s.alarms.active.length}건\n`))
-      .catch((e) => console.log(`   [!] DB 조회 실패: ${e.message}\n       (SQL Server 실행 여부 / mapping.json instance 확인)\n`))
+    startRefreshLoop()
     startPush()
   })
   server.on('error', (e) => {

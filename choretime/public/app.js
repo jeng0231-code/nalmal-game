@@ -1,5 +1,5 @@
 // 축사 모니터 — 모바일 대시보드 (읽기 전용)
-const REFRESH_MS = 15000
+const REFRESH_MS = 5000
 
 const el = (id) => document.getElementById(id)
 const connDot = el('conn-dot')
