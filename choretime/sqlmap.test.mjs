@@ -107,4 +107,20 @@ check('최소환기 정지 180초', info['최소환기 정지'] === 180)
 check('인렛 16 / 윈드 7', info['인렛 예측'] === 16 && info['윈드 딜레이'] === 7)
 check('정압 상한 30 / 하한 25 (÷10)', info['정압 상한'] === 30 && info['정압 하한'] === 25)
 
+// 회귀: 실가동(574)=A-ON 이라도 모드(28)=정지(0)면 가동으로 치지 않는다 (3동 10번 사례:
+// 정지 후에도 574가 A-ON으로 늦게 남는 값). controlunit 1 = 3동.
+{
+  const rawX = [
+    [1, 17, 27, 3850], [1, 18, 27, 3800], [1, 28, 27, 0], [1, 574, 27, 4], // 터널팬10: On유효·모드정지·574=A-ON(stale)
+    [1, 17, 21, 3200], [1, 18, 21, 3150], [1, 28, 21, 3], [1, 574, 21, 4], // 터널팬4: 모드=최소환기·574=A-ON → 가동
+  ]
+  const dsX = { t0: rawX.map(([cu, descfk, idx, lv]) => ({ cu, descfk, idx, lv, fv: 0 })), t1: [], t2: [] }
+  const hX = buildStatus(dsX, mapping, now).houses.find((h) => h.id === '1')
+  const f10 = hX.stages.find((s) => s.name === '터널팬 10')
+  const f4 = hX.stages.find((s) => s.name === '터널팬 4')
+  check('회귀: 574=4라도 모드 정지면 정지 (3동 10번)', f10 && f10.running === false)
+  check('회귀: 574=4 + 모드 최소환기면 가동 (3동 4번)', f4 && f4.running === true)
+  check('회귀: 3동 가동 터널팬 1대(10번 제외)', hX.fansRunning === 1)
+}
+
 if (failed) { console.error(`\n${failed}개 실패`); process.exit(1) } else { console.log('\n전체 통과 ✅') }

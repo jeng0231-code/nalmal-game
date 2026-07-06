@@ -173,15 +173,16 @@ export function buildStatus(ds, mapping, nowMs) {
           const num = idx - grp.base
           const off = offMap && offMap.get(idx)
           const stv = stMap && stMap.get(idx)
-          // 가동 판정: 순환팬은 descfk28==5(STIR ON), 터널팬·열풍기는 descfk574(=4).
-          // (순환팬의 574값이 동마다 달라 신뢰 불가 → 모드값으로 판정)
+          // 가동 판정: 순환팬은 descfk28==5(STIR ON), 터널팬·열풍기는 descfk574(A-ON).
+          // 단, 574는 정지 후에도 A-ON 값이 늦게 갱신돼 남는 경우가 있어(예: 3동 10번),
+          // 모드(descfk28)가 정지(0)면 가동으로 치지 않는다. (정지 = 절대 가동 아님)
           const code = stv && stv.lv != null ? Number(stv.lv) : 0
           const rv = runMap && runMap.get(idx)
           const isMinVent = code === (st.minVentCode ?? 3)
           const isStir = grp.type === 'stir'
           const running = isStir
             ? code === 5
-            : !!(rv && rv.lv != null && runOn.includes(Number(rv.lv)))
+            : code !== 0 && !!(rv && rv.lv != null && runOn.includes(Number(rv.lv)))
           const status = !running ? '정지' : isStir ? '순환' : isMinVent ? '최소환기' : '가동'
           if (running && grp.countAsFan) house.fansRunning++
           if (isMinVent && grp.countAsFan) house.minVentFans++
