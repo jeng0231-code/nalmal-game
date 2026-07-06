@@ -8,7 +8,8 @@ const refreshBtn = el('refresh-btn')
 
 function fmtAge(sec) {
   if (sec == null) return '시각 미상'
-  if (sec < 60) return '방금'
+  if (sec < 5) return '방금'
+  if (sec < 60) return `${sec}초 전`
   if (sec < 3600) return `${Math.floor(sec / 60)}분 전`
   if (sec < 86400) return `${Math.floor(sec / 3600)}시간 전`
   return `${Math.floor(sec / 86400)}일 전`
@@ -72,7 +73,7 @@ function houseCard(h) {
 
   const stagesHtml = h.stages && h.stages.length ? stagesSection(h.stages) : ''
   const infoHtml = h.info && h.info.length ? infoSection(h.info) : ''
-  const runningHtml = h.stages && h.stages.length ? runningSummary(h.stages) : ''
+  const runningHtml = h.stages && h.stages.length ? runningSummary(h.stages, h.stale, h.ageSeconds) : ''
   const dayBadge = h.day != null ? `<span class="day-badge">일령 ${h.day}일</span>` : ''
   const fanBadge = h.stirOn ? `<span class="fan-badge">🌀 순환팬 가동</span>` : ''
   const mvBadge = h.minVentFans
@@ -106,10 +107,14 @@ function infoSection(info) {
   return `<div class="info-box">${rows}</div>`
 }
 
-function runningSummary(stages) {
+function runningSummary(stages, stale, ageSeconds) {
   const on = stages.filter((s) => s.running)
+  // 데이터가 오래됐으면(끊김) 가동상태를 실시간처럼 단정하지 않는다.
+  const staleNote = stale
+    ? `<div class="run-stale">⚠ ${fmtAge(ageSeconds)} 값 — 지금 상태와 다를 수 있음</div>`
+    : ''
   if (!on.length) {
-    return `<div class="run-summary off">⚪ 현재 가동 팬 없음 (모두 정지)</div>`
+    return `<div class="run-summary off">⚪ 현재 가동 팬 없음 (모두 정지)${staleNote}</div>`
   }
   const items = on
     .map((s) => {
@@ -117,7 +122,8 @@ function runningSummary(stages) {
       return `<span class="run-item ${cls}">${s.name}<span class="run-mode">${s.status}</span></span>`
     })
     .join('')
-  return `<div class="run-summary"><div class="run-summary-title">🟢 현재 가동 (${on.length})</div><div class="run-items">${items}</div></div>`
+  const title = stale ? `🔴 가동 (${on.length}) · ${fmtAge(ageSeconds)} 값` : `🟢 현재 가동 (${on.length})`
+  return `<div class="run-summary${stale ? ' stale-run' : ''}"><div class="run-summary-title">${title}</div><div class="run-items">${items}</div>${staleNote}</div>`
 }
 
 function stageChipClass(s) {

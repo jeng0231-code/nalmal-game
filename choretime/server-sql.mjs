@@ -16,6 +16,8 @@ const mapping = JSON.parse(readFileSync(join(here, 'mapping.json'), 'utf8'))
 const PORT = process.env.PORT || mapping.port || 8080
 const REFRESH_MS = Number(process.env.REFRESH_MS || 5000) // 백그라운드 DB 갱신 주기
 const QUERY_TIMEOUT_MS = 25000
+// 이 시간(초)보다 오래 갱신이 안 되면 "끊김"으로 표시 → 오래된 가동상태를 실시간처럼 보이지 않게 한다.
+const STALE_SECONDS = Number(process.env.STALE_SECONDS || Math.max(20, Math.round(REFRESH_MS / 1000) * 3))
 
 const sqlPath = join(tmpdir(), 'cc_query.sql')
 writeFileSync(sqlPath, buildSql(mapping), 'utf8')
@@ -67,6 +69,15 @@ async function getStatus() {
   if (!cache.data) await refreshNow() // 최초 1회만 대기, 이후엔 백그라운드 캐시
   return cache.data
 }
+// 캐시가 마지막으로 성공한 시점 기준으로 실제 경과시간/끊김 여부를 매길인다.
+// (buildStatus 는 조회시각을 baked 하지만, 조회 실패로 캐시가 멈추면 그 값이 실시간처럼 보이므로 여기서 보정)
+function withFreshness(data) {
+  if (!data) return data
+  const age = cache.at ? Math.max(0, Math.round((Date.now() - cache.at) / 1000)) : null
+  const stale = age == null || age > STALE_SECONDS
+  const houses = (data.houses || []).map((h) => ({ ...h, ageSeconds: age, stale }))
+  return { ...data, ageSeconds: age, stale, houses }
+}
 function startRefreshLoop() {
   refreshNow().then(() => {
     if (cache.data) console.log(`   [OK] DB 연결 성공 — ${cache.data.houses.length}개 동, 활성 알람 ${cache.data.alarms.active.length}건 (갱신 ${REFRESH_MS / 1000}초마다)\n`)
@@ -88,7 +99,7 @@ let pushState = { ok: null, lastAt: 0, fails: 0 }
 async function pushOnce() {
   try {
     if (typeof fetch !== 'function') throw new Error('이 Node 버전엔 fetch 가 없습니다(Node 18+ 필요)')
-    const data = await getStatus() // ← /api/status 와 동일한 데이터
+    const data = withFreshness(await getStatus()) // ← /api/status 와 동일한 데이터(경과시간 포함)
     const res = await fetch(PUSH.url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -119,7 +130,7 @@ app.use(express.static(join(here, 'public')))
 
 app.get('/api/status', async (req, res) => {
   const data = await getStatus()
-  if (data) return res.json(data)
+  if (data) return res.json(withFreshness(data))
   res.status(503).json({ error: cache.error || 'DB 조회 준비 중' })
 })
 
