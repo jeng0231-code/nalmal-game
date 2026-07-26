@@ -178,15 +178,18 @@ export function buildStatus(ds, mapping, nowMs) {
           const stv = stMap && stMap.get(idx)
           // 가동 판정:
           //  - 순환팬: descfk28==5(STIR ON)
-          //  - 그 외(터널팬·열풍기): 실제 릴레이 상태 descfk35(=relay)가 1이면 가동.
-          //    descfk574(A-ON)는 정지 후에도 값이 안 바뀌는 경우가 있어(예: 3동 10번) 신뢰 불가 →
-          //    순간 릴레이 on/off(35)로 판정한다.
+          //  - 그 외(터널팬·열풍기): 실가동상태(574 A-ON) "그리고" 릴레이(35=1)가 둘 다 켜져야 가동.
+          //    574·35 각각 가끔 값이 굳어(latch) 오탐하므로, 둘 다 요구해 서로의 오류를 걸러낸다.
+          //    (예: 3동 10번 574=4·relay=0 → 정지 / 1동 7번 relay=1·574=2 → 정지)
+          //    ※ DB가 실시간을 지연 반영해 ±1대 정도 오차는 남을 수 있음(컨트롤러 직접읽기 아님).
           const code = stv && stv.lv != null ? Number(stv.lv) : 0
           const isMinVent = code === (st.minVentCode ?? 3)
           const isStir = grp.type === 'stir'
           const rl = relayMap && relayMap.get(idx)
           const relayOn = !!(rl && rl.lv != null && Number(rl.lv) === relayOnVal)
-          const running = isStir ? code === 5 : relayOn
+          const rv = runMap && runMap.get(idx)
+          const run574On = !!(rv && rv.lv != null && runOn.includes(Number(rv.lv)))
+          const running = isStir ? code === 5 : (relayOn && run574On)
           const status = !running ? '정지' : isStir ? '순환' : isMinVent ? '최소환기' : '가동'
           if (running && grp.countAsFan) house.fansRunning++
           if (isMinVent && grp.countAsFan) house.minVentFans++
@@ -271,7 +274,7 @@ export function buildStageDebug(ds, mapping) {
       const run574 = runMap.has(idx) ? Number(runMap.get(idx)) : null
       const relay = relayMap.has(idx) ? Number(relayMap.get(idx)) : null
       const isStir = grp?.type === 'stir'
-      const running = !grp || !valid ? false : (isStir ? code28 === 5 : relay === relayOnVal)
+      const running = !grp || !valid ? false : (isStir ? code28 === 5 : (relay === relayOnVal && runOn.includes(run574)))
       outputs.push({
         idx,
         group: grp ? grp.name : '(범위밖)',
