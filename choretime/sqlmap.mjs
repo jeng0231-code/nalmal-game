@@ -16,6 +16,7 @@ export function buildSql(mapping) {
     mapping.stages?.offDescriptorfk,
     mapping.stages?.statusDescriptorfk,
     mapping.stages?.runDescriptorfk,
+    mapping.stages ? (mapping.stages.relayDescriptorfk ?? 35) : null, // 실제 릴레이 on/off(1/0)
   ].filter((x) => x != null)
   const descList = [...new Set(descfks)].join(',')
 
@@ -157,6 +158,8 @@ export function buildStatus(ds, mapping, nowMs) {
       const offMap = byDesc.get(st.offDescriptorfk)
       const stMap = byDesc.get(st.statusDescriptorfk)
       const runMap = byDesc.get(st.runDescriptorfk)
+      const relayMap = byDesc.get(st.relayDescriptorfk ?? 35) // 실제 릴레이 on/off
+      const relayOnVal = st.relayOnValue ?? 1
       const runOn = st.runOnValues || [4]
       const sc = st.scale ?? 0.01
       const dc = st.decimals ?? 1
@@ -175,14 +178,15 @@ export function buildStatus(ds, mapping, nowMs) {
           const stv = stMap && stMap.get(idx)
           // 가동 판정:
           //  - 순환팬: descfk28==5(STIR ON)
-          //  - 그 외(터널팬·열풍기): 실가동상태 descfk574 가 A-ON 이면 가동.
-          //    정상적으로 도는 터널팬도 code28=0 이므로(최소환기 같은 특수모드에서만 3/5)
-          //    모드로 거르면 도는 팬을 놓친다 → 오직 574(A-ON)로만 판정한다.
+          //  - 그 외(터널팬·열풍기): 실제 릴레이 상태 descfk35(=relay)가 1이면 가동.
+          //    descfk574(A-ON)는 정지 후에도 값이 안 바뀌는 경우가 있어(예: 3동 10번) 신뢰 불가 →
+          //    순간 릴레이 on/off(35)로 판정한다.
           const code = stv && stv.lv != null ? Number(stv.lv) : 0
-          const rv = runMap && runMap.get(idx)
           const isMinVent = code === (st.minVentCode ?? 3)
           const isStir = grp.type === 'stir'
-          const running = isStir ? code === 5 : !!(rv && rv.lv != null && runOn.includes(Number(rv.lv)))
+          const rl = relayMap && relayMap.get(idx)
+          const relayOn = !!(rl && rl.lv != null && Number(rl.lv) === relayOnVal)
+          const running = isStir ? code === 5 : relayOn
           const status = !running ? '정지' : isStir ? '순환' : isMinVent ? '최소환기' : '가동'
           if (running && grp.countAsFan) house.fansRunning++
           if (isMinVent && grp.countAsFan) house.minVentFans++
@@ -256,6 +260,8 @@ export function buildStageDebug(ds, mapping) {
     const offMap = bd.get(st.offDescriptorfk) || new Map()
     const stMap = bd.get(st.statusDescriptorfk) || new Map()
     const runMap = bd.get(st.runDescriptorfk) || new Map()
+    const relayMap = bd.get(st.relayDescriptorfk ?? 35) || new Map()
+    const relayOnVal = st.relayOnValue ?? 1
     const outputs = []
     for (const [idx, onv] of onMap) {
       const grp = (st.groups || []).find((g) => idx >= g.indexFrom && idx <= g.indexTo)
@@ -263,15 +269,16 @@ export function buildStageDebug(ds, mapping) {
       const valid = on != null && on >= (st.validMin ?? 1) && on <= (st.validMax ?? 6000)
       const code28 = stMap.has(idx) ? Number(stMap.get(idx)) : null
       const run574 = runMap.has(idx) ? Number(runMap.get(idx)) : null
+      const relay = relayMap.has(idx) ? Number(relayMap.get(idx)) : null
       const isStir = grp?.type === 'stir'
-      const running = !grp || !valid ? false : (isStir ? code28 === 5 : runOn.includes(run574))
+      const running = !grp || !valid ? false : (isStir ? code28 === 5 : relay === relayOnVal)
       outputs.push({
         idx,
         group: grp ? grp.name : '(범위밖)',
         type: grp?.type ?? null,
         num: grp ? idx - grp.base : null,
         on, off: offMap.has(idx) ? Number(offMap.get(idx)) : null,
-        code28, run574,
+        code28, run574, relay,
         valid, running,
       })
     }
