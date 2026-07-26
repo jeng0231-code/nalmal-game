@@ -16,6 +16,12 @@ import { STANDARD_ITEMS, SENSOR_ITEM, STAGE_SPEC, NAME_CODE, ALARM_INACTIVE_TEXT
 
 const here = dirname(fileURLToPath(import.meta.url))
 
+// JSON 읽기: PowerShell이 UTF-8로 저장하면 맨 앞에 BOM(﻿)이 붙는데
+// JSON.parse가 이를 못 넘기므로 제거하고 파싱한다.
+function readJson(path) {
+  return JSON.parse(readFileSync(path, 'utf8').replace(/^\uFEFF/, ''))
+}
+
 // ---- 유연한 컬럼 접근 (DB 컬럼 이름 변형 대응) ----
 function colGetter(rows, candidates) {
   const sample = rows.find((r) => r && typeof r === 'object')
@@ -35,14 +41,14 @@ function loadDiscovery(file) {
     console.error(`discovery.json 이 없습니다: ${path}\n먼저 농장 PC에서 discover.ps1 을 실행하세요.`)
     process.exit(1)
   }
-  return JSON.parse(readFileSync(path, 'utf8'))
+  return readJson(path)
 }
 
 // 보정값(있으면) 을 사전에 덮어쓴다.
 function withCalibration(items, stage) {
   const calPath = join(here, 'dictionary.calibrated.json')
   if (!existsSync(calPath)) return { items, stage, calibrated: false }
-  const cal = JSON.parse(readFileSync(calPath, 'utf8'))
+  const cal = readJson(calPath)
   const byKey = cal.items || {}
   const items2 = items.map((it) => ({ ...it, ...(byKey[it.key] || {}) }))
   const stage2 = { ...stage }
@@ -206,7 +212,7 @@ function generate(disc, opts = {}) {
 
 // ---- 보정: 우리 농장 mapping.json + discovery.json → 빈 code/ram 채우기 ----
 function calibrate(disc, knownMappingPath) {
-  const known = JSON.parse(readFileSync(knownMappingPath, 'utf8'))
+  const known = readJson(knownMappingPath)
   const { descriptors, dPk, dCode, dRam } = makeResolver(disc)
   const fkInfo = new Map()
   for (const d of descriptors) fkInfo.set(Number(dPk(d)), { code: numOrNull(dCode(d)), ram: numOrNull(dRam(d)) })
