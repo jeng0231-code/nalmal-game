@@ -1,0 +1,28 @@
+{
+  "_설명": "펌웨어 표준 사전 보정값 — 실제 농장 discover + mapping 대조로 확정한 code/RAM 주소(모든 CT2/CT3 공통). build-mapping.mjs 가 자동으로 읽어 새 농장에서도 이 code/RAM 으로 항목을 찾는다.",
+  "items": {
+    "avgTemp": { "code": 0, "ram": 12582912 },
+    "humidity": { "code": 176, "ram": 11579392 },
+    "pressure": { "code": 172, "ram": 11578368 },
+    "outTemp": { "code": 180, "ram": 11580416 },
+    "water": { "code": 7, "ram": 12584704 },
+    "water15": { "code": 34, "ram": 8397312 },
+    "setTemp": { "code": 0, "ram": 2097152 },
+    "tunnelOn": { "code": 4, "ram": 3146752 },
+    "minVentOn": { "code": 1, "ram": 2097408 },
+    "minVentOff": { "code": 2, "ram": 2097664 },
+    "spHigh": { "code": 0, "ram": 9437184 },
+    "spLow": { "code": 1, "ram": 9437440 },
+    "inlet": { "code": 7, "ram": 9438976 },
+    "windDelay": { "code": 6, "ram": 9438720 },
+    "dayAge": { "code": 9, "ram": 7342336 },
+    "sensors": { "code": 169, "ram": 11577600 }
+  },
+  "stage": {
+    "on": { "code": 0, "ram": 3145728 },
+    "off": { "code": 1, "ram": 3145984 },
+    "status": { "code": 11, "ram": 3148544 },
+    "run": { "code": 208, "ram": 11587584 }
+  },
+  "_source": "사장님 농장(CT2) 실측 보정"
+}
