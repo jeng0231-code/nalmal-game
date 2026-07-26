@@ -173,20 +173,16 @@ export function buildStatus(ds, mapping, nowMs) {
           const num = idx - grp.base
           const off = offMap && offMap.get(idx)
           const stv = stMap && stMap.get(idx)
-          // 가동 판정 (출력 종류별):
+          // 가동 판정:
           //  - 순환팬: descfk28==5(STIR ON)
-          //  - 열풍기: 실가동(descfk574) A-ON 만으로 판정. 열풍기는 환기모드가 아니라 code28=0 이므로 모드는 안 본다.
-          //  - 터널팬: 574 A-ON + 모드(28)≠정지(0). 정지 후에도 574가 A-ON으로 늦게 남는 경우(예: 3동 10번)를 모드로 걸러낸다.
+          //  - 그 외(터널팬·열풍기): 실가동상태 descfk574 가 A-ON 이면 가동.
+          //    정상적으로 도는 터널팬도 code28=0 이므로(최소환기 같은 특수모드에서만 3/5)
+          //    모드로 거르면 도는 팬을 놓친다 → 오직 574(A-ON)로만 판정한다.
           const code = stv && stv.lv != null ? Number(stv.lv) : 0
           const rv = runMap && runMap.get(idx)
           const isMinVent = code === (st.minVentCode ?? 3)
           const isStir = grp.type === 'stir'
-          const relayOn = !!(rv && rv.lv != null && runOn.includes(Number(rv.lv)))
-          const running = isStir
-            ? code === 5
-            : grp.type === 'heater'
-              ? relayOn
-              : relayOn && code !== 0
+          const running = isStir ? code === 5 : !!(rv && rv.lv != null && runOn.includes(Number(rv.lv)))
           const status = !running ? '정지' : isStir ? '순환' : isMinVent ? '최소환기' : '가동'
           if (running && grp.countAsFan) house.fansRunning++
           if (isMinVent && grp.countAsFan) house.minVentFans++
