@@ -56,12 +56,12 @@ try {
   Set-Content -Path $OutFile -Value $json -Encoding UTF8
 
   Write-Host ""
-  Write-Host "[OK] discovery.json 저장됨: $OutFile" -ForegroundColor Green
+  Write-Host "[OK] discovery.json saved: $OutFile" -ForegroundColor Green
   foreach ($k in $names) {
-    if ($result.Contains($k)) { Write-Host ("  {0,-13} {1} 행" -f $k, @($result[$k]).Count) }
+    if ($result.Contains($k)) { Write-Host ("  {0,-13} {1} rows" -f $k, @($result[$k]).Count) }
   }
   Write-Host ""
-  Write-Host "다음 단계:  node build-mapping.mjs   (discovery.json -> ../mapping.json 자동 생성)"
+  Write-Host "Next: node discover/build-mapping.mjs   (discovery.json -> ../mapping.json)"
 }
 catch {
   (@{ error = $_.Exception.Message } | ConvertTo-Json -Compress)
