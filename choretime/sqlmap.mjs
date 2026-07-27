@@ -178,10 +178,9 @@ export function buildStatus(ds, mapping, nowMs) {
           const stv = stMap && stMap.get(idx)
           // 가동 판정:
           //  - 순환팬: descfk28==5(STIR ON)
-          //  - 그 외(터널팬·열풍기): 실가동상태(574 A-ON) "그리고" 릴레이(35=1)가 둘 다 켜져야 가동.
-          //    574·35 각각 가끔 값이 굳어(latch) 오탐하므로, 둘 다 요구해 서로의 오류를 걸러낸다.
-          //    (예: 3동 10번 574=4·relay=0 → 정지 / 1동 7번 relay=1·574=2 → 정지)
-          //    ※ DB가 실시간을 지연 반영해 ±1대 정도 오차는 남을 수 있음(컨트롤러 직접읽기 아님).
+          //  - 그 외(터널팬·열풍기): 실가동(574 A-ON)·릴레이(35) 두 신호를 runLogic 으로 결합.
+          //    두 신호가 날마다 제각각 굳어(latch) 단독·AND·OR 어느 것도 100% 아님(DB 한계).
+          //    기본 'or'(하나라도 켜지면 가동) = 실제 도는데 0으로 뜨는 위험 회피. mapping.json 에서 변경 가능.
           const code = stv && stv.lv != null ? Number(stv.lv) : 0
           const isMinVent = code === (st.minVentCode ?? 3)
           const isStir = grp.type === 'stir'
@@ -189,7 +188,12 @@ export function buildStatus(ds, mapping, nowMs) {
           const relayOn = !!(rl && rl.lv != null && Number(rl.lv) === relayOnVal)
           const rv = runMap && runMap.get(idx)
           const run574On = !!(rv && rv.lv != null && runOn.includes(Number(rv.lv)))
-          const running = isStir ? code === 5 : (relayOn && run574On)
+          const logic = st.runLogic || 'or'
+          const nonStir = logic === 'and' ? (relayOn && run574On)
+            : logic === 'relay' ? relayOn
+              : logic === 'run574' ? run574On
+                : (relayOn || run574On) // 'or' 기본
+          const running = isStir ? code === 5 : nonStir
           const status = !running ? '정지' : isStir ? '순환' : isMinVent ? '최소환기' : '가동'
           if (running && grp.countAsFan) house.fansRunning++
           if (isMinVent && grp.countAsFan) house.minVentFans++
@@ -274,7 +278,10 @@ export function buildStageDebug(ds, mapping) {
       const run574 = runMap.has(idx) ? Number(runMap.get(idx)) : null
       const relay = relayMap.has(idx) ? Number(relayMap.get(idx)) : null
       const isStir = grp?.type === 'stir'
-      const running = !grp || !valid ? false : (isStir ? code28 === 5 : (relay === relayOnVal && runOn.includes(run574)))
+      const rOn = relay === relayOnVal, r574On = runOn.includes(run574)
+      const logic = st.runLogic || 'or'
+      const nonStir = logic === 'and' ? (rOn && r574On) : logic === 'relay' ? rOn : logic === 'run574' ? r574On : (rOn || r574On)
+      const running = !grp || !valid ? false : (isStir ? code28 === 5 : nonStir)
       outputs.push({
         idx,
         group: grp ? grp.name : '(범위밖)',
