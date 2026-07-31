@@ -1,25 +1,25 @@
 @echo off
 cd /d "%~dp0"
 echo ============================================
-echo   Ãà»ç ¸ð´ÏÅÍ - ÀÎÅÍ³Ý °ø°³ (¿ÜºÎ¿¡¼­ º¸±â)
+echo   ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½Í³ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ÜºÎ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
 echo ============================================
 echo.
-echo * ¸ÕÀú "½ÃÀÛ.bat" À¸·Î ¼­¹ö°¡ ÄÑÁ® ÀÖ¾î¾ß ÇÕ´Ï´Ù (localhost:8088).
+echo * ï¿½ï¿½ï¿½ï¿½ "ï¿½ï¿½ï¿½ï¿½.bat" ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ ï¿½Õ´Ï´ï¿½ (localhost:8088).
 echo.
 if not exist cloudflared.exe (
-  echo [ÁØºñ] ÃÖÃÊ 1È¸ cloudflared ³»·Á¹Þ´Â Áß... Àá½Ã¸¸ ±â´Ù¸®¼¼¿ä.
+  echo [ï¿½Øºï¿½] ï¿½ï¿½ï¿½ï¿½ 1È¸ cloudflared ï¿½ï¿½ï¿½ï¿½ï¿½Þ´ï¿½ ï¿½ï¿½... ï¿½ï¿½Ã¸ï¿½ ï¿½ï¿½Ù¸ï¿½ï¿½ï¿½ï¿½ï¿½.
   powershell -NoProfile -Command "try{Invoke-WebRequest -Uri 'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe' -OutFile 'cloudflared.exe'}catch{Write-Host 'download failed - check internet'; exit 1}"
 )
 if not exist cloudflared.exe (
-  echo cloudflared ÁØºñ ½ÇÆÐ. ÀÎÅÍ³Ý È®ÀÎ ÈÄ ´Ù½Ã ½ÇÇàÇÏ¼¼¿ä.
+  echo cloudflared ï¿½Øºï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½ï¿½Í³ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½.
   pause
   exit /b 1
 )
 echo.
-echo [°ø°³] ÀÎÅÍ³Ý ÁÖ¼Ò¸¦ ¸¸µå´Â Áß...
-echo        Àá½Ã µÚ ¾Æ·¡¿¡ https://...trycloudflare.com ÁÖ¼Ò°¡ ³ª¿É´Ï´Ù.
-echo        ±× ÁÖ¼Ò¸¦ ÈÞ´ëÆù/¿ÜºÎ¿¡¼­ ¿­¸é ¾îµð¼­µç º¼ ¼ö ÀÖ½À´Ï´Ù.
-echo        (ÀÌ Ã¢°ú ¼­¹ö Ã¢[½ÃÀÛ.bat]À» µÑ ´Ù ÄÑ µÎ¼¼¿ä. ²ô±â: Ctrl + C)
+echo [ï¿½ï¿½ï¿½ï¿½] ï¿½ï¿½ï¿½Í³ï¿½ ï¿½Ö¼Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½...
+echo        ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Æ·ï¿½ï¿½ï¿½ https://...trycloudflare.com ï¿½Ö¼Ò°ï¿½ ï¿½ï¿½ï¿½É´Ï´ï¿½.
+echo        ï¿½ï¿½ ï¿½Ö¼Ò¸ï¿½ ï¿½Þ´ï¿½ï¿½ï¿½/ï¿½ÜºÎ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ð¼­µï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.
+echo        (ï¿½ï¿½ Ã¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¢[ï¿½ï¿½ï¿½ï¿½.bat]ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½. ï¿½ï¿½ï¿½ï¿½: Ctrl + C)
 echo.
-cloudflared.exe tunnel --url http://localhost:8088
+cloudflared.exe tunnel --url http://127.0.0.1:8088
 pause
