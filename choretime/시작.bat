@@ -1,20 +1,29 @@
 @echo off
+chcp 65001 >nul
 cd /d "%~dp0"
-echo ============================================
-echo   축사 모니터 - 설치 및 실행
-echo ============================================
-echo.
-echo [1/2] 필요한 부품 설치 중... (처음 한 번만, 1~2분 걸립니다)
-call npm install
-if errorlevel 1 (
-  echo.
-  echo 설치 실패. Node.js가 설치되어 있는지 확인하세요: https://nodejs.org
-  pause
-  exit /b 1
+title Choretime Monitor
+
+rem --- use bundled node.exe if present, else system node ---
+set "NODE=node"
+if exist "%~dp0node.exe" set "NODE=%~dp0node.exe"
+
+rem --- install parts only if not already bundled ---
+if not exist "node_modules\express\package.json" (
+  echo [setup] Installing parts (first run only, 1-2 min)...
+  call "%NODE%" -v >nul 2>&1 || (
+    echo   [FAIL] Node.js not found. Bundled build should include node.exe.
+    echo          Or install LTS from https://nodejs.org then run again.
+    pause & exit /b 1
+  )
+  call npm install
 )
+
 echo.
-echo [2/2] 서버 시작! 잠시 후 아래에 접속 주소가 표시됩니다.
-echo 이 창은 켜 둔 채로 두세요.  (끄기: Ctrl + C)
+echo ============================================
+echo    Starting server...
+echo    The external URL appears below in a moment.
+echo    Keep this window open. (stop: Ctrl + C)
+echo ============================================
 echo.
-call npm start
+call "%NODE%" server-sql.mjs
 pause

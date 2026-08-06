@@ -1,6 +1,10 @@
 node_modules/
 *.log
 cloudflared.exe
+# 배포 산출물 / 번들 Node (대용량, 커밋하지 않음)
+node.exe
+축사모니터_배포.zip
+mapping.backup.json
 # 농장별 DB 지문(개인/대용량) — 커밋하지 않음. dictionary.calibrated.json(펌웨어 공통)은 커밋 가능.
 discover/discovery.json
 

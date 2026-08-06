@@ -1,12 +1,17 @@
 @echo off
-chcp 949 >nul
+chcp 65001 >nul
 cd /d "%~dp0"
-title 축사 모니터 서버
-if not exist node_modules (
-  echo 최초 1회 부품 설치 중...
+title Choretime Monitor
+
+set "NODE=node"
+if exist "%~dp0node.exe" set "NODE=%~dp0node.exe"
+
+if not exist "node_modules\express\package.json" (
+  echo [setup] Installing parts (first run only)...
   call npm install
 )
-node server-sql.mjs
+
+call "%NODE%" server-sql.mjs
 echo.
-echo 서버가 종료되었습니다. (오류 내용을 확인하세요)
+echo Server stopped. (check the message above)
 pause

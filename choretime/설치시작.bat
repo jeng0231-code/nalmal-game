@@ -7,12 +7,25 @@ echo    (reads controller info only; no writes)
 echo ============================================
 echo.
 
-echo [1/6] Installing parts (npm install)... first time takes 1-2 min
-call npm install
-if errorlevel 1 (
-  echo.
-  echo   [FAIL] Node.js is required. Install LTS from https://nodejs.org then run again.
-  pause & exit /b 1
+rem --- use bundled node.exe if present, else system node ---
+set "NODE=node"
+if exist "%~dp0node.exe" set "NODE=%~dp0node.exe"
+
+echo [1/6] Preparing parts...
+if exist "node_modules\express\package.json" (
+  echo   Already bundled. Skipping download.
+) else (
+  echo   Installing parts (npm install)... first time takes 1-2 min
+  call "%NODE%" -v >nul 2>&1 || (
+    echo   [FAIL] Node.js is required. Install LTS from https://nodejs.org then run again.
+    pause & exit /b 1
+  )
+  call npm install
+  if errorlevel 1 (
+    echo.
+    echo   [FAIL] Node.js is required. Install LTS from https://nodejs.org then run again.
+    pause & exit /b 1
+  )
 )
 
 echo.
@@ -30,7 +43,7 @@ if not exist "discover\discovery.json" (
 
 echo.
 echo [4/6] Generating config (mapping.json)...
-call node "discover\build-mapping.mjs"
+call "%NODE%" "discover\build-mapping.mjs"
 
 echo.
 echo [5/6] Downloading external-access tool (cloudflared)... first time only
@@ -40,7 +53,7 @@ if not exist cloudflared.exe (
 
 echo.
 echo [6/6] Register this install (name / contact / address)
-call node setup.mjs
+call "%NODE%" setup.mjs
 
 echo.
 echo ============================================
@@ -50,5 +63,5 @@ echo    The screen opens after the admin approves you.
 echo    Keep this window open. (stop: Ctrl + C)
 echo ============================================
 echo.
-call npm start
+call "%NODE%" server-sql.mjs
 pause

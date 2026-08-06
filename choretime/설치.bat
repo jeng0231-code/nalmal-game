@@ -5,6 +5,8 @@ echo.
 echo   Choretime - Register install (name / contact / address)
 echo   After registering, run 시작.bat. Screen opens after admin approval.
 echo.
-call node setup.mjs
+set "NODE=node"
+if exist "%~dp0node.exe" set "NODE=%~dp0node.exe"
+call "%NODE%" setup.mjs
 echo.
 pause
