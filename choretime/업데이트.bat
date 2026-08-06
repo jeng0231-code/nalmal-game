@@ -1,18 +1,17 @@
 @echo off
-chcp 949 >nul
+chcp 65001 >nul
 cd /d "%~dp0"
 echo ============================================
-echo   Ãà»ç ¸ð´ÏÅÍ ¾÷µ¥ÀÌÆ®
+echo    Choretime - Update (no git needed)
 echo ============================================
 echo.
-git fetch origin
-git checkout claude/c-central-mobile-web-r2n1jf
-git pull origin claude/c-central-mobile-web-r2n1jf
-echo.
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0update.ps1"
 if errorlevel 1 (
-  echo [!] ¾÷µ¥ÀÌÆ® Áß ¹®Á¦°¡ ÀÖ¾ú½À´Ï´Ù. À§ ¸Þ½ÃÁö¸¦ È®ÀÎÇÏ¼¼¿ä.
+  echo.
+  echo   [FAIL] Update failed. Check the messages above.
+  echo          (Check internet connection, then try again.)
 ) else (
-  echo [OK] ÃÖ½ÅÀ¸·Î ¾÷µ¥ÀÌÆ®µÇ¾ú½À´Ï´Ù.
-  echo ÀÌ Ã¢À» ´Ý°í ½ÃÀÛ.bat À» ´Ù½Ã ½ÇÇàÇÏ¼¼¿ä.
+  echo.
+  echo   [OK] Done. Close this window and run ì‹œìž‘.bat again.
 )
 pause
