@@ -215,7 +215,11 @@ async function startTunnel(port) {
 }
 
 const app = express()
-app.use(express.static(join(here, 'public')))
+// 업데이트 후 앱 파일(app.js/index.html 등)이 브라우저 캐시로 안 바뀌어 보이는 일 방지.
+app.use(express.static(join(here, 'public'), {
+  etag: true,
+  setHeaders: (res) => res.setHeader('Cache-Control', 'no-cache'),
+}))
 
 app.get('/api/public-url', (req, res) => res.json({ url: publicUrl }))
 

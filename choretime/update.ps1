@@ -33,13 +33,19 @@ foreach ($f in @('license.json', '.machine-id')) {
   if (Test-Path $p) { Remove-Item $p -Force }
 }
 Remove-Item (Join-Path $src 'discover\discovery.json') -Force -ErrorAction SilentlyContinue
-# mapping.json: friend install (has license.json) keeps local; owner takes the latest.
-if (Test-Path (Join-Path $dest 'license.json')) {
-  Remove-Item (Join-Path $src 'mapping.json') -Force -ErrorAction SilentlyContinue
-  Write-Host '   (your farm mapping.json is kept)'
+# mapping.json: an auto-generated (friend) mapping has display/license/tunnel keys -> keep local.
+# The owner's hand-tuned mapping has none of those -> take the latest (gets bug fixes).
+$localMap = Join-Path $dest 'mapping.json'
+if (Test-Path $localMap) {
+  $c = Get-Content $localMap -Raw
+  if ($c -match '"license"' -or $c -match '"display"' -or $c -match '"tunnel"') {
+    Remove-Item (Join-Path $src 'mapping.json') -Force -ErrorAction SilentlyContinue
+    Write-Host '   (your auto-generated mapping.json is kept)'
+  }
 }
-# Merge copy. node_modules / node.exe / cloudflared.exe are not in the zip, so they stay.
-$rc = Start-Process robocopy -ArgumentList @("`"$src`"", "`"$dest`"", '/E', '/XD', 'node_modules', '/NFL', '/NDL', '/NJH', '/NJS', '/NP') -Wait -PassThru -NoNewWindow
+# Merge copy. /IS forces copy even when robocopy thinks files are identical (timestamp quirks).
+# node_modules / node.exe / cloudflared.exe are not in the zip, so they stay.
+$rc = Start-Process robocopy -ArgumentList @("`"$src`"", "`"$dest`"", '/E', '/IS', '/XD', 'node_modules', '/NFL', '/NDL', '/NJH', '/NJS', '/NP') -Wait -PassThru -NoNewWindow
 if ($rc.ExitCode -ge 8) { throw "copy failed (robocopy $($rc.ExitCode))" }
 
 Write-Host '[4/4] Cleaning up...'
