@@ -3,3 +3,7 @@ node_modules/
 cloudflared.exe
 # 농장별 DB 지문(개인/대용량) — 커밋하지 않음. dictionary.calibrated.json(펌웨어 공통)은 커밋 가능.
 discover/discovery.json
+
+# 농장별 라이선스/기기 식별(런타임 생성) — 커밋 안 함
+.machine-id
+license.json

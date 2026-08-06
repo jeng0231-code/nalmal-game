@@ -173,6 +173,16 @@ function setConn(ok, text) {
   connText.textContent = text
 }
 
+function renderLock(data) {
+  const banner = el('alarm-banner'); if (banner) banner.classList.add('hidden')
+  el('houses').innerHTML = `<div style="max-width:480px;margin:56px auto;text-align:center;background:#111827;border:1px solid #334155;border-radius:14px;padding:36px 24px;color:#e5e7eb">
+    <div style="font-size:52px">🔒</div>
+    <div style="font-size:18px;font-weight:800;margin:12px 0">${data.message || '승인 대기 중'}</div>
+    <div style="font-size:13px;color:#94a3b8">아래 <b>기기 ID</b>를 관리자에게 알려주세요</div>
+    <div style="margin-top:10px;font-family:monospace;font-size:15px;color:#93c5fd;background:#0b1220;padding:10px;border-radius:8px">${data.machineId || ''}</div>
+  </div>`
+}
+
 let timer = null
 let DISPLAY = {} // 서버가 보내는 표시 설정(mapping.display). 배포용은 showFanStatus:false.
 let PUBLIC_URL = null // 서버가 만든 무료 외부주소(cloudflare). 있으면 QR·배너에 사용.
@@ -187,6 +197,14 @@ async function load() {
     DISPLAY = forceDist ? { showFanStatus: false } : (data.display || {})
     PUBLIC_URL = data.publicUrl || null
     if (window.updatePublicBanner) window.updatePublicBanner()
+
+    // 라이선스 승인 전/중지: 데이터 대신 잠금 화면
+    if (data.locked) {
+      renderLock(data)
+      setConn(true, data.licenseState === 'suspended' ? '사용 중지' : '승인 대기')
+      el('footer-note').textContent = '관리자 승인 후 이용할 수 있습니다.'
+      return
+    }
 
     renderAlarms(data.alarms)
     el('houses').innerHTML = data.houses.map(houseCard).join('') || '<p>표시할 동이 없습니다. config.json 경로를 확인하세요.</p>'

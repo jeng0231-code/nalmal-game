@@ -7,6 +7,7 @@ import { spawn } from 'node:child_process'
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { randomBytes } from 'node:crypto'
 import os from 'node:os'
 import { tmpdir } from 'node:os'
 import { buildSql, buildStatus, buildStageDebug } from './sqlmap.mjs'
@@ -18,6 +19,48 @@ const REFRESH_MS = Number(process.env.REFRESH_MS || 5000) // 백그라운드 DB 
 const QUERY_TIMEOUT_MS = 25000
 // 이 시간(초)보다 오래 갱신이 안 되면 "끊김"으로 표시 → 오래된 가동상태를 실시간처럼 보이지 않게 한다.
 const STALE_SECONDS = Number(process.env.STALE_SECONDS || Math.max(20, Math.round(REFRESH_MS / 1000) * 3))
+
+// ---- 라이선스(설치 승인) : 무단 배포 방지. license.json/mapping/env 로 서버 주소가 설정된 경우에만 동작.
+//      주소가 없으면(주인 설치) 잠금 없이 그대로 실행된다. ----
+const LIC = (() => {
+  let f = {}
+  try { f = JSON.parse(readFileSync(join(here, 'license.json'), 'utf8').replace(/^﻿/, '')) } catch { /* 없으면 무시 */ }
+  const server = (process.env.LICENSE_SERVER || f.server || mapping.license?.server || '').replace(/\/+$/, '')
+  // 실제 주소(도메인) 형태일 때만 활성. 'https://' 나 'https://<보드주소>' 같은 미입력/placeholder 는 잠금 안 함.
+  const valid = /^https?:\/\/[^\s<>]+\.[^\s<>]+/.test(server)
+  return { enabled: valid, server, name: f.name || mapping.license?.name || '', contact: f.contact || '', address: f.address || '' }
+})()
+const MACHINE_ID = (() => {
+  const idFile = join(here, '.machine-id')
+  try { const id = readFileSync(idFile, 'utf8').trim(); if (id) return id } catch { /* 새로 생성 */ }
+  const id = 'ct-' + randomBytes(8).toString('hex')
+  try { writeFileSync(idFile, id) } catch { /* 저장 실패해도 이번 세션은 동작 */ }
+  return id
+})()
+let licenseState = LIC.enabled ? 'checking' : 'approved' // 미설정=주인 설치=항상 통과
+function lockMessage(s) {
+  if (s === 'suspended') return '사용이 중지되었습니다. 관리자에게 문의하세요.'
+  if (s === 'checking') return '라이선스 확인 중입니다...'
+  return '설치 승인 대기 중입니다. 관리자 승인 후 이용할 수 있습니다.'
+}
+async function licenseCheck() {
+  if (!LIC.enabled) return
+  try {
+    await fetch(LIC.server + '/api/register', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ machineId: MACHINE_ID, name: LIC.name, contact: LIC.contact, address: LIC.address }),
+    })
+    const r = await fetch(LIC.server + '/api/status/' + encodeURIComponent(MACHINE_ID))
+    const j = await r.json()
+    if (j && j.status) licenseState = j.status // 성공 시에만 갱신(오프라인이면 직전 상태 유지 → 인터넷 끊김에 잠기지 않음)
+  } catch { /* 네트워크 오류: 직전 상태 유지 */ }
+}
+function startLicense() {
+  if (!LIC.enabled) { console.log('   [라이선스] 미설정 → 잠금 없음(주인 설치)'); return }
+  console.log(`   [라이선스] 서버: ${LIC.server}  기기ID: ${MACHINE_ID}`)
+  licenseCheck()
+  setInterval(licenseCheck, 3 * 60 * 1000) // 3분마다 승인/중지 반영
+}
 
 const sqlPath = join(tmpdir(), 'cc_query.sql')
 writeFileSync(sqlPath, buildSql(mapping), 'utf8')
@@ -97,6 +140,7 @@ const PUSH = {
 
 let pushState = { ok: null, lastAt: 0, fails: 0 }
 async function pushOnce() {
+  if (LIC.enabled && licenseState !== 'approved') return // 승인 전엔 클라우드로 전송하지 않음
   try {
     if (typeof fetch !== 'function') throw new Error('이 Node 버전엔 fetch 가 없습니다(Node 18+ 필요)')
     const data = withFreshness(await getStatus()) // ← /api/status 와 동일한 데이터(경과시간 포함)
@@ -152,6 +196,10 @@ app.use(express.static(join(here, 'public')))
 app.get('/api/public-url', (req, res) => res.json({ url: publicUrl }))
 
 app.get('/api/status', async (req, res) => {
+  // 승인 전/중지 상태면 데이터 대신 잠금 응답 (무단 사용 방지)
+  if (LIC.enabled && licenseState !== 'approved') {
+    return res.json({ locked: true, licenseState, machineId: MACHINE_ID, message: lockMessage(licenseState) })
+  }
   const data = await getStatus()
   if (data) return res.json(withFreshness(data))
   res.status(503).json({ error: cache.error || 'DB 조회 준비 중' })
@@ -198,6 +246,7 @@ function startListening(port, attemptsLeft) {
     startRefreshLoop()
     startPush()
     startTunnel(port)
+    startLicense()
   })
   server.on('error', (e) => {
     if (e.code === 'EADDRINUSE' && attemptsLeft > 0) {
