@@ -3,7 +3,7 @@
 # 사용:  powershell -ExecutionPolicy Bypass -File discover.ps1
 #        powershell -ExecutionPolicy Bypass -File discover.ps1 -Instance "localhost\FCENTRAL_EXPRESS" -Database FCentral
 param(
-  [string]$Instance = "localhost\FCENTRAL_EXPRESS",
+  [string]$Instance = "",
   [string]$Database = "FCentral",
   [int]$NameCode = 35,
   [string]$SqlFile = "",
@@ -16,6 +16,32 @@ if (-not $OutFile) { $OutFile = Join-Path $here "discovery.json" }
 
 # 결과 테이블(t0..t8)에 붙일 이름 — discover.sql 의 SELECT 순서와 일치해야 한다.
 $names = @("controlUnits","houseNames","descriptors","sampleSpecs","templates","conversions","units","orderedText","formats")
+
+# --- SQL 인스턴스 자동 탐지 (농장마다 인스턴스 이름이 달라도 접속) ---
+# 우선순위: 지정한 -Instance → 실행 중인 MSSQL$ 서비스 → 흔한 기본 이름들.
+function Test-SqlConn([string]$inst, [string]$db) {
+  try {
+    $t = New-Object System.Data.SqlClient.SqlConnection "Server=$inst;Database=$db;Integrated Security=True;TrustServerCertificate=True;Connect Timeout=5"
+    $t.Open(); $t.Close(); return $true
+  } catch { return $false }
+}
+$cands = New-Object System.Collections.Generic.List[string]
+if ($Instance) { $cands.Add($Instance) }
+foreach ($svc in (Get-Service -Name "MSSQL`$*" -ErrorAction SilentlyContinue)) {
+  $cands.Add("localhost\" + ($svc.Name -replace '^MSSQL\$',''))
+}
+foreach ($d in @("localhost\FCENTRAL_EXPRESS","localhost\SQLEXPRESS","localhost",".\FCENTRAL_EXPRESS",".\SQLEXPRESS",".")) { $cands.Add($d) }
+$picked = $null
+foreach ($c in ($cands | Select-Object -Unique)) {
+  if (Test-SqlConn $c $Database) { $picked = $c; break }
+}
+if (-not $picked) {
+  Write-Host "[FAIL] Could not connect to any SQL instance for database '$Database'." -ForegroundColor Red
+  Write-Host "       Run on the C-Central PC. Tried: $($cands -join ', ')"
+  exit 1
+}
+$Instance = $picked
+Write-Host "[OK] SQL instance: $Instance"
 
 try {
   $cs = "Server=$Instance;Integrated Security=True;TrustServerCertificate=True;Connect Timeout=10"
