@@ -18,14 +18,18 @@ const ask = (q, def) =>
 console.log('\n=======================================')
 console.log('   축사 모니터 설치 등록')
 console.log('   (관리자 승인 후 이용할 수 있습니다)')
-console.log('=======================================\n')
+console.log('=======================================')
+console.log('  아래 3가지만 입력하세요. (승인 서버 주소는 자동 설정됨)\n')
 
-const server = await ask('1) 라이선스 서버 주소', cur.server || 'https://ct-deploy.up.railway.app')
-const name = await ask('2) 농장/사용자 이름', cur.name)
-const contact = await ask('3) 연락처(휴대폰)', cur.contact)
-const address = await ask('4) 주소', cur.address)
+const name = await ask('1) 농장/사용자 이름', cur.name)
+const contact = await ask('2) 연락처(휴대폰)', cur.contact)
+const address = await ask('3) 주소', cur.address)
 
-writeFileSync(file, JSON.stringify({ server: server.replace(/\/+$/, ''), name, contact, address }, null, 2))
+// 서버 주소는 묻지 않는다(배포용 mapping.license.server 에 이미 심겨 있음).
+// 기존 license.json 에 server 가 있으면 유지, 없으면 넣지 않음.
+const out = { name, contact, address }
+if (cur.server && /^https?:\/\/[^\s<>]+\.[^\s<>]+/.test(cur.server)) out.server = cur.server // 유효 URL만 유지
+writeFileSync(file, JSON.stringify(out, null, 2))
 console.log('\n[OK] 저장되었습니다: license.json')
 console.log('     이제 시작.bat 을 실행하세요. 관리자 승인 후 화면이 열립니다.\n')
 rl.close()
