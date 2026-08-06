@@ -33,12 +33,12 @@ foreach ($f in @('license.json', '.machine-id')) {
   if (Test-Path $p) { Remove-Item $p -Force }
 }
 Remove-Item (Join-Path $src 'discover\discovery.json') -Force -ErrorAction SilentlyContinue
-# mapping.json: an auto-generated (friend) mapping has display/license/tunnel keys -> keep local.
-# The owner's hand-tuned mapping has none of those -> take the latest (gets bug fixes).
+# mapping.json: an auto-generated (friend) mapping has BOTH display and license keys -> keep local.
+# The owner's mapping has neither (tunnel alone does not count) -> take the latest (gets bug fixes).
 $localMap = Join-Path $dest 'mapping.json'
 if (Test-Path $localMap) {
   $c = Get-Content $localMap -Raw
-  if ($c -match '"license"' -or $c -match '"display"' -or $c -match '"tunnel"') {
+  if ($c -match '"license"' -and $c -match '"display"') {
     Remove-Item (Join-Path $src 'mapping.json') -Force -ErrorAction SilentlyContinue
     Write-Host '   (your auto-generated mapping.json is kept)'
   }

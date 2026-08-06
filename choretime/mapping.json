@@ -5,6 +5,9 @@
   "instance": "localhost\\FCENTRAL_EXPRESS",
   "database": "FCentral",
 
+  "_터널_설명": "시작.bat(서버) 실행 시 외부 접속 주소(cloudflared)를 자동으로 함께 켠다.",
+  "tunnel": { "enabled": true },
+
   "_동_설명": "controlunit 번호는 화면 동번호와 반대(3=1동). DB에서 이름(nameCode)도 읽어 검증합니다.",
   "houses": [
     { "controlunit": 3, "name": "1동" },
