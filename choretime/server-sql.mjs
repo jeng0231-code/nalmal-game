@@ -172,11 +172,24 @@ function startPush() {
 // ---- 무료 외부 주소(Cloudflare 임시 터널) : 서버가 직접 띄워 공개 URL을 잡고 화면에 배너+QR로 보여준다 ----
 // 같은 WiFi 가 아니어도 외부에서 접속 가능. cloudflared 가 폴더에 있고 tunnel 이 켜져 있을 때만 동작.
 let publicUrl = null
-function startTunnel(port) {
+// cloudflared 가 없으면 처음 한 번 자동으로 내려받는다(윈도우). 그래야 외부주소가 알아서 뜬다.
+async function ensureCloudflared(exe) {
+  if (existsSync(exe)) return true
+  if (process.platform !== 'win32') return false
+  try {
+    console.log('   [외부주소] cloudflared 처음 한 번 내려받는 중... (~30MB, 잠시)')
+    const res = await fetch('https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe', { redirect: 'follow' })
+    if (!res.ok) throw new Error('HTTP ' + res.status)
+    writeFileSync(exe, Buffer.from(await res.arrayBuffer()))
+    console.log('   [외부주소] cloudflared 준비 완료')
+    return true
+  } catch (e) { console.log('   [외부주소] cloudflared 다운로드 실패: ' + (e.message || e)); return false }
+}
+async function startTunnel(port) {
   const enabled = process.env.TUNNEL === '1' || mapping.tunnel?.enabled
   if (!enabled) return
   const exe = join(here, process.platform === 'win32' ? 'cloudflared.exe' : 'cloudflared')
-  if (!existsSync(exe)) { console.log('   [외부주소] cloudflared 없음 → 생략 (웹공개.bat 로 받을 수 있음)'); return }
+  if (!(await ensureCloudflared(exe))) { console.log('   [외부주소] 준비 실패 → 외부주소 생략 (웹공개.bat 로도 받을 수 있음)'); return }
   const run = () => {
     const cf = spawn(exe, ['tunnel', '--url', `http://127.0.0.1:${port}`], { windowsHide: true })
     const grab = (d) => {
