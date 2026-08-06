@@ -181,7 +181,9 @@ async function load() {
     const res = await fetch('/api/status', { cache: 'no-store' })
     if (!res.ok) throw new Error('서버 오류 ' + res.status)
     const data = await res.json()
-    DISPLAY = data.display || {}
+    // ?dist=1 이면 서버 설정과 무관하게 배포용 모습으로 미리보기 (사장님 실제 화면은 그대로)
+    const forceDist = new URLSearchParams(location.search).has('dist')
+    DISPLAY = forceDist ? { showFanStatus: false } : (data.display || {})
 
     renderAlarms(data.alarms)
     el('houses').innerHTML = data.houses.map(houseCard).join('') || '<p>표시할 동이 없습니다. config.json 경로를 확인하세요.</p>'
@@ -213,3 +215,38 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) { lo
 
 load()
 schedule()
+
+// 📱 폰으로 보기 — 현재 접속 주소를 QR로 표시. 외부주소(웹공개.bat)로 열려 있으면 그 주소가 QR로 나와,
+// 폰 카메라로 찍으면 폰에서 바로 접속된다.
+;(function addQrButton() {
+  const css = `
+  .qr-fab{position:fixed;right:14px;bottom:14px;z-index:50;padding:10px 14px;border:0;border-radius:22px;
+    background:#2563eb;color:#fff;font-size:14px;font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,.4);cursor:pointer}
+  .qr-overlay{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center}
+  .qr-overlay.hidden{display:none}
+  .qr-box{background:#111827;border:1px solid #334155;border-radius:14px;padding:20px;max-width:340px;text-align:center;color:#e5e7eb}
+  .qr-title{font-size:15px;font-weight:700;margin-bottom:12px}
+  .qr-img{width:260px;height:260px;background:#fff;border-radius:8px}
+  .qr-url{margin-top:10px;font-size:12px;color:#93c5fd;word-break:break-all}
+  .qr-note{margin-top:10px;font-size:12px;color:#94a3b8;line-height:1.5}
+  .qr-close{margin-top:14px;padding:8px 18px;border:0;border-radius:8px;background:#374151;color:#fff;font-size:14px;cursor:pointer}`
+  const style = document.createElement('style'); style.textContent = css; document.head.appendChild(style)
+  const btn = document.createElement('button'); btn.className = 'qr-fab'; btn.textContent = '📱 폰으로 보기'
+  const overlay = document.createElement('div'); overlay.className = 'qr-overlay hidden'
+  overlay.innerHTML = `<div class="qr-box">
+    <div class="qr-title">📱 폰 카메라로 QR을 찍으세요</div>
+    <img class="qr-img" alt="QR">
+    <div class="qr-url"></div>
+    <div class="qr-note">이 PC가 <b>외부 주소(웹공개.bat)</b>로 열려 있어야 폰에서 접속됩니다.<br>주소창이 <b>localhost</b>면 폰에선 안 열립니다.</div>
+    <button class="qr-close">닫기</button></div>`
+  document.body.append(btn, overlay)
+  btn.addEventListener('click', () => {
+    const url = location.href
+    overlay.querySelector('.qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=' + encodeURIComponent(url)
+    overlay.querySelector('.qr-url').textContent = url
+    overlay.classList.remove('hidden')
+  })
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay || e.target.classList.contains('qr-close')) overlay.classList.add('hidden')
+  })
+})()
