@@ -41,9 +41,9 @@ app.get('/ct2', (req, res) => res.redirect('/ct2/'))
 ```
 
 **대시보드 파일**(그대로 받아 `ct2-embed/` 폴더에 넣기 — 수정 불필요, fetch 가 이미 상대경로):
-- https://raw.githubusercontent.com/jeng0231-code/nalmal-game/HEAD/choretime/ct2-embed/index.html
-- https://raw.githubusercontent.com/jeng0231-code/nalmal-game/HEAD/choretime/ct2-embed/app.js
-- https://raw.githubusercontent.com/jeng0231-code/nalmal-game/HEAD/choretime/ct2-embed/styles.css
+- https://raw.githubusercontent.com/jeng0231-code/nalmal-game/refs/heads/claude/c-central-mobile-web-r2n1jf/choretime/ct2-embed/index.html
+- https://raw.githubusercontent.com/jeng0231-code/nalmal-game/refs/heads/claude/c-central-mobile-web-r2n1jf/choretime/ct2-embed/app.js
+- https://raw.githubusercontent.com/jeng0231-code/nalmal-game/refs/heads/claude/c-central-mobile-web-r2n1jf/choretime/ct2-embed/styles.css
 
 ### 3) 보드 메뉴에 "축사 모니터" 항목 추가 → 링크 `/ct2/` (끝에 슬래시)
 
