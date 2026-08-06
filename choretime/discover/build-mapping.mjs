@@ -210,6 +210,8 @@ function generate(disc, opts = {}) {
     display: { showFanStatus: false },
     // 배포용 기본값: 서버가 무료 외부주소(cloudflare)를 자동으로 띄워 외부에서도 접속 가능하게.
     tunnel: { enabled: true },
+    // 배포용 기본값: 라이선스 승인 서버(관리자 보드). 설치 시 승인받아야 사용 가능(무단배포 방지).
+    license: { server: 'https://nalmal-game-production.up.railway.app' },
   }
   return { mapping, warnings }
 }
