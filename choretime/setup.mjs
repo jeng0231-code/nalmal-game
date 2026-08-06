@@ -20,7 +20,7 @@ console.log('   축사 모니터 설치 등록')
 console.log('   (관리자 승인 후 이용할 수 있습니다)')
 console.log('=======================================\n')
 
-const server = await ask('1) 라이선스 서버 주소', cur.server || 'https://nalmal-game-production.up.railway.app')
+const server = await ask('1) 라이선스 서버 주소', cur.server || 'https://ct-deploy.up.railway.app')
 const name = await ask('2) 농장/사용자 이름', cur.name)
 const contact = await ask('3) 연락처(휴대폰)', cur.contact)
 const address = await ask('4) 주소', cur.address)
