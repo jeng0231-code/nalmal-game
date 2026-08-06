@@ -23,8 +23,14 @@ const server = app.listen(0)
 await new Promise((r) => server.once('listening', r))
 const base = `http://127.0.0.1:${server.address().port}`
 
-// 관리자 엔드포인트용 Basic 자격증명 헤더.
-const adminAuth = 'Basic ' + Buffer.from('admin:test-pass').toString('base64')
+// 관리자 로그인 → 쿠키 획득 (Basic 팝업 대신 폼+쿠키 방식).
+const loginRes = await fetch(base + '/admin/login', {
+  method: 'POST', headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ password: 'test-pass' }), redirect: 'manual',
+})
+const adminCookie = (loginRes.headers.get('set-cookie') || '').split(';')[0]
+check('로그인 성공 → 쿠키 발급', !!adminCookie && loginRes.status >= 300 && loginRes.status < 400)
+check('틀린 비밀번호 → 401', (await fetch(base + '/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: 'wrong' }), redirect: 'manual' })).status === 401)
 
 async function post(path, body, headers = {}) {
   const res = await fetch(base + path, {
@@ -66,7 +72,7 @@ r = await post('/admin/api/approve', { machineId: MID })
 check('admin 인증 없음 → 401', r.code === 401)
 
 // 7) 승인
-r = await post('/admin/api/approve', { machineId: MID }, { Authorization: adminAuth })
+r = await post('/admin/api/approve', { machineId: MID }, { Cookie: adminCookie })
 check('approve → approved', r.code === 200 && r.json.ok === true && r.json.status === 'approved')
 
 // 8) 상태 조회 → approved
@@ -74,7 +80,7 @@ r = await get('/api/status/' + MID)
 check('status → approved', r.json.status === 'approved')
 
 // 9) 중지
-r = await post('/admin/api/suspend', { machineId: MID }, { Authorization: adminAuth })
+r = await post('/admin/api/suspend', { machineId: MID }, { Cookie: adminCookie })
 check('suspend → suspended', r.code === 200 && r.json.ok === true && r.json.status === 'suspended')
 
 // 10) 상태 조회 → suspended
@@ -82,7 +88,7 @@ r = await get('/api/status/' + MID)
 check('status → suspended', r.json.status === 'suspended')
 
 // 11) 목록 조회(관리자)
-r = await get('/admin/api/list', { Authorization: adminAuth })
+r = await get('/admin/api/list', { Cookie: adminCookie })
 check('list에 등록 기기 포함', Array.isArray(r.json.licenses) && r.json.licenses.some((l) => l.machineId === MID))
 
 server.close()

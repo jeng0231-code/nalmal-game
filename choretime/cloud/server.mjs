@@ -62,6 +62,7 @@ const app = express()
 // Railway 등 프록시 뒤에서 req.ip가 실제 클라이언트 IP가 되도록.
 app.set('trust proxy', true)
 app.use(express.json({ limit: '100kb' }))
+app.use(express.urlencoded({ extended: false, limit: '10kb' })) // 로그인 폼(application/x-www-form-urlencoded)
 
 // ---- 에이전트용 공개 API -------------------------------------------------
 
@@ -105,18 +106,36 @@ app.get('/api/status/:machineId', (req, res) => {
   res.json({ status: rec.status })
 })
 
-// ---- 관리자 인증 (HTTP Basic) --------------------------------------------
-// 같은 오리진에서 브라우저 fetch는 Basic 자격증명을 자동 재사용하므로
-// /admin 페이지의 승인/중지 버튼도 별도 처리 없이 인증이 유지된다.
-function requireAdmin(req, res, next) {
-  const h = req.headers.authorization || ''
-  if (h.startsWith('Basic ')) {
-    const [user, pass] = Buffer.from(h.slice(6), 'base64').toString('utf8').split(':')
-    if (user === ADMIN_USER && pass === ADMIN_PASSWORD) return next()
+// ---- 관리자 인증 (화면 안 로그인 폼 + 쿠키) --------------------------------
+// 브라우저 Basic 팝업은 환경마다 안 뜨는 경우가 있어, 페이지 안 비밀번호 입력창으로 처리한다.
+// 로그인 성공 시 HttpOnly 쿠키를 심고(HTTPS 전용), 이후 요청은 쿠키로 인증한다.
+function readCookies(req) {
+  const out = {}
+  for (const part of (req.headers.cookie || '').split(';')) {
+    const i = part.indexOf('=')
+    if (i < 0) continue
+    out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim())
   }
-  res.set('WWW-Authenticate', 'Basic realm="choretime-admin"')
-  res.status(401).json({ error: '인증 필요' })
+  return out
 }
+function isAdmin(req) { return readCookies(req).adm === ADMIN_PASSWORD }
+function requireAdmin(req, res, next) {
+  if (isAdmin(req)) return next()
+  res.status(401).json({ error: '인증 필요 — /admin 에서 로그인하세요' })
+}
+
+app.post('/admin/login', (req, res) => {
+  const pw = (req.body && req.body.password) || ''
+  if (pw === ADMIN_PASSWORD) {
+    res.set('Set-Cookie', `adm=${encodeURIComponent(pw)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${30 * 24 * 3600}`)
+    return res.redirect('/admin')
+  }
+  res.status(401).type('html').send(LOGIN_HTML('비밀번호가 틀렸습니다.'))
+})
+app.post('/admin/logout', (req, res) => {
+  res.set('Set-Cookie', 'adm=; Path=/; HttpOnly; Max-Age=0')
+  res.redirect('/admin')
+})
 
 app.post('/admin/api/approve', requireAdmin, (req, res) => {
   const rec = db[(req.body || {}).machineId]
@@ -138,7 +157,9 @@ app.get('/admin/api/list', requireAdmin, (req, res) => {
   res.json({ licenses: Object.values(db) })
 })
 
-app.get('/admin', requireAdmin, (req, res) => {
+app.get('/admin', (req, res) => {
+  // 로그인 전이면 비밀번호 입력 폼, 로그인 후면 관리 보드.
+  if (!isAdmin(req)) return res.type('html').send(LOGIN_HTML(''))
   res.type('html').send(ADMIN_HTML)
 })
 
@@ -151,6 +172,19 @@ app.get('/', (req, res) => {
 <style>body{margin:0;font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;background:#0f1115;color:#e6e6e6;display:flex;min-height:100vh;align-items:center;justify-content:center;text-align:center}main{padding:24px}h1{font-size:20px;margin:0 0 8px}p{color:#9aa4b2;margin:4px 0}code{background:#1b1f27;padding:2px 6px;border-radius:4px}</style>
 </head><body><main><h1>축사모니터 라이선스 서버</h1><p>관리자는 <code>/admin</code></p></main></body></html>`)
 })
+
+// ---- 로그인 폼 (화면 안 비밀번호 입력) -----------------------------------
+const LOGIN_HTML = (err) => `<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>관리자 로그인 · 축사모니터</title>
+<style>body{margin:0;font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;background:#0f1115;color:#e6e6e6;display:flex;min-height:100vh;align-items:center;justify-content:center}
+form{background:#161a22;border:1px solid #232833;border-radius:12px;padding:28px;width:290px;text-align:center}
+h1{font-size:18px;margin:0 0 16px}
+input{width:100%;padding:11px;border-radius:8px;border:1px solid #333;background:#0b0e13;color:#fff;font-size:15px}
+button{margin-top:12px;width:100%;padding:11px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+.err{color:#f87171;font-size:13px;margin-top:10px;min-height:16px}</style></head>
+<body><form method="POST" action="/admin/login"><h1>🔒 관리자 로그인</h1>
+<input type="password" name="password" placeholder="관리자 비밀번호" autofocus autocomplete="current-password">
+<button type="submit">로그인</button><div class="err">${err}</div></form></body></html>`
 
 // ---- 관리자 HTML (완전 자체 포함, 외부 CDN/자산 없음) --------------------
 const ADMIN_HTML = `<!doctype html><html lang="ko"><head><meta charset="utf-8">
