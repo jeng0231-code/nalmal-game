@@ -6,7 +6,7 @@ title Choretime Monitor
 set "NODE=node"
 if exist "%~dp0node.exe" set "NODE=%~dp0node.exe"
 
-rem 옛 서버가 포트(8088)를 물고 있으면 새 설정이 안 읽히므로 먼저 정리
+rem stop any old server holding port 8088 so new settings load
 taskkill /F /IM node.exe >nul 2>&1
 taskkill /F /IM cloudflared.exe >nul 2>&1
 
@@ -20,6 +20,7 @@ echo    (stop: Ctrl + C)
 echo ============================================
 echo.
 "%NODE%" server-sql.mjs
+
 echo.
-echo (server stopped) - close this window.
-pause
+echo (server stopped) - press a key to close.
+pause >nul
