@@ -1,0 +1,303 @@
+// server-sql.mjs — C-Central FCentral DB(SQL Server)를 읽어 모바일 대시보드 제공.
+// 축사 PC에서 실행. PowerShell(runsql.ps1)이 Windows 인증으로 DB를 읽고(읽기 전용),
+// 이 서버가 그 결과를 모바일 화면으로 보여준다. 별도 SQL 계정/설정 불필요.
+
+import express from 'express'
+import { spawn } from 'node:child_process'
+import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+import { randomBytes } from 'node:crypto'
+import os from 'node:os'
+import { tmpdir } from 'node:os'
+import { buildSql, buildStatus, buildStageDebug } from './sqlmap.mjs'
+
+const here = dirname(fileURLToPath(import.meta.url))
+const mapping = JSON.parse(readFileSync(join(here, 'mapping.json'), 'utf8'))
+const PORT = process.env.PORT || mapping.port || 8080
+const REFRESH_MS = Number(process.env.REFRESH_MS || 5000) // 백그라운드 DB 갱신 주기
+const QUERY_TIMEOUT_MS = 25000
+// 이 시간(초)보다 오래 갱신이 안 되면 "끊김"으로 표시 → 오래된 가동상태를 실시간처럼 보이지 않게 한다.
+const STALE_SECONDS = Number(process.env.STALE_SECONDS || Math.max(20, Math.round(REFRESH_MS / 1000) * 3))
+
+// ---- 라이선스(설치 승인) : 무단 배포 방지. license.json/mapping/env 로 서버 주소가 설정된 경우에만 동작.
+//      주소가 없으면(주인 설치) 잠금 없이 그대로 실행된다. ----
+const LIC = (() => {
+  let f = {}
+  try { f = JSON.parse(readFileSync(join(here, 'license.json'), 'utf8').replace(/^﻿/, '')) } catch { /* 없으면 무시 */ }
+  const server = (process.env.LICENSE_SERVER || f.server || mapping.license?.server || '').replace(/\/+$/, '')
+  // 실제 주소(도메인) 형태일 때만 활성. 'https://' 나 'https://<보드주소>' 같은 미입력/placeholder 는 잠금 안 함.
+  const valid = /^https?:\/\/[^\s<>]+\.[^\s<>]+/.test(server)
+  return { enabled: valid, server, name: f.name || mapping.license?.name || '', contact: f.contact || '', address: f.address || '' }
+})()
+const MACHINE_ID = (() => {
+  const idFile = join(here, '.machine-id')
+  try { const id = readFileSync(idFile, 'utf8').trim(); if (id) return id } catch { /* 새로 생성 */ }
+  const id = 'ct-' + randomBytes(8).toString('hex')
+  try { writeFileSync(idFile, id) } catch { /* 저장 실패해도 이번 세션은 동작 */ }
+  return id
+})()
+let licenseState = LIC.enabled ? 'checking' : 'approved' // 미설정=주인 설치=항상 통과
+function lockMessage(s) {
+  if (s === 'suspended') return '사용이 중지되었습니다. 관리자에게 문의하세요.'
+  if (s === 'checking') return '라이선스 확인 중입니다...'
+  return '설치 승인 대기 중입니다. 관리자 승인 후 이용할 수 있습니다.'
+}
+async function licenseCheck() {
+  if (!LIC.enabled) return
+  try {
+    await fetch(LIC.server + '/api/register', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ machineId: MACHINE_ID, name: LIC.name, contact: LIC.contact, address: LIC.address }),
+    })
+    const r = await fetch(LIC.server + '/api/status/' + encodeURIComponent(MACHINE_ID))
+    const j = await r.json()
+    if (j && j.status) licenseState = j.status // 성공 시에만 갱신(오프라인이면 직전 상태 유지 → 인터넷 끊김에 잠기지 않음)
+  } catch { /* 네트워크 오류: 직전 상태 유지 */ }
+}
+function startLicense() {
+  if (!LIC.enabled) { console.log('   [라이선스] 미설정 → 잠금 없음(주인 설치)'); return }
+  console.log(`   [라이선스] 서버: ${LIC.server}  기기ID: ${MACHINE_ID}`)
+  licenseCheck()
+  setInterval(licenseCheck, 30 * 1000) // 30초마다 승인/중지 반영(승인 후 빨리 열리게)
+}
+
+const sqlPath = join(tmpdir(), 'cc_query.sql')
+writeFileSync(sqlPath, buildSql(mapping), 'utf8')
+
+function runQuery() {
+  return new Promise((resolve, reject) => {
+    const ps = spawn('powershell', [
+      '-NoProfile', '-ExecutionPolicy', 'Bypass',
+      '-File', join(here, 'runsql.ps1'),
+      '-SqlFile', sqlPath,
+      '-Instance', mapping.instance,
+    ], { windowsHide: true })
+
+    let out = '', err = '', done = false
+    const finish = (fn, arg) => { if (done) return; done = true; clearTimeout(timer); fn(arg) }
+    const timer = setTimeout(() => {
+      try { ps.kill() } catch { /* ignore */ }
+      finish(reject, new Error('DB 조회 시간 초과(25초)'))
+    }, QUERY_TIMEOUT_MS)
+
+    ps.stdout.on('data', (d) => (out += d))
+    ps.stderr.on('data', (d) => (err += d))
+    ps.on('error', (e) => finish(reject, e))
+    ps.on('close', () => {
+      try {
+        const json = JSON.parse(out.trim())
+        if (json && json.error) return finish(reject, new Error(json.error))
+        finish(resolve, json)
+      } catch {
+        finish(reject, new Error('DB 조회 결과 해석 실패: ' + (err || out).slice(0, 300)))
+      }
+    })
+  })
+}
+
+// 백그라운드로 주기 갱신 → 브라우저/푸시는 캐시를 즉시 읽는다(요청마다 DB 조회하지 않음).
+// DB 부하는 REFRESH_MS 당 1회로 묶이고, 화면 지연은 최대 REFRESH_MS 로 제한된다.
+let cache = { at: 0, data: null, error: null }
+let refreshing = null
+function refreshNow() {
+  if (refreshing) return refreshing // 직전 조회가 안 끝났으면 중복 조회 방지
+  refreshing = runQuery()
+    .then((ds) => { cache = { at: Date.now(), data: buildStatus(ds, mapping, Date.now()), ds, error: null } })
+    .catch((e) => { cache = { ...cache, error: String(e.message || e) } }) // 실패해도 직전 값 유지
+    .finally(() => { refreshing = null })
+  return refreshing
+}
+async function getStatus() {
+  if (!cache.data) await refreshNow() // 최초 1회만 대기, 이후엔 백그라운드 캐시
+  return cache.data
+}
+// 캐시가 마지막으로 성공한 시점 기준으로 실제 경과시간/끊김 여부를 매길인다.
+// (buildStatus 는 조회시각을 baked 하지만, 조회 실패로 캐시가 멈추면 그 값이 실시간처럼 보이므로 여기서 보정)
+function withFreshness(data) {
+  if (!data) return data
+  const age = cache.at ? Math.max(0, Math.round((Date.now() - cache.at) / 1000)) : null
+  const stale = age == null || age > STALE_SECONDS
+  const houses = (data.houses || []).map((h) => ({ ...h, ageSeconds: age, stale }))
+  return { ...data, ageSeconds: age, stale, houses, display: mapping.display || null, publicUrl }
+}
+function startRefreshLoop() {
+  refreshNow().then(() => {
+    if (cache.data) console.log(`   [OK] DB 연결 성공 — ${cache.data.houses.length}개 동, 활성 알람 ${cache.data.alarms.active.length}건 (갱신 ${REFRESH_MS / 1000}초마다)\n`)
+    else console.log(`   [!] DB 조회 실패: ${cache.error}\n       (SQL Server 실행 여부 / mapping.json instance 확인)\n`)
+  })
+  setInterval(refreshNow, REFRESH_MS)
+}
+
+// ---- 클라우드 푸시 (선택) : /api/status 와 동일한 데이터를 여러 대상에 주기 전송 ----
+// 대상은 여러 곳(예: AI 사육 매니저 + 내 전용 뷰어)에 동시에 보낼 수 있다.
+const PUSH_ENABLED =
+  (process.env.PUSH_ENABLED ?? mapping.push?.enabled ?? 'true') !== 'false' && process.env.PUSH_ENABLED !== '0'
+const PUSH_INTERVAL_MS = Number(process.env.PUSH_INTERVAL_MS || mapping.push?.intervalMs || 15000)
+
+// 전송 대상 목록 구성
+const PUSH_TARGETS = []
+{
+  // ① AI 사육 매니저 (기존 기본값). PUSH_URL='' 또는 mapping.push.url='' 로 끌 수 있음.
+  const url = process.env.PUSH_URL ?? mapping.push?.url ?? 'https://web-production-8ecc.up.railway.app/api/ct2-push'
+  const token = process.env.PUSH_TOKEN || mapping.push?.token || 'broiler_push_2026'
+  if (url) PUSH_TARGETS.push({ name: 'AI매니저', url, token })
+  // ② 내 전용 Railway 뷰어 (배포 후 주소 지정: mapping.push.viewerUrl 또는 env VIEWER_PUSH_URL).
+  const vurl = process.env.VIEWER_PUSH_URL || mapping.push?.viewerUrl
+  const vtoken = process.env.VIEWER_PUSH_TOKEN || mapping.push?.viewerToken || 'ct-viewer-2026'
+  if (vurl) PUSH_TARGETS.push({ name: '내뷰어', url: vurl, token: vtoken })
+}
+// 대상별 상태(로그 도배 방지용)
+const pushState = new Map(PUSH_TARGETS.map((t) => [t.url, { ok: null, fails: 0 }]))
+
+async function pushTo(t, data) {
+  const st = pushState.get(t.url)
+  try {
+    const res = await fetch(t.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: t.token, data }),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    if (st.ok !== true) console.log(`   [push] ${t.name} 전송 성공 → ${t.url}`)
+    st.ok = true; st.fails = 0; st.lastAt = Date.now()
+  } catch (e) {
+    st.fails++
+    if (st.ok !== false || st.fails % 10 === 1) console.log(`   [push] ${t.name} 전송 실패(${st.fails}회): ${e.message}`)
+    st.ok = false
+  }
+}
+
+async function pushOnce() {
+  if (LIC.enabled && licenseState !== 'approved') return // 승인 전엔 클라우드로 전송하지 않음
+  if (typeof fetch !== 'function') { console.log('   [push] 이 Node 버전엔 fetch 가 없습니다(Node 18+ 필요)'); return }
+  const data = withFreshness(await getStatus()) // ← /api/status 와 동일한 데이터(경과시간 포함)
+  for (const t of PUSH_TARGETS) pushTo(t, data)
+}
+
+function startPush() {
+  if (!PUSH_ENABLED || !PUSH_TARGETS.length) { console.log('   [push] 비활성화됨'); return }
+  console.log(`   [push] 클라우드 푸시 켜짐 — ${Math.round(PUSH_INTERVAL_MS / 1000)}초마다 → ${PUSH_TARGETS.map((t) => t.name).join(', ')}`)
+  pushOnce() // 즉시 1회
+  setInterval(pushOnce, PUSH_INTERVAL_MS) // 이후 주기 반복
+}
+
+// ---- 무료 외부 주소(Cloudflare 임시 터널) : 서버가 직접 띄워 공개 URL을 잡고 화면에 배너+QR로 보여준다 ----
+// 같은 WiFi 가 아니어도 외부에서 접속 가능. cloudflared 가 폴더에 있고 tunnel 이 켜져 있을 때만 동작.
+let publicUrl = null
+// cloudflared 가 없으면 처음 한 번 자동으로 내려받는다(윈도우). 그래야 외부주소가 알아서 뜬다.
+async function ensureCloudflared(exe) {
+  if (existsSync(exe)) return true
+  if (process.platform !== 'win32') return false
+  try {
+    console.log('   [외부주소] cloudflared 처음 한 번 내려받는 중... (~30MB, 잠시)')
+    const res = await fetch('https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe', { redirect: 'follow' })
+    if (!res.ok) throw new Error('HTTP ' + res.status)
+    writeFileSync(exe, Buffer.from(await res.arrayBuffer()))
+    console.log('   [외부주소] cloudflared 준비 완료')
+    return true
+  } catch (e) { console.log('   [외부주소] cloudflared 다운로드 실패: ' + (e.message || e)); return false }
+}
+async function startTunnel(port) {
+  const enabled = process.env.TUNNEL === '1' || mapping.tunnel?.enabled
+  if (!enabled) return
+  const exe = join(here, process.platform === 'win32' ? 'cloudflared.exe' : 'cloudflared')
+  if (!(await ensureCloudflared(exe))) { console.log('   [외부주소] 준비 실패 → 외부주소 생략 (웹공개.bat 로도 받을 수 있음)'); return }
+  const run = () => {
+    const cf = spawn(exe, ['tunnel', '--url', `http://127.0.0.1:${port}`], { windowsHide: true })
+    const grab = (d) => {
+      const m = String(d).match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/i)
+      if (m && publicUrl !== m[0]) {
+        publicUrl = m[0]
+        console.log(`\n   🌐 외부 접속 주소: ${publicUrl}\n`)
+        console.log('   ── 사용법 ──────────────────────────────────────────')
+        console.log('   1) 크롬·엣지 등 웹브라우저에 위 "외부 접속 주소"를 입력하면')
+        console.log('      어디서든(휴대폰·다른 PC) 볼 수 있습니다.')
+        console.log('   2) 이 검은 창은 닫지 마세요. 닫으면 외부 접속이 끊깁니다.')
+        console.log("   3) PC를 껐다 켠 뒤에는 '설치시작'이 아니라 '시작' 파일을 실행하세요.")
+        console.log("   4) 외부 접속 주소는 '시작' 실행 때마다 새로 만들어집니다.")
+        console.log('      (기존 주소는 더 이상 안 됩니다. 새 주소로 접속하세요.)')
+        console.log('   ────────────────────────────────────────────────────\n')
+      }
+    }
+    cf.stdout.on('data', grab); cf.stderr.on('data', grab)
+    cf.on('error', (e) => console.log(`   [외부주소] 실행 오류: ${e.message}`))
+    cf.on('close', () => { publicUrl = null; setTimeout(run, 10000) }) // 끊기면 10초 후 재연결(새 주소)
+  }
+  run()
+}
+
+const app = express()
+// 업데이트 후 앱 파일(app.js/index.html 등)이 브라우저 캐시로 안 바뀌어 보이는 일 방지.
+app.use(express.static(join(here, 'public'), {
+  etag: true,
+  setHeaders: (res) => res.setHeader('Cache-Control', 'no-cache'),
+}))
+
+app.get('/api/public-url', (req, res) => res.json({ url: publicUrl }))
+
+app.get('/api/status', async (req, res) => {
+  // 승인 전/중지 상태면 데이터 대신 잠금 응답 (무단 사용 방지)
+  if (LIC.enabled && licenseState !== 'approved') {
+    return res.json({ locked: true, licenseState, machineId: MACHINE_ID, message: lockMessage(licenseState) })
+  }
+  const data = await getStatus()
+  if (data) return res.json(withFreshness(data))
+  res.status(503).json({ error: cache.error || 'DB 조회 준비 중' })
+})
+
+app.get('/api/health', (req, res) => res.json({ ok: true, mode: 'sql', instance: mapping.instance }))
+
+// 진단: 출력별 원시값(On/Off·상태28·실가동574)과 가동 판정 근거. 오판정 원인 확인용.
+app.get('/api/debug', async (req, res) => {
+  await getStatus()
+  if (!cache.ds) return res.status(503).json({ error: cache.error || 'DB 조회 준비 중' })
+  const age = cache.at ? Math.round((Date.now() - cache.at) / 1000) : null
+  res.json({ ageSeconds: age, at: new Date(cache.at).toISOString(), ...buildStageDebug(cache.ds, mapping) })
+})
+
+app.get('/api/push-status', (req, res) => res.json({
+  enabled: PUSH_ENABLED, intervalMs: PUSH_INTERVAL_MS,
+  targets: PUSH_TARGETS.map((t) => ({ name: t.name, url: t.url, ...(pushState.get(t.url) || {}) })),
+}))
+
+function lanIp() {
+  const ifs = os.networkInterfaces()
+  for (const name of Object.keys(ifs)) {
+    for (const i of ifs[name] || []) {
+      if (i.family === 'IPv4' && !i.internal) return i.address
+    }
+  }
+  return 'localhost'
+}
+
+// 빈 포트를 자동으로 찾아 listen (8080이 점유돼 있으면 다음 포트 시도)
+function startListening(port, attemptsLeft) {
+  const server = app.listen(port)
+  server.on('listening', () => {
+    const ip = lanIp()
+    console.log('\n  ===========================================')
+    console.log('   축사 모니터 서버가 켜졌습니다')
+    console.log('  ===========================================')
+    console.log(`   이 PC에서   : http://localhost:${port}`)
+    console.log(`   휴대폰에서  : http://${ip}:${port}   (같은 WiFi)`)
+    console.log(`   DB          : ${mapping.instance} / ${mapping.database}`)
+    console.log('   끄기        : 이 창에서 Ctrl + C')
+    console.log('  ===========================================\n')
+    startRefreshLoop()
+    startPush()
+    startTunnel(port)
+    startLicense()
+  })
+  server.on('error', (e) => {
+    if (e.code === 'EADDRINUSE' && attemptsLeft > 0) {
+      console.log(`   포트 ${port} 사용 중 → ${port + 1} 시도...`)
+      startListening(port + 1, attemptsLeft - 1)
+    } else {
+      console.error(`   서버 시작 실패: ${e.message}`)
+      process.exit(1)
+    }
+  })
+}
+
+startListening(PORT, 12)

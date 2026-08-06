@@ -1,0 +1,17 @@
+{
+  "name": "choretime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Chore-Time C-Central 축사 데이터를 모바일 웹에서 보는 읽기 전용 대시보드 (1단계: 모니터링)",
+  "scripts": {
+    "start": "node server-sql.mjs",
+    "start:csv": "node server.mjs",
+    "demo": "node server.mjs --demo",
+    "test": "node parser.test.mjs && node sqlmap.test.mjs && node discover/build-mapping.test.mjs"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "iconv-lite": "^0.6.3"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "_설명": "테스트용 합성 지문 — 우리 농장 descriptorfk 에 code/ram 을 붙인 것. 실제 확인값(평균온도/습도/정압/설정온도)은 진짜, 나머지 code/ram 은 합성(테스트 결정성용).",
+  "_meta": { "instance": "localhost\\FCENTRAL_EXPRESS", "database": "FCentral", "nameCode": 35, "tableCount": 9 },
+  "controlUnits": [
+    { "controlunitpk": 1, "alarmStatus": 2, "alarmText": "ALARMS DISABLED", "currentStatus": 4 },
+    { "controlunitpk": 2, "alarmStatus": 1, "alarmText": "MAX REL PWR sens. 4", "currentStatus": 4 },
+    { "controlunitpk": 3, "alarmStatus": 0, "alarmText": "POWER FAILURE", "currentStatus": 4 }
+  ],
+  "houseNames": [
+    { "cu": 1, "sv": "House 3\\" },
+    { "cu": 2, "sv": "House2\\" },
+    { "cu": 3, "sv": "House 1\\" }
+  ],
+  "descriptors": [
+    { "datadescriptorpk": 603, "code": 0,   "dataDescriptorID": 12582912, "datatemplatefk": 6,   "dataformatfk": 7 },
+    { "datadescriptorpk": 542, "code": 176, "dataDescriptorID": 11579392, "datatemplatefk": 166, "dataformatfk": 175 },
+    { "datadescriptorpk": 538, "code": 172, "dataDescriptorID": 11578368, "datatemplatefk": 163, "dataformatfk": 172 },
+    { "datadescriptorpk": 546, "code": 200, "dataDescriptorID": 13000000, "datatemplatefk": 6,   "dataformatfk": 7 },
+    { "datadescriptorpk": 610, "code": 210, "dataDescriptorID": 13100000, "datatemplatefk": 80,  "dataformatfk": 40 },
+    { "datadescriptorpk": 311, "code": 211, "dataDescriptorID": 13200000, "datatemplatefk": 81,  "dataformatfk": 41 },
+    { "datadescriptorpk": 535, "code": 50,  "dataDescriptorID": 12600000, "datatemplatefk": 6,   "dataformatfk": 7 },
+    { "datadescriptorpk": 1,   "code": 0,   "dataDescriptorID": 2097152,  "datatemplatefk": 1,   "dataformatfk": 1 },
+    { "datadescriptorpk": 21,  "code": 0,   "dataDescriptorID": 2200000,  "datatemplatefk": 6,   "dataformatfk": 7 },
+    { "datadescriptorpk": 266, "code": 90,  "dataDescriptorID": 3000000,  "datatemplatefk": 20,  "dataformatfk": 10 },
+    { "datadescriptorpk": 2,   "code": 300, "dataDescriptorID": 4000000,  "datatemplatefk": 30,  "dataformatfk": 12 },
+    { "datadescriptorpk": 3,   "code": 301, "dataDescriptorID": 4001000,  "datatemplatefk": 30,  "dataformatfk": 12 },
+    { "datadescriptorpk": 337, "code": 310, "dataDescriptorID": 4100000,  "datatemplatefk": 163, "dataformatfk": 172 },
+    { "datadescriptorpk": 338, "code": 311, "dataDescriptorID": 4101000,  "datatemplatefk": 163, "dataformatfk": 172 },
+    { "datadescriptorpk": 344, "code": 320, "dataDescriptorID": 4200000,  "datatemplatefk": 30,  "dataformatfk": 12 },
+    { "datadescriptorpk": 343, "code": 321, "dataDescriptorID": 4201000,  "datatemplatefk": 30,  "dataformatfk": 12 },
+    { "datadescriptorpk": 17,  "code": 0,   "dataDescriptorID": 11000000, "datatemplatefk": 6,   "dataformatfk": 7 },
+    { "datadescriptorpk": 18,  "code": 1,   "dataDescriptorID": 11001000, "datatemplatefk": 6,   "dataformatfk": 7 },
+    { "datadescriptorpk": 28,  "code": 207, "dataDescriptorID": 11002000, "datatemplatefk": 50,  "dataformatfk": 20 },
+    { "datadescriptorpk": 574, "code": 208, "dataDescriptorID": 11003000, "datatemplatefk": 50,  "dataformatfk": 20 }
+  ],
+  "sampleSpecs": [
+    { "text": "평균온도",    "datadescriptorfk": 603 },
+    { "text": "습도",        "datadescriptorfk": 542 },
+    { "text": "정압",        "datadescriptorfk": 538 },
+    { "text": "외부온도",    "datadescriptorfk": 546 },
+    { "text": "음수량",      "datadescriptorfk": 610 },
+    { "text": "15분 음수량", "datadescriptorfk": 311 },
+    { "text": "온도센서 1",  "datadescriptorfk": 535 }
+  ],
+  "templates": [],
+  "conversions": [],
+  "units": [],
+  "orderedText": [],
+  "formats": []
+}

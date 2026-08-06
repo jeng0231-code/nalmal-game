@@ -1,0 +1,81 @@
+{
+  "_설명": "C-Central FCentral DB의 데이터 코드 → 화면 항목 번역표. 새 항목을 찾으면 여기에 추가합니다.",
+
+  "port": 8088,
+  "instance": "localhost\\FCENTRAL_EXPRESS",
+  "database": "FCentral",
+
+  "_터널_설명": "시작.bat(서버) 실행 시 외부 접속 주소(cloudflared)를 자동으로 함께 켠다.",
+  "tunnel": { "enabled": true },
+
+  "_동_설명": "controlunit 번호는 화면 동번호와 반대(3=1동). DB에서 이름(nameCode)도 읽어 검증합니다.",
+  "houses": [
+    { "controlunit": 3, "name": "1동" },
+    { "controlunit": 2, "name": "2동" },
+    { "controlunit": 1, "name": "3동" }
+  ],
+  "nameCode": 35,
+
+  "_측정값_설명": "descriptorfk = DataPlaceholder.datadescriptorfk, value = longValue*scale",
+  "measurements": [
+    { "key": "avgTemp",  "label": "평균온도",   "descriptorfk": 603, "scale": 0.01, "unit": "°C", "kind": "temp",     "decimals": 1 },
+    { "key": "humidity", "label": "습도",       "descriptorfk": 542, "scale": 1,    "unit": "%",  "kind": "humidity", "decimals": 0 },
+    { "key": "pressure", "label": "정압",       "descriptorfk": 538, "scale": 0.1,  "unit": "Pa", "kind": "pressure", "decimals": 0 },
+    { "key": "outTemp",  "label": "외부온도",   "descriptorfk": 546, "scale": 0.01, "unit": "°C", "kind": "out",      "decimals": 1 },
+    { "key": "water",    "label": "음수량",     "descriptorfk": 610, "scale": 0.01, "unit": "",   "kind": "water",    "decimals": 0 },
+    { "key": "water15",  "label": "15분음수량", "descriptorfk": 311, "scale": 1,    "unit": "",   "kind": "water",    "decimals": 0 }
+  ],
+
+  "sensors": {
+    "label": "온도센서", "descriptorfk": 535, "scale": 0.01, "unit": "°C", "decimals": 1,
+    "errorBelow": -9000
+  },
+
+  "_알람_설명": "ControlUnit.alarmText 가 아래 inactiveTexts 가 아니면 진행중 알람으로 표시",
+  "alarmInactiveTexts": ["", "ALARMS DISABLED", "NO ALARM", "NO ALARMS", "ALARM DISABLED"],
+
+  "_설정_설명": "화면 값과 대조해 확정한 설정 항목 (descriptorfk/index/scale)",
+  "settings": [
+    { "key": "setTemp",  "label": "설정온도",      "descriptorfk": 1,  "index": 1, "scale": 0.01, "unit": "°C", "kind": "settemp", "decimals": 1 },
+    { "key": "tunnelOn", "label": "터널전환온도", "descriptorfk": 21, "index": 1, "scale": 0.01, "unit": "°C", "kind": "other",   "decimals": 1 }
+  ],
+
+  "dayField": { "label": "일령", "descriptorfk": 266, "index": 1, "scale": 1 },
+
+  "_설비설정_설명": "최소환기/정압설정 등 (Current Settings · Static Pressure 화면). 동별 값.",
+  "infoRows": [
+    { "label": "최소환기 가동", "descriptorfk": 2,   "index": 1, "scale": 1,   "unit": "초" },
+    { "label": "최소환기 정지", "descriptorfk": 3,   "index": 1, "scale": 1,   "unit": "초" },
+    { "label": "정압 상한",    "descriptorfk": 337, "index": 1, "scale": 0.1, "unit": "Pa", "decimals": 0 },
+    { "label": "정압 하한",    "descriptorfk": 338, "index": 1, "scale": 0.1, "unit": "Pa", "decimals": 0 },
+    { "label": "인렛 예측",    "descriptorfk": 344, "index": 1, "scale": 1,   "unit": "초" },
+    { "label": "윈드 딜레이",  "descriptorfk": 343, "index": 1, "scale": 1,   "unit": "초" }
+  ],
+
+  "_단계_설명": "출력별 On/Off 설정온도 (Outputs and Temps). On 설정온도가 유효한 출력만 동별로 자동 표시. index1=출력번호: 18~ = 터널팬(index-17), 128~ = 히터존(index-127)",
+  "stages": {
+    "label": "환기 단계 설정온도",
+    "onDescriptorfk": 17,
+    "offDescriptorfk": 18,
+    "statusDescriptorfk": 28,
+    "runDescriptorfk": 574,
+    "runOnValues": [3, 4],
+    "_실가동_설명": "가동 판정 = 실가동(574)·릴레이(35) 결합. 두 신호가 날마다 제각각이라 100%는 불가.",
+    "relayDescriptorfk": 35,
+    "relayOnValue": 1,
+    "_runLogic_설명": "or=하나라도 켜지면 가동(도는 팬 놓침 방지·기본), and=둘 다여야(헛것 방지), relay=35만, run574=574만",
+    "runLogic": "or",
+    "scale": 0.01,
+    "decimals": 1,
+    "validMin": 1,
+    "validMax": 6000,
+    "_상태_설명": "descfk28 Timer 상태값 → 글자. 0=정지, 3=최소환기(MIN VENT), 5=순환(STIR ON)",
+    "statusText": { "0": "정지", "3": "최소환기", "5": "순환" },
+    "minVentCode": 3,
+    "groups": [
+      { "name": "터널팬", "indexFrom": 18,  "indexTo": 49,  "base": 17,  "type": "tunnel", "countAsFan": true },
+      { "name": "순환팬", "indexFrom": 50,  "indexTo": 99,  "base": 67,  "type": "stir",   "countAsFan": false },
+      { "name": "열풍기", "indexFrom": 128, "indexTo": 150, "base": 127, "type": "heater",  "countAsFan": false }
+    ]
+  }
+}
