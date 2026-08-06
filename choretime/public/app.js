@@ -146,8 +146,8 @@ function stagesSection(stages, showFan = true) {
       return `<div class="stage-row ${onCls}"><span class="stage-name">${s.name}${chip}</span><span class="stage-vals"><b>On ${on}</b> / Off ${off}</span></div>`
     })
     .join('')
-  // 배포용은 펼친 상태(open)로, 제목도 "설정"만.
-  const openAttr = showFan ? '' : ' open'
+  // 기본은 접힌 상태. 제목(요약)을 누르면 펼쳐지고 다시 누르면 접힌다.
+  const openAttr = ''
   const title = showFan ? '환기 단계 설정·상태' : '환기 단계 설정온도'
   return `<details class="stages"${openAttr}><summary>${title} (${stages.length})</summary><div class="stage-list">${rows}</div></details>`
 }

@@ -5,11 +5,11 @@
   "instance": "localhost\\FCENTRAL_EXPRESS",
   "database": "FCentral",
 
-  "_동_설명": "controlunit 번호는 화면 동번호와 반대(3=1동). DB에서 이름(nameCode)도 읽어 검증합니다.",
+  "_동_설명": "controlunit 번호 = 화면 동번호(1=1동, 2=2동, 3=3동). DB에서 이름(nameCode)도 읽어 검증합니다.",
   "houses": [
-    { "controlunit": 3, "name": "1동" },
+    { "controlunit": 1, "name": "1동" },
     { "controlunit": 2, "name": "2동" },
-    { "controlunit": 1, "name": "3동" }
+    { "controlunit": 3, "name": "3동" }
   ],
   "nameCode": 35,
 

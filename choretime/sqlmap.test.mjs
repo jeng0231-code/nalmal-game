@@ -54,62 +54,65 @@ console.log(buildSql(mapping).split('\n').slice(0, 4).join('\n'), '...\n')
 const now = new Date('2026-06-29T22:18:00').getTime()
 const st = buildStatus(ds, mapping, now)
 
-const h1 = st.houses.find((h) => h.id === '3') // 1동
-const h2 = st.houses.find((h) => h.id === '2')
-const h3 = st.houses.find((h) => h.id === '1')
+// controlunit = 화면 동번호 (1=1동, 2=2동, 3=3동).
+// 이 농장 DB는 cu3 을 'House 1' 로 부르지만, 실제 물리 동번호(농장주 기준)는 cu3=3동.
+// 설정·단계 등 풍부한 테스트 데이터는 cu3(=3동)에 들어 있다.
+const h1 = st.houses.find((h) => h.id === '1') // 1동 = cu1 (DB 'House 3')
+const h2 = st.houses.find((h) => h.id === '2') // 2동 = cu2
+const h3 = st.houses.find((h) => h.id === '3') // 3동 = cu3 (DB 'House 1', 데이터 풍부)
 
 check('동 순서 1동,2동,3동', st.houses.map((h) => h.name).join(',') === '1동,2동,3동')
-check('1동 DB이름 House 1', h1.dbName === 'House 1')
-check('1동 평균온도 24.9°C', h1.metrics.find((m) => m.kind === 'temp').value === 24.9)
-check('1동 습도 91%', h1.metrics.find((m) => m.kind === 'humidity').value === 91)
-check('1동 음수량 2700', h1.metrics.find((m) => m.kind === 'water' && m.label === '음수량').value === 2700)
-check('1동 외부온도 21.5', h1.metrics.find((m) => m.kind === 'out').value === 21.5)
-check('1동 센서 3개(미연결/0 제외)', h1.sensors.length === 3)
-check('1동 센서1 = 25.0', h1.sensors[0].value === 25.0)
+check('3동 DB이름 House 1', h3.dbName === 'House 1')
+check('3동 평균온도 24.9°C', h3.metrics.find((m) => m.kind === 'temp').value === 24.9)
+check('3동 습도 91%', h3.metrics.find((m) => m.kind === 'humidity').value === 91)
+check('3동 음수량 2700', h3.metrics.find((m) => m.kind === 'water' && m.label === '음수량').value === 2700)
+check('3동 외부온도 21.5', h3.metrics.find((m) => m.kind === 'out').value === 21.5)
+check('3동 센서 3개(미연결/0 제외)', h3.sensors.length === 3)
+check('3동 센서1 = 25.0', h3.sensors[0].value === 25.0)
 check('2동 센서 4개', h2.sensors.length === 4)
-check('3동 센서 3개(s1,s2,s6)', h3.sensors.length === 3)
-check('1동 갱신=서버시각(방금, age 0)', h1.ageSeconds === 0)
+check('1동 센서 3개(s1,s2,s6)', h1.sensors.length === 3)
+check('3동 갱신=서버시각(방금, age 0)', h3.ageSeconds === 0)
 check('활성 알람: 2동 sens.4 + 3동 POWER FAILURE = 2건', st.alarms.active.length === 2)
-check('3동(ALARMS DISABLED)은 알람 아님', !st.alarms.active.some((a) => a.house === '3동'))
-check('1동 POWER FAILURE는 활성 알람', st.alarms.active.some((a) => a.house === '1동' && /POWER/.test(a.message)))
+check('1동(ALARMS DISABLED)은 알람 아님', !st.alarms.active.some((a) => a.house === '1동'))
+check('3동 POWER FAILURE는 활성 알람', st.alarms.active.some((a) => a.house === '3동' && /POWER/.test(a.message)))
 
 // 설정·일령·단계
-check('1동 설정온도 23.5°C', h1.metrics.find((m) => m.kind === 'settemp')?.value === 23.5)
-check('1동 일령 33', h1.day === 33)
-check('1동 환기단계 12개 (터널8+순환1+열풍기3)', h1.stages.length === 12)
-check('순환팬 1 분류됨 (On 40.2)', h1.stages.some((s) => s.name === '순환팬 1' && s.type === 'stir' && s.on === 40.2))
-check('터널팬 8개', h1.stages.filter((s) => s.type === 'tunnel').length === 8)
-check('열풍기 3개', h1.stages.filter((s) => s.type === 'heater').length === 3)
-check('정체불명 출력(idx168) 제외됨', !h1.stages.some((s) => s.on === 43.3))
-const fan1 = h1.stages.find((s) => s.name === '터널팬 1')
+check('3동 설정온도 23.5°C', h3.metrics.find((m) => m.kind === 'settemp')?.value === 23.5)
+check('3동 일령 33', h3.day === 33)
+check('3동 환기단계 12개 (터널8+순환1+열풍기3)', h3.stages.length === 12)
+check('순환팬 1 분류됨 (On 40.2)', h3.stages.some((s) => s.name === '순환팬 1' && s.type === 'stir' && s.on === 40.2))
+check('터널팬 8개', h3.stages.filter((s) => s.type === 'tunnel').length === 8)
+check('열풍기 3개', h3.stages.filter((s) => s.type === 'heater').length === 3)
+check('정체불명 출력(idx168) 제외됨', !h3.stages.some((s) => s.on === 43.3))
+const fan1 = h3.stages.find((s) => s.name === '터널팬 1')
 check('터널팬1 On 32.5 / Off 32.0', fan1.on === 32.5 && fan1.off === 32.0)
-const fan8 = h1.stages.find((s) => s.name === '터널팬 8')
+const fan8 = h3.stages.find((s) => s.name === '터널팬 8')
 check('터널팬8 On 34.0 / Off 33.5', fan8.on === 34.0 && fan8.off === 33.5)
-const hz1 = h1.stages.find((s) => s.name === '열풍기 1')
+const hz1 = h3.stages.find((s) => s.name === '열풍기 1')
 check('열풍기1 On 21.0 / Off 22.5', hz1.on === 21.0 && hz1.off === 22.5)
 
 // 가동 상태 — 터널팬만 카운트(순환팬은 가동중이어도 제외)
-check('1동 가동 터널팬 1대(순환팬 제외)', h1.fansRunning === 1)
-check('터널팬4 가동중', h1.stages.find((s) => s.name === '터널팬 4').running === true)
-check('순환팬1 가동중이지만 팬수에 미포함', h1.stages.find((s) => s.name === '순환팬 1').running === true)
-check('터널팬1 정지', h1.stages.find((s) => s.name === '터널팬 1').running === false)
+check('3동 가동 터널팬 1대(순환팬 제외)', h3.fansRunning === 1)
+check('터널팬4 가동중', h3.stages.find((s) => s.name === '터널팬 4').running === true)
+check('순환팬1 가동중이지만 팬수에 미포함', h3.stages.find((s) => s.name === '순환팬 1').running === true)
+check('터널팬1 정지', h3.stages.find((s) => s.name === '터널팬 1').running === false)
 
 // 실가동(릴레이) + 최소환기 태그/갯수
-check('터널팬4 실가동(릴레이 ON)', h1.stages.find((s) => s.name === '터널팬 4').running === true)
-check('터널팬4 최소환기 태그', h1.stages.find((s) => s.name === '터널팬 4').modeTag === '최소환기')
-check('순환팬1 순환 태그·가동', h1.stages.find((s) => s.name === '순환팬 1').modeTag === '순환' && h1.stages.find((s) => s.name === '순환팬 1').running === true)
-check('터널팬1 정지(릴레이 OFF)', h1.stages.find((s) => s.name === '터널팬 1').running === false)
-check('1동 최소환기 팬 1개', h1.minVentFans === 1)
+check('터널팬4 실가동(릴레이 ON)', h3.stages.find((s) => s.name === '터널팬 4').running === true)
+check('터널팬4 최소환기 태그', h3.stages.find((s) => s.name === '터널팬 4').modeTag === '최소환기')
+check('순환팬1 순환 태그·가동', h3.stages.find((s) => s.name === '순환팬 1').modeTag === '순환' && h3.stages.find((s) => s.name === '순환팬 1').running === true)
+check('터널팬1 정지(릴레이 OFF)', h3.stages.find((s) => s.name === '터널팬 1').running === false)
+check('3동 최소환기 팬 1개', h3.minVentFans === 1)
 
 // 설비 설정
-const info = Object.fromEntries(h1.info.map((r) => [r.label, r.value]))
+const info = Object.fromEntries(h3.info.map((r) => [r.label, r.value]))
 check('최소환기 가동 20초', info['최소환기 가동'] === 20)
 check('최소환기 정지 180초', info['최소환기 정지'] === 180)
 check('인렛 16 / 윈드 7', info['인렛 예측'] === 16 && info['윈드 딜레이'] === 7)
 check('정압 상한 30 / 하한 25 (÷10)', info['정압 상한'] === 30 && info['정압 하한'] === 25)
 
 // 회귀: 가동 판정 runLogic. 574·relay 두 신호가 날마다 제각각이라 결합 방식을 mapping 에서 고를 수 있게 함.
-// 기본 or = 하나라도 켜지면 가동(실제 도는데 0 뜨는 위험 방지). controlunit 1 = 3동.
+// 기본 or = 하나라도 켜지면 가동(실제 도는데 0 뜨는 위험 방지). controlunit 1 = 1동.
 {
   const rawX = [
     [1, 17, 20, 3000], [1, 18, 20, 2950], [1, 28, 20, 0], [1, 35, 20, 1], [1, 574, 20, 4], // 팬3: 574=4·relay1
