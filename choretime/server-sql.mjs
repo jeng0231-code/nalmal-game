@@ -4,7 +4,7 @@
 
 import express from 'express'
 import { spawn } from 'node:child_process'
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import os from 'node:os'
@@ -76,7 +76,7 @@ function withFreshness(data) {
   const age = cache.at ? Math.max(0, Math.round((Date.now() - cache.at) / 1000)) : null
   const stale = age == null || age > STALE_SECONDS
   const houses = (data.houses || []).map((h) => ({ ...h, ageSeconds: age, stale }))
-  return { ...data, ageSeconds: age, stale, houses, display: mapping.display || null }
+  return { ...data, ageSeconds: age, stale, houses, display: mapping.display || null, publicUrl }
 }
 function startRefreshLoop() {
   refreshNow().then(() => {
@@ -125,8 +125,31 @@ function startPush() {
   setInterval(pushOnce, PUSH.intervalMs) // 이후 주기 반복
 }
 
+// ---- 무료 외부 주소(Cloudflare 임시 터널) : 서버가 직접 띄워 공개 URL을 잡고 화면에 배너+QR로 보여준다 ----
+// 같은 WiFi 가 아니어도 외부에서 접속 가능. cloudflared 가 폴더에 있고 tunnel 이 켜져 있을 때만 동작.
+let publicUrl = null
+function startTunnel(port) {
+  const enabled = process.env.TUNNEL === '1' || mapping.tunnel?.enabled
+  if (!enabled) return
+  const exe = join(here, process.platform === 'win32' ? 'cloudflared.exe' : 'cloudflared')
+  if (!existsSync(exe)) { console.log('   [외부주소] cloudflared 없음 → 생략 (웹공개.bat 로 받을 수 있음)'); return }
+  const run = () => {
+    const cf = spawn(exe, ['tunnel', '--url', `http://127.0.0.1:${port}`], { windowsHide: true })
+    const grab = (d) => {
+      const m = String(d).match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/i)
+      if (m && publicUrl !== m[0]) { publicUrl = m[0]; console.log(`\n   🌐 외부 접속 주소: ${publicUrl}\n`) }
+    }
+    cf.stdout.on('data', grab); cf.stderr.on('data', grab)
+    cf.on('error', (e) => console.log(`   [외부주소] 실행 오류: ${e.message}`))
+    cf.on('close', () => { publicUrl = null; setTimeout(run, 10000) }) // 끊기면 10초 후 재연결(새 주소)
+  }
+  run()
+}
+
 const app = express()
 app.use(express.static(join(here, 'public')))
+
+app.get('/api/public-url', (req, res) => res.json({ url: publicUrl }))
 
 app.get('/api/status', async (req, res) => {
   const data = await getStatus()
@@ -174,6 +197,7 @@ function startListening(port, attemptsLeft) {
     console.log('  ===========================================\n')
     startRefreshLoop()
     startPush()
+    startTunnel(port)
   })
   server.on('error', (e) => {
     if (e.code === 'EADDRINUSE' && attemptsLeft > 0) {

@@ -208,6 +208,8 @@ function generate(disc, opts = {}) {
     stages,
     // 배포용 기본값: 개별 팬 실시간 가동표시는 DB로 부정확하므로 숨긴다(설정온도는 유지).
     display: { showFanStatus: false },
+    // 배포용 기본값: 서버가 무료 외부주소(cloudflare)를 자동으로 띄워 외부에서도 접속 가능하게.
+    tunnel: { enabled: true },
   }
   return { mapping, warnings }
 }

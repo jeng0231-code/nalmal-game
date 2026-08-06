@@ -175,6 +175,7 @@ function setConn(ok, text) {
 
 let timer = null
 let DISPLAY = {} // 서버가 보내는 표시 설정(mapping.display). 배포용은 showFanStatus:false.
+let PUBLIC_URL = null // 서버가 만든 무료 외부주소(cloudflare). 있으면 QR·배너에 사용.
 async function load() {
   refreshBtn.classList.add('spin')
   try {
@@ -184,6 +185,8 @@ async function load() {
     // ?dist=1 이면 서버 설정과 무관하게 배포용 모습으로 미리보기 (사장님 실제 화면은 그대로)
     const forceDist = new URLSearchParams(location.search).has('dist')
     DISPLAY = forceDist ? { showFanStatus: false } : (data.display || {})
+    PUBLIC_URL = data.publicUrl || null
+    if (window.updatePublicBanner) window.updatePublicBanner()
 
     renderAlarms(data.alarms)
     el('houses').innerHTML = data.houses.map(houseCard).join('') || '<p>표시할 동이 없습니다. config.json 경로를 확인하세요.</p>'
@@ -241,12 +244,29 @@ schedule()
     <button class="qr-close">닫기</button></div>`
   document.body.append(btn, overlay)
   btn.addEventListener('click', () => {
-    const url = location.href
+    // 서버가 만든 외부주소가 있으면 그걸(외부 어디서나 접속), 없으면 현재 주소를 QR로.
+    const url = PUBLIC_URL || location.href
     overlay.querySelector('.qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=' + encodeURIComponent(url)
     overlay.querySelector('.qr-url').textContent = url
+    overlay.querySelector('.qr-note').innerHTML = PUBLIC_URL
+      ? '이 주소는 <b>외부 어디서나</b> 접속됩니다 (같은 WiFi 아니어도 OK).'
+      : '이 PC가 <b>외부주소</b>로 열려 있어야 폰에서 접속됩니다.'
     overlay.classList.remove('hidden')
   })
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay || e.target.classList.contains('qr-close')) overlay.classList.add('hidden')
   })
+
+  // 상단 배너: 외부주소가 잡히면 표시(복사 가능)
+  const banner = document.createElement('div'); banner.className = 'pub-banner hidden'
+  document.body.appendChild(banner)
+  const bstyle = document.createElement('style'); bstyle.textContent = `
+    .pub-banner{position:sticky;top:0;z-index:40;background:#065f46;color:#d1fae5;padding:8px 12px;font-size:13px;text-align:center;cursor:pointer}
+    .pub-banner.hidden{display:none} .pub-banner b{color:#fff}`
+  document.head.appendChild(bstyle)
+  window.updatePublicBanner = () => {
+    if (PUBLIC_URL) { banner.innerHTML = `🌐 외부 접속 주소(복사): <b>${PUBLIC_URL}</b> · 📱버튼으로 QR`; banner.classList.remove('hidden') }
+    else banner.classList.add('hidden')
+  }
+  banner.addEventListener('click', () => { if (PUBLIC_URL) navigator.clipboard?.writeText(PUBLIC_URL) })
 })()
