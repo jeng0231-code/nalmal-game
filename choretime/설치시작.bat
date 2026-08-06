@@ -7,7 +7,7 @@ echo    (reads controller info only; no writes)
 echo ============================================
 echo.
 
-echo [1/5] Installing parts (npm install)... first time takes 1-2 min
+echo [1/6] Installing parts (npm install)... first time takes 1-2 min
 call npm install
 if errorlevel 1 (
   echo.
@@ -16,30 +16,36 @@ if errorlevel 1 (
 )
 
 echo.
-echo [2/5] Backing up existing config...
+echo [2/6] Backing up existing config...
 if exist mapping.json copy /y mapping.json mapping.backup.json >nul
 
 echo.
-echo [3/5] Auto-detecting this farm's controller (reading DB)...
+echo [3/6] Auto-detecting this farm's controller (reading DB)...
 powershell -NoProfile -ExecutionPolicy Bypass -File "discover\discover.ps1"
 if not exist "discover\discovery.json" (
   echo.
   echo   [FAIL] Could not read the DB. Run this on the C-Central PC.
-  echo          If your SQL instance name differs, edit discover\discover.ps1 default.
   pause & exit /b 1
 )
 
 echo.
-echo [4/5] Generating config (mapping.json)...
+echo [4/6] Generating config (mapping.json)...
 call node "discover\build-mapping.mjs"
 
 echo.
-echo [5/5] Register this install (name / contact / address)
+echo [5/6] Downloading external-access tool (cloudflared)... first time only
+if not exist cloudflared.exe (
+  powershell -NoProfile -Command "try{[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest 'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe' -OutFile 'cloudflared.exe' -UseBasicParsing}catch{Write-Host '   (download failed; server will retry on start)'}"
+)
+
+echo.
+echo [6/6] Register this install (name / contact / address)
 call node setup.mjs
 
 echo.
 echo ============================================
 echo    Done. Starting server...
+echo    The external URL appears below in a moment.
 echo    The screen opens after the admin approves you.
 echo    Keep this window open. (stop: Ctrl + C)
 echo ============================================
