@@ -59,7 +59,7 @@ function startLicense() {
   if (!LIC.enabled) { console.log('   [라이선스] 미설정 → 잠금 없음(주인 설치)'); return }
   console.log(`   [라이선스] 서버: ${LIC.server}  기기ID: ${MACHINE_ID}`)
   licenseCheck()
-  setInterval(licenseCheck, 3 * 60 * 1000) // 3분마다 승인/중지 반영
+  setInterval(licenseCheck, 30 * 1000) // 30초마다 승인/중지 반영(승인 후 빨리 열리게)
 }
 
 const sqlPath = join(tmpdir(), 'cc_query.sql')
@@ -194,7 +194,16 @@ async function startTunnel(port) {
     const cf = spawn(exe, ['tunnel', '--url', `http://127.0.0.1:${port}`], { windowsHide: true })
     const grab = (d) => {
       const m = String(d).match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/i)
-      if (m && publicUrl !== m[0]) { publicUrl = m[0]; console.log(`\n   🌐 외부 접속 주소: ${publicUrl}\n`) }
+      if (m && publicUrl !== m[0]) {
+        publicUrl = m[0]
+        console.log(`\n   🌐 외부 접속 주소: ${publicUrl}\n`)
+        console.log('   ── 사용법 ──────────────────────────────────────────')
+        console.log('   1) 크롬·엣지 등 웹브라우저에 위 "외부 접속 주소"를 입력하면')
+        console.log('      어디서든(휴대폰·다른 PC) 볼 수 있습니다.')
+        console.log('   2) 이 검은 창은 닫지 마세요. 닫으면 외부 접속이 끊깁니다.')
+        console.log("   3) PC를 껐다 켠 뒤에는 '설치시작'이 아니라 '시작' 파일을 실행하세요.")
+        console.log('   ────────────────────────────────────────────────────\n')
+      }
     }
     cf.stdout.on('data', grab); cf.stderr.on('data', grab)
     cf.on('error', (e) => console.log(`   [외부주소] 실행 오류: ${e.message}`))
