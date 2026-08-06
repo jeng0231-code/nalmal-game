@@ -129,44 +129,57 @@ function startRefreshLoop() {
   setInterval(refreshNow, REFRESH_MS)
 }
 
-// ---- Railway 푸시 (선택) : /api/status 와 동일한 데이터를 클라우드로 주기 전송 ----
-// 기본값은 그대로 동작. 환경변수(PUSH_URL/PUSH_TOKEN/PUSH_INTERVAL_MS/PUSH_ENABLED)로 덮어쓸 수 있다.
-const PUSH = {
-  enabled: (process.env.PUSH_ENABLED ?? mapping.push?.enabled ?? 'true') !== 'false' && process.env.PUSH_ENABLED !== '0',
-  url: process.env.PUSH_URL || mapping.push?.url || 'https://web-production-8ecc.up.railway.app/api/ct2-push',
-  token: process.env.PUSH_TOKEN || mapping.push?.token || 'broiler_push_2026',
-  intervalMs: Number(process.env.PUSH_INTERVAL_MS || mapping.push?.intervalMs || 15000),
-}
+// ---- 클라우드 푸시 (선택) : /api/status 와 동일한 데이터를 여러 대상에 주기 전송 ----
+// 대상은 여러 곳(예: AI 사육 매니저 + 내 전용 뷰어)에 동시에 보낼 수 있다.
+const PUSH_ENABLED =
+  (process.env.PUSH_ENABLED ?? mapping.push?.enabled ?? 'true') !== 'false' && process.env.PUSH_ENABLED !== '0'
+const PUSH_INTERVAL_MS = Number(process.env.PUSH_INTERVAL_MS || mapping.push?.intervalMs || 15000)
 
-let pushState = { ok: null, lastAt: 0, fails: 0 }
-async function pushOnce() {
-  if (LIC.enabled && licenseState !== 'approved') return // 승인 전엔 클라우드로 전송하지 않음
+// 전송 대상 목록 구성
+const PUSH_TARGETS = []
+{
+  // ① AI 사육 매니저 (기존 기본값). PUSH_URL='' 또는 mapping.push.url='' 로 끌 수 있음.
+  const url = process.env.PUSH_URL ?? mapping.push?.url ?? 'https://web-production-8ecc.up.railway.app/api/ct2-push'
+  const token = process.env.PUSH_TOKEN || mapping.push?.token || 'broiler_push_2026'
+  if (url) PUSH_TARGETS.push({ name: 'AI매니저', url, token })
+  // ② 내 전용 Railway 뷰어 (배포 후 주소 지정: mapping.push.viewerUrl 또는 env VIEWER_PUSH_URL).
+  const vurl = process.env.VIEWER_PUSH_URL || mapping.push?.viewerUrl
+  const vtoken = process.env.VIEWER_PUSH_TOKEN || mapping.push?.viewerToken || 'ct-viewer-2026'
+  if (vurl) PUSH_TARGETS.push({ name: '내뷰어', url: vurl, token: vtoken })
+}
+// 대상별 상태(로그 도배 방지용)
+const pushState = new Map(PUSH_TARGETS.map((t) => [t.url, { ok: null, fails: 0 }]))
+
+async function pushTo(t, data) {
+  const st = pushState.get(t.url)
   try {
-    if (typeof fetch !== 'function') throw new Error('이 Node 버전엔 fetch 가 없습니다(Node 18+ 필요)')
-    const data = withFreshness(await getStatus()) // ← /api/status 와 동일한 데이터(경과시간 포함)
-    const res = await fetch(PUSH.url, {
+    const res = await fetch(t.url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: PUSH.token, data }),
+      body: JSON.stringify({ token: t.token, data }),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    if (pushState.ok !== true) console.log(`   [push] Railway 전송 성공 → ${PUSH.url}`)
-    pushState = { ok: true, lastAt: Date.now(), fails: 0 }
+    if (st.ok !== true) console.log(`   [push] ${t.name} 전송 성공 → ${t.url}`)
+    st.ok = true; st.fails = 0; st.lastAt = Date.now()
   } catch (e) {
-    pushState.fails++
-    // 처음 실패하거나 10회마다 한 번만 로그 (창이 도배되지 않게)
-    if (pushState.ok !== false || pushState.fails % 10 === 1) {
-      console.log(`   [push] 전송 실패(${pushState.fails}회): ${e.message}`)
-    }
-    pushState.ok = false
+    st.fails++
+    if (st.ok !== false || st.fails % 10 === 1) console.log(`   [push] ${t.name} 전송 실패(${st.fails}회): ${e.message}`)
+    st.ok = false
   }
 }
 
+async function pushOnce() {
+  if (LIC.enabled && licenseState !== 'approved') return // 승인 전엔 클라우드로 전송하지 않음
+  if (typeof fetch !== 'function') { console.log('   [push] 이 Node 버전엔 fetch 가 없습니다(Node 18+ 필요)'); return }
+  const data = withFreshness(await getStatus()) // ← /api/status 와 동일한 데이터(경과시간 포함)
+  for (const t of PUSH_TARGETS) pushTo(t, data)
+}
+
 function startPush() {
-  if (!PUSH.enabled || !PUSH.url) { console.log('   [push] 비활성화됨'); return }
-  console.log(`   [push] Railway 푸시 켜짐 — ${Math.round(PUSH.intervalMs / 1000)}초마다 → ${PUSH.url}`)
+  if (!PUSH_ENABLED || !PUSH_TARGETS.length) { console.log('   [push] 비활성화됨'); return }
+  console.log(`   [push] 클라우드 푸시 켜짐 — ${Math.round(PUSH_INTERVAL_MS / 1000)}초마다 → ${PUSH_TARGETS.map((t) => t.name).join(', ')}`)
   pushOnce() // 즉시 1회
-  setInterval(pushOnce, PUSH.intervalMs) // 이후 주기 반복
+  setInterval(pushOnce, PUSH_INTERVAL_MS) // 이후 주기 반복
 }
 
 // ---- 무료 외부 주소(Cloudflare 임시 터널) : 서버가 직접 띄워 공개 URL을 잡고 화면에 배너+QR로 보여준다 ----
@@ -244,8 +257,8 @@ app.get('/api/debug', async (req, res) => {
 })
 
 app.get('/api/push-status', (req, res) => res.json({
-  enabled: PUSH.enabled, url: PUSH.url, intervalMs: PUSH.intervalMs,
-  lastOk: pushState.ok, lastAt: pushState.lastAt, fails: pushState.fails,
+  enabled: PUSH_ENABLED, intervalMs: PUSH_INTERVAL_MS,
+  targets: PUSH_TARGETS.map((t) => ({ name: t.name, url: t.url, ...(pushState.get(t.url) || {}) })),
 }))
 
 function lanIp() {
