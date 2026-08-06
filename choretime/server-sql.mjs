@@ -76,7 +76,7 @@ function withFreshness(data) {
   const age = cache.at ? Math.max(0, Math.round((Date.now() - cache.at) / 1000)) : null
   const stale = age == null || age > STALE_SECONDS
   const houses = (data.houses || []).map((h) => ({ ...h, ageSeconds: age, stale }))
-  return { ...data, ageSeconds: age, stale, houses }
+  return { ...data, ageSeconds: age, stale, houses, display: mapping.display || null }
 }
 function startRefreshLoop() {
   refreshNow().then(() => {

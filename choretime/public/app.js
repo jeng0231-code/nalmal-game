@@ -71,12 +71,14 @@ function houseCard(h) {
     ? `<div class="daily">전일 ${h.dailyWater.label.replace(/\[.*\]/, '')}: <b>${fmtNum(h.dailyWater.latest.value)}</b></div>`
     : ''
 
-  const stagesHtml = h.stages && h.stages.length ? stagesSection(h.stages) : ''
+  // 배포용은 실시간 가동표시를 숨긴다(DB로는 부정확). 설정온도(환기 단계)는 유지.
+  const showFan = DISPLAY.showFanStatus !== false
+  const stagesHtml = h.stages && h.stages.length ? stagesSection(h.stages, showFan) : ''
   const infoHtml = h.info && h.info.length ? infoSection(h.info) : ''
-  const runningHtml = h.stages && h.stages.length ? runningSummary(h.stages, h.stale, h.ageSeconds) : ''
+  const runningHtml = showFan && h.stages && h.stages.length ? runningSummary(h.stages, h.stale, h.ageSeconds) : ''
   const dayBadge = h.day != null ? `<span class="day-badge">일령 ${h.day}일</span>` : ''
-  const fanBadge = h.stirOn ? `<span class="fan-badge">🌀 순환팬 가동</span>` : ''
-  const mvBadge = h.minVentFans
+  const fanBadge = showFan && h.stirOn ? `<span class="fan-badge">🌀 순환팬 가동</span>` : ''
+  const mvBadge = showFan && h.minVentFans
     ? `<span class="mv-badge">💨 최소환기 ${h.minVentFans}개</span>`
     : ''
 
@@ -133,16 +135,21 @@ function stageChipClass(s) {
   return 'st-off'
 }
 
-function stagesSection(stages) {
+function stagesSection(stages, showFan = true) {
   const rows = stages
     .map((s) => {
       const on = s.on != null ? `${s.on}°` : '—'
       const off = s.off != null ? `${s.off}°` : '—'
-      const chip = `<span class="st-chip ${stageChipClass(s)}">${s.status}</span>`
-      return `<div class="stage-row ${s.running ? 'is-on' : ''}"><span class="stage-name">${s.name} ${chip}</span><span class="stage-vals"><b>On ${on}</b> / Off ${off}</span></div>`
+      // 배포용(showFan=false)은 가동/정지 상태칩을 빼고 설정온도만 보여준다.
+      const chip = showFan ? ` <span class="st-chip ${stageChipClass(s)}">${s.status}</span>` : ''
+      const onCls = showFan && s.running ? 'is-on' : ''
+      return `<div class="stage-row ${onCls}"><span class="stage-name">${s.name}${chip}</span><span class="stage-vals"><b>On ${on}</b> / Off ${off}</span></div>`
     })
     .join('')
-  return `<details class="stages"><summary>환기 단계 설정·상태 (${stages.length})</summary><div class="stage-list">${rows}</div></details>`
+  // 배포용은 펼친 상태(open)로, 제목도 "설정"만.
+  const openAttr = showFan ? '' : ' open'
+  const title = showFan ? '환기 단계 설정·상태' : '환기 단계 설정온도'
+  return `<details class="stages"${openAttr}><summary>${title} (${stages.length})</summary><div class="stage-list">${rows}</div></details>`
 }
 
 function renderAlarms(alarms) {
@@ -167,12 +174,14 @@ function setConn(ok, text) {
 }
 
 let timer = null
+let DISPLAY = {} // 서버가 보내는 표시 설정(mapping.display). 배포용은 showFanStatus:false.
 async function load() {
   refreshBtn.classList.add('spin')
   try {
     const res = await fetch('/api/status', { cache: 'no-store' })
     if (!res.ok) throw new Error('서버 오류 ' + res.status)
     const data = await res.json()
+    DISPLAY = data.display || {}
 
     renderAlarms(data.alarms)
     el('houses').innerHTML = data.houses.map(houseCard).join('') || '<p>표시할 동이 없습니다. config.json 경로를 확인하세요.</p>'

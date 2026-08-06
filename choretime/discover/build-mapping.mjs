@@ -206,6 +206,8 @@ function generate(disc, opts = {}) {
     dayField,
     infoRows,
     stages,
+    // 배포용 기본값: 개별 팬 실시간 가동표시는 DB로 부정확하므로 숨긴다(설정온도는 유지).
+    display: { showFanStatus: false },
   }
   return { mapping, warnings }
 }
